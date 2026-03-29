@@ -18,7 +18,7 @@ const PZ = {
 
   // ── Helpers ─────────────────────────────────────────────
   emailFrom(username) {
-    return `${username.trim().toLowerCase()}@pixelzone.local`;
+    return `${username.trim().toLowerCase()}@pixelzone.gg`;
   },
 
   // ── Auth ────────────────────────────────────────────────
