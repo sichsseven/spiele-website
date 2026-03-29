@@ -87,7 +87,7 @@ header {
 .search-inp::placeholder { color: var(--text3); font-weight: 500; }
 .search-inp:focus { border-color: var(--border2); background: var(--s2); }
 
-nav { display: flex; gap: 2px; margin-left: auto; }
+nav { display: flex; gap: 2px; }
 nav a {
   font-size: 0.9rem; font-weight: 700;
   color: var(--text2); text-decoration: none;
@@ -96,6 +96,43 @@ nav a {
   cursor: pointer;
 }
 nav a:hover, nav a.active { background: var(--s2); color: var(--text); }
+
+/* ── Auth Navbar ── */
+#navAuth { margin-left: auto; flex-shrink: 0; }
+.nav-user {
+  display: flex; align-items: center; gap: 10px;
+}
+.nav-avatar {
+  font-size: 1.1rem; line-height: 1;
+}
+.nav-username {
+  font-size: 0.9rem; font-weight: 800;
+  color: var(--text); letter-spacing: -0.01em;
+  max-width: 130px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.nav-logout-btn {
+  background: var(--s2); border: 1px solid var(--border);
+  color: var(--text2); border-radius: 8px;
+  padding: 7px 14px; font-family: 'Nunito', sans-serif;
+  font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.nav-logout-btn:hover { background: var(--s3); color: var(--text); }
+.nav-login-btn {
+  display: inline-flex; align-items: center;
+  background: var(--accent); color: #fff;
+  border-radius: 9px; padding: 9px 20px;
+  font-size: 0.88rem; font-weight: 800;
+  text-decoration: none; letter-spacing: 0.01em;
+  transition: background .15s, transform .15s, box-shadow .15s;
+  white-space: nowrap;
+}
+.nav-login-btn:hover {
+  background: var(--accent-h);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px var(--glow);
+}
 
 /* ═══════════════════════════════════
    HERO
@@ -701,6 +738,9 @@ footer {
     <a onclick="filterCat('action')">Action</a>
     <a onclick="filterCat('puzzle')">Puzzle</a>
   </nav>
+
+  <!-- Auth: gefüllt durch auth.js -->
+  <div id="navAuth"><a href="login.html" class="nav-login-btn">Anmelden</a></div>
 </header>
 
 <main>
@@ -1028,6 +1068,16 @@ function filterCards(q, cat) {
 
 // Init featured span
 window.addEventListener('resize', () => filterCards('', activeCat));
+</script>
+
+<!-- Supabase + Auth -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+<script>
+  // Auth-Navbar beim Laden füllen
+  document.addEventListener('DOMContentLoaded', () => {
+    PZ.updateNavbar();
+  });
 </script>
 </body>
 </html>
