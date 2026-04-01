@@ -200,7 +200,7 @@ main { padding-top: 64px; }
 .play-circle svg { margin-left: 4px; }
 
 /* Thumbnail-Hintergründe — helle Pastellfarben */
-.t-doodle  { background: linear-gradient(145deg, #e2f5e2 0%, #c8eccc 100%); }
+.t-pixel   { background: linear-gradient(145deg, #e2f5e2 0%, #c8eccc 100%); }
 .t-space   { background: linear-gradient(145deg, #e4eaff 0%, #cfd8ff 100%); }
 .t-block   { background: linear-gradient(145deg, #dff0ff 0%, #c6e4ff 100%); }
 .t-memory  { background: linear-gradient(145deg, #f0e6ff 0%, #e2d0ff 100%); }
@@ -208,7 +208,7 @@ main { padding-top: 64px; }
 .t-runner  { background: linear-gradient(145deg, #dff8f2 0%, #c4f0e6 100%); }
 
 /* Dekorative Elemente auf den Thumbnails */
-.t-doodle::before {
+.t-pixel::before {
   content: '';
   position: absolute; left: 0; right: 0;
   height: 4px; border-radius: 2px;
