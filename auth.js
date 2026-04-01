@@ -124,38 +124,49 @@ const PZ = {
   // ── Spielstände ─────────────────────────────────────────
 
   /**
-   * Spielstand speichern (Upsert — überschreibt nur wenn punkte HÖHER).
-   * @param {string} spielName  z.B. 'doodle-jump', 'blockfall'
-   * @param {number} punkte
-   * @param {number} level
-   * @param {object} extraDaten  Beliebige Zusatzdaten als JSON
-   * @returns {{ error?: string }}
+   * Spielstand + alle Spieldaten speichern.
+   * Highscore (punkte) wird nur aktualisiert wenn der neue Wert HÖHER ist.
+   * extra_daten (Coins, Skins, Upgrades usw.) wird IMMER gespeichert.
+   * @param {string} spielName  z.B. 'space-blaster', 'blockfall'
+   * @param {number} punkte     Punktzahl dieser Runde
+   * @param {number} level      Level dieser Runde
+   * @param {object} extraDaten Coins, Skins, Upgrades etc. als JSON
+   * @returns {{ error?: string, isNewRecord?: boolean }}
    */
-  async saveScore(spielName, punkte, level = 1, extraDaten = {}) {
+  async saveGameData(spielName, punkte, level = 1, extraDaten = {}) {
     const user = await this.getUser();
     if (!user) return { error: 'Nicht eingeloggt.' };
 
-    // Nur speichern wenn besser als bisheriger Rekord
     const existing = await this.loadScore(spielName);
-    if (existing && existing.punkte >= punkte) {
-      return { skipped: true }; // nicht schlechter speichern
-    }
+    const isNewRecord = !existing || punkte > (existing.punkte || 0);
+
+    // Highscore nur anheben, nie senken
+    const finalPunkte = isNewRecord ? punkte : (existing?.punkte || 0);
+    const finalLevel  = isNewRecord ? level  : (existing?.level  || level);
 
     const { error } = await this.db
       .from('spielstaende')
       .upsert(
         {
-          user_id: user.id,
-          spiel_name: spielName,
-          punkte,
-          level,
+          user_id:     user.id,
+          spiel_name:  spielName,
+          punkte:      finalPunkte,
+          level:       finalLevel,
           extra_daten: extraDaten,
-          updated_at: new Date().toISOString(),
+          updated_at:  new Date().toISOString(),
         },
         { onConflict: 'user_id,spiel_name' }
       );
 
-    return { error: error?.message };
+    return { error: error?.message, isNewRecord };
+  },
+
+  /**
+   * Spielstand speichern (Upsert — überschreibt nur wenn punkte HÖHER).
+   * @deprecated Bitte saveGameData() verwenden.
+   */
+  async saveScore(spielName, punkte, level = 1, extraDaten = {}) {
+    return this.saveGameData(spielName, punkte, level, extraDaten);
   },
 
   /**

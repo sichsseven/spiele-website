@@ -114,7 +114,7 @@ input[type=text]{font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;f
   <div class="scr bg" id="sMenu">
     <div class="ttl">Doodle Jump!</div>
     <div class="sub">Springe so hoch wie möglich!</div>
-    <button class="btn btn-g" onclick="goTo('sName')">SPIELEN &#9654;</button>
+    <button class="btn btn-g" onclick="startGame()">SPIELEN &#9654;</button>
     <button class="btn btn-b" onclick="goTo('sShop')">SHOP &#127912;</button>
     <button class="btn btn-b" onclick="goTo('sLB')">RANGLISTE &#127942;</button>
   </div>
@@ -153,7 +153,6 @@ input[type=text]{font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;f
     <div id="lbl"></div>
     <div style="display:flex;gap:8px;margin-top:clamp(10px,2vw,16px);">
       <button class="btn btn-b" onclick="goTo('sMenu')">Zurück</button>
-      <button class="btn btn-r" onclick="resetLB()" style="font-size:clamp(9px,1.8vw,12px);min-width:clamp(80px,18vw,120px);">Reset</button>
     </div>
   </div>
 
@@ -162,12 +161,17 @@ input[type=text]{font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;f
     <div class="ovt">Game Over!</div>
     <div class="nbst h" id="nbst">&#11088; Neuer Highscore!</div>
     <div class="ovi" id="ovi"></div>
+    <div id="login-hint" style="display:none;font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;font-size:clamp(11px,2vw,14px);color:#888;margin-bottom:8px;">
+      <a href="../../login.html" style="color:#5a9a3a;font-weight:700;text-decoration:none;">🔒 Anmelden</a> um Fortschritt zu speichern
+    </div>
     <button class="btn btn-g" onclick="startGame()">Nochmal!</button>
     <button class="btn btn-b" onclick="goTo('sLB')">Rangliste &#127942;</button>
     <button class="btn btn-b" onclick="goTo('sMenu')">Menü</button>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../auth.js"></script>
 <script>
 window.onerror=function(msg,src,line,col,err){
   console.error('Game error:',msg,'line:',line,err);
@@ -175,31 +179,30 @@ window.onerror=function(msg,src,line,col,err){
 };
 window.onunhandledrejection=function(e){console.warn('Unhandled promise:',e.reason);};
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-var BIN_ID='69c57daec3097a1dd5631f72';
-var BIN_KEY='$2a$10$xwN4exdBlvLZoIzDDvZClewvqjRkJpa7/onN2TbkOAOXoRWqdg0yu';
-var BIN_URL='https://api.jsonbin.io/v3/b/'+BIN_ID;
 var isTouchDevice=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 
 // ── STORAGE ───────────────────────────────────────────────────────────────────
 function loadPD(){try{return JSON.parse(localStorage.getItem('dj2_pd')||'null')||{coins:0,owned:[0],sel:0,name:''};}catch(e){return{coins:0,owned:[0],sel:0,name:''};}}
 function savePD(d){try{localStorage.setItem('dj2_pd',JSON.stringify(d));}catch(e){}}
-function loadLBLocal(){try{return JSON.parse(localStorage.getItem('dj2_lb')||'[]');}catch(e){return[];}}
-function saveLBLocal(d){try{localStorage.setItem('dj2_lb',JSON.stringify(d));}catch(e){}}
-function withTO(p,ms){return Promise.race([p,new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'));},ms);})]);}
-function loadLB(){
-  return withTO(
-    fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':BIN_KEY}})
-      .then(function(r){return r.json();})
-      .then(function(data){var lb=data.record;if(!Array.isArray(lb))lb=[];saveLBLocal(lb);return lb;}),
-    3000
-  ).catch(function(){return loadLBLocal();});
-}
-function saveLB(d){
-  saveLBLocal(d);
-  return withTO(
-    fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':BIN_KEY},body:JSON.stringify(d)}),
-    3000
-  ).catch(function(){});
+
+// SPIELERDATEN AUS SUPABASE LADEN
+async function initPlayer(){
+  try{
+    var username=await PZ.currentUsername();
+    if(username)playerName=username;
+    var data=await PZ.loadScore('doodle-jump');
+    if(data&&data.extra_daten){
+      pd.coins   =data.extra_daten.coins   ||0;
+      pd.owned   =data.extra_daten.owned   ||[0];
+      pd.sel     =data.extra_daten.sel     ||0;
+      pd.upgrades=data.extra_daten.upgrades||{};
+      if(username)pd.name=username;
+    }else if(username){
+      pd.name=username;
+    }
+    savePD(pd);
+  }catch(e){}
+  var sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;
 }
 
 // ── CANVAS ────────────────────────────────────────────────────────────────────
@@ -937,7 +940,7 @@ function updateHUD(){
 
 // ── GAME FLOW ─────────────────────────────────────────────────────────────────
 function startGame(){
-  var n=document.getElementById('ni').value.trim()||'Spieler';
+  var n=pd.name||playerName||'Spieler';
   playerName=n;pd=loadPD();pd.name=n;savePD(pd);
   document.querySelectorAll('.scr').forEach(function(s){s.classList.add('h');});
   document.getElementById('hud').classList.remove('h');
@@ -954,23 +957,24 @@ function endGame(){
   document.getElementById('hud').classList.add('h');
   document.getElementById('tctrls').classList.remove('on');
   touchDir=0;
-  // Show over screen immediately
   document.getElementById('nbst').classList.add('h');
   document.getElementById('ovi').innerHTML='Score: <b>'+score+'</b><br>Münzen: <b>+'+sesCo+'</b><br>Gesamt: <b>'+pd.coins+'</b><br>Rang: <b>...</b>';
   goTo('sOver');
-  // Update LB in background
-  loadLB().then(function(lb){
-    var ex=null;
-    for(var i=0;i<lb.length;i++)if(lb[i].name===playerName){ex=lb[i];break;}
-    var isNew=false;
-    if(!ex){lb.push({name:playerName,score:score,char:pd.sel||0});isNew=true;}
-    else if(score>ex.score){ex.score=score;ex.char=pd.sel||0;isNew=true;}
-    lb.sort(function(a,b){return b.score-a.score;});
-    saveLB(lb.slice(0,20));
-    var rank=0;for(var ri=0;ri<lb.length;ri++)if(lb[ri].name===playerName){rank=ri+1;break;}
-    if(isNew)document.getElementById('nbst').classList.remove('h');
-    document.getElementById('ovi').innerHTML='Score: <b>'+score+'</b><br>Münzen: <b>+'+sesCo+'</b><br>Gesamt: <b>'+pd.coins+'</b><br>Rang: <b>#'+rank+'</b>';
-  }).catch(function(){});
+  // Supabase speichern + Rang ermitteln
+  if(typeof PZ!=='undefined'){
+    PZ.saveGameData('doodle-jump',score,1,{coins:pd.coins,owned:pd.owned||[0],sel:pd.sel||0,upgrades:pd.upgrades||{}})
+      .then(function(res){if(res&&res.isNewRecord)document.getElementById('nbst').classList.remove('h');})
+      .catch(function(){});
+    PZ.getLeaderboard('doodle-jump').then(function(lb){
+      var rank=0;
+      for(var ri=0;ri<lb.length;ri++){if(lb[ri].benutzername===playerName){rank=ri+1;break;}}
+      document.getElementById('ovi').innerHTML='Score: <b>'+score+'</b><br>Münzen: <b>+'+sesCo+'</b><br>Gesamt: <b>'+pd.coins+'</b><br>Rang: <b>'+(rank?'#'+rank:'–')+'</b>';
+    }).catch(function(){});
+    PZ.getUser().then(function(u){
+      var hint=document.getElementById('login-hint');
+      if(hint)hint.style.display=u?'none':'flex';
+    }).catch(function(){});
+  }
 }
 
 // ── SCREENS ───────────────────────────────────────────────────────────────────
@@ -1100,22 +1104,21 @@ function redeemCode(){
 function renderLB(){
   var el=document.getElementById('lbl');
   el.innerHTML='<div style="font-family:\'Comic Sans MS\',cursive;color:#aaa;font-size:clamp(11px,2vw,14px);text-align:center;padding:20px;">Wird geladen...</div>';
-  loadLB().then(function(lb){
-    if(!lb.length){el.innerHTML='<div style="font-family:\'Comic Sans MS\',cursive;color:#aaa;font-size:12px;text-align:center;padding:20px;">Noch keine Einträge</div>';return;}
+  PZ.getLeaderboard('doodle-jump').then(function(lb){
+    if(!lb||!lb.length){el.innerHTML='<div style="font-family:\'Comic Sans MS\',cursive;color:#aaa;font-size:12px;text-align:center;padding:20px;">Noch keine Einträge</div>';return;}
     var medals=['🥇','🥈','🥉'];
     el.innerHTML=lb.slice(0,15).map(function(e,i){
+      var charIdx=0;
       var r=medals[i]||('#'+(i+1));
-      var bg=CHARS[e.char||0].body;
+      var bg=CHARS[charIdx].body;
       return '<div class="lbr"><span class="lbrk">'+r+'</span>'+
         '<span style="display:inline-block;width:clamp(18px,3.5vw,24px);height:clamp(18px,3.5vw,24px);border-radius:50%;background:'+bg+';flex-shrink:0;border:1px solid rgba(0,0,0,0.15)"></span>'+
-        '<span class="lbnm">'+(e.name||'???').slice(0,12)+'</span>'+
-        '<span class="lbsc">'+e.score+'</span></div>';
+        '<span class="lbnm">'+(e.benutzername||'???').slice(0,12)+'</span>'+
+        '<span class="lbsc">'+(e.punkte||0)+'</span></div>';
     }).join('');
   }).catch(function(){el.innerHTML='<div style="color:#bf3a3a;font-size:12px;text-align:center;padding:20px;">Fehler beim Laden</div>';});
 }
-function resetLB(){
-  if(confirm('Rangliste wirklich löschen?')){saveLB([]).then(function(){renderLB();});}
-}
+function resetLB(){} // Nicht mehr verfügbar mit Supabase
 
 // ── INPUT ─────────────────────────────────────────────────────────────────────
 var keys={};
@@ -1165,6 +1168,7 @@ if(isTouchDevice){
 ctx.fillStyle='#c8e8ff';ctx.fillRect(0,0,CW,CH);
 drawChar(ctx,0,CW/2-20,CH/2-60,40,false);
 goTo('sMenu');
+if(typeof PZ!=='undefined')initPlayer();
 </script>
 </body>
 </html>

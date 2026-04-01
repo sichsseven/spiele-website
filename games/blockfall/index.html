@@ -127,10 +127,9 @@ input.name-inp:focus{border-color:var(--accent)}
     <div class="result-row"><span class="rl">Reihen</span><span class="rv" id="res-lines">0</span></div>
     <div class="result-row"><span class="rl">Münzen verdient</span><span class="rv" id="res-coins">0</span></div>
   </div>
-  <div class="name-wrap" id="name-wrap">
-    <div class="name-label">Name für Rangliste</div>
-    <input class="name-inp" id="name-inp" maxlength="12" placeholder="DEIN NAME"/>
-    <button class="btn btn-primary" onclick="submitScore()">Eintragen</button>
+  <div id="login-hint" style="display:none;flex-direction:column;align-items:center;gap:8px;margin-bottom:14px;">
+    <div style="font-size:0.78rem;font-weight:700;color:var(--text3);">Score wird nicht gespeichert</div>
+    <a href="../../login.html" class="btn btn-secondary" style="text-decoration:none;">🔒 Anmelden um Score zu speichern</a>
   </div>
   <div class="btn-row">
     <button class="btn btn-primary" onclick="startGame()">Nochmal</button>
@@ -152,18 +151,25 @@ input.name-inp:focus{border-color:var(--accent)}
   <button class="btn btn-secondary" onclick="showScreen('title-screen')">← Zurück</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../auth.js"></script>
 <script>
-var BIN_ID='69c8fa74ed015c742bc8e416';
-var BIN_KEY='$2a$10$xwN4exdBlvLZoIzDDvZClewvqjRkJpa7/onN2TbkOAOXoRWqdg0yu';
-var BIN_URL='https://api.jsonbin.io/v3/b/'+BIN_ID;
-
+// LOKALER SPEICHER (Fallback)
 function loadData(){try{return JSON.parse(localStorage.getItem('blockfall_data')||'null')||{coins:0,owned:[0],sel:0};}catch(e){return{coins:0,owned:[0],sel:0};}}
 function saveData(d){try{localStorage.setItem('blockfall_data',JSON.stringify(d));}catch(e){}}
-function loadLBLocal(){try{return JSON.parse(localStorage.getItem('blockfall_lb')||'[]');}catch(e){return[];}}
-function saveLBLocal(d){try{localStorage.setItem('blockfall_lb',JSON.stringify(d));}catch(e){}}
-function withTO(p,ms){return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('to')),ms))]);}
-function fetchLB(){return withTO(fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':BIN_KEY}}).then(r=>r.json()).then(d=>{var lb=d.record;if(!Array.isArray(lb))lb=[];saveLBLocal(lb);return lb;}),4000).catch(()=>loadLBLocal());}
-function saveLBEntry(name,score){var lb=loadLBLocal();lb.push({name:name.toUpperCase().slice(0,12),score});lb.sort((a,b)=>b.score-a.score);lb=lb.slice(0,10);saveLBLocal(lb);withTO(fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':BIN_KEY},body:JSON.stringify(lb)}),4000).catch(()=>{});}
+
+// SPIELERDATEN AUS SUPABASE LADEN
+async function initPlayer(){
+  try{
+    var data=await PZ.loadScore('blockfall');
+    if(data&&data.extra_daten){
+      pdata.coins=data.extra_daten.coins||0;
+      pdata.owned=data.extra_daten.owned||[0];
+      pdata.sel  =data.extra_daten.sel  ||0;
+    }
+  }catch(e){}
+  updateCoinDisplay();
+}
 
 var THEMES=[
   {name:'Neon',price:0,colors:['#22d3ee','#f472b6','#fbbf24','#4ade80','#f97316','#a78bfa','#f0f0f4']},
@@ -192,7 +198,7 @@ var comboCount=0,btbTetris=false;
 
 function updateCoinDisplay(){document.getElementById('coin-total').textContent=pdata.coins;}
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');}
-function showLB(){showScreen('lb-screen');fetchLB().then(renderLB);}
+function showLB(){showScreen('lb-screen');document.getElementById('lb-content').innerHTML='<div style="color:var(--text3);font-size:0.85rem;padding:20px;text-align:center;">Lade...</div>';PZ.getLeaderboard('blockfall').then(renderLB).catch(()=>renderLB([]));}
 function showShop(){showScreen('shop-screen');renderShopUI();}
 
 function emptyBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(0));}
@@ -392,23 +398,23 @@ function announce(text){
 function endGame(){
   running=false;clearInterval(dropTimer);
   pdata.coins+=gameCoins;saveData(pdata);updateCoinDisplay();
+  // Supabase speichern (asynchron)
+  if(typeof PZ!=='undefined'){
+    PZ.saveGameData('blockfall',score,level,{coins:pdata.coins,owned:pdata.owned,sel:pdata.sel}).catch(()=>{});
+    PZ.getUser().then(u=>{var h=document.getElementById('login-hint');if(h)h.style.display=u?'none':'flex';}).catch(()=>{});
+  }
   document.getElementById('res-score').textContent=score;
   document.getElementById('res-level').textContent=level;
   document.getElementById('res-lines').textContent=lines;
   document.getElementById('res-coins').textContent=gameCoins;
-  var lb=loadLBLocal();
-  var top10=lb.length<10||score>(lb[lb.length-1]||{score:0}).score;
-  document.getElementById('name-wrap').style.display=top10&&score>0?'flex':'none';
   showScreen('gameover-screen');
 }
-
-function submitScore(){var name=document.getElementById('name-inp').value.trim()||'AAA';saveLBEntry(name,score);document.getElementById('name-wrap').style.display='none';}
 
 function renderLB(lb){
   var m=['🥇','🥈','🥉'];
   var h='<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Punkte</th></tr></thead><tbody>';
-  if(!lb.length||lb.every(e=>e.score===0))h+='<tr><td colspan="3" class="lb-empty">Noch keine Einträge</td></tr>';
-  else lb.filter(e=>e.score>0).forEach((e,i)=>{h+='<tr><td class="lb-rank '+(i<3?['g','s','b'][i]:'')+'">'+(m[i]||i+1)+'</td><td class="lb-name">'+e.name+'</td><td class="lb-score">'+e.score+'</td></tr>';});
+  if(!lb||!lb.length)h+='<tr><td colspan="3" class="lb-empty">Noch keine Einträge</td></tr>';
+  else lb.forEach((e,i)=>{h+='<tr><td class="lb-rank '+(i<3?['g','s','b'][i]:'')+'">'+(m[i]||i+1)+'</td><td class="lb-name">'+(e.benutzername||e.name||'?')+'</td><td class="lb-score">'+(e.punkte||0)+'</td></tr>';});
   h+='</tbody></table>';document.getElementById('lb-content').innerHTML=h;
 }
 
@@ -451,6 +457,7 @@ document.addEventListener('keyup',function(e){if(e.key===dasKey){dasKey=null;cle
 function move(dx){if(!running)return;if(!collides(cur.shape,curX+dx,curY)){curX+=dx;drawAll();}}
 
 updateCoinDisplay();
+if(typeof PZ!=='undefined')initPlayer();
 </script>
 </body>
 </html>
