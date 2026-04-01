@@ -20,8 +20,23 @@
 - style.css: alle ungenutzten Sektionen bereinigt (~340 Zeilen entfernt)
 - Commit `1d6d59a` gepusht
 
+### Supabase-Datensynchronisation (2026-04-01)
+- auth.js: neue `saveGameData()` Funktion — Highscore nur bei Verbesserung, extra_daten immer
+- Alle 6 Spiele: JSONBin entfernt, Supabase eingebunden
+- Alle 6 Spiele: `initPlayer()` lädt Coins/Skins/Upgrades aus Supabase beim Start
+- Alle 6 Spiele: `endGame()` speichert via `PZ.saveGameData()` (asynchron, nicht-blockierend)
+- Alle 6 Spiele: Rangliste aus `PZ.getLeaderboard()`
+- Alle 6 Spiele: Namenseingabe entfernt — Benutzername kommt vom Login
+- Alle 6 Spiele: Login-Hinweis bei Game Over wenn nicht angemeldet
+- Doodle Jump: Upgrades in extra_daten, direkter Spielstart ohne Name-Screen
+- Neon Runner: bestDist in extra_daten
+- Commit `5901f9f` gepusht
+
+**Voraussetzung Supabase:** Die RPC-Funktion `get_leaderboard(p_spiel, p_limit)` muss in der Supabase-Datenbank existieren und die Felder `benutzername` + `punkte` zurückgeben.
+
 ### Was als nächstes zu tun ist
-- Spieldateien in `index.html` + `game.js` + `style.css` aufteilen (ausstehendes CLAUDE.md-Ziel)
+- Supabase: `get_leaderboard` RPC-Funktion prüfen/anlegen falls noch nicht vorhanden
+- Spieldateien in `index.html` + `game.js` + `style.css` aufteilen (CLAUDE.md-Ziel)
 - Neues Spiel hinzufügen (Snake steht noch aus)
 
 ### Veränderte Dateien
