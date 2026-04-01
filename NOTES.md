@@ -48,25 +48,40 @@
 
 **Supabase `get_leaderboard` RPC:** Bereits in `supabase/migrations/20260101000000_initial.sql` definiert und deployed. Kein weiterer Handlungsbedarf.
 
+- Modal-Leiste (schwarze Leiste mit PIXELZONE + Schließen) entfernt
+- Spiele öffnen jetzt direkt per `window.location.href` statt im iframe-Modal
+- Browser-Zurück-Button funktioniert wieder normal
+- ESC-Handler für Modal entfernt
+- Pixel Jump: Touch-Steuerungs-Buttons unsichtbar gemacht (aber weiterhin funktional)
+- **Feedback-Button** zur Startseite hinzugefügt:
+  - Fester Button unten rechts mit Sprechblasen-Icon
+  - Modal mit Kategorie, Nachricht, Spiel-Dropdown (bei Bug), Screenshot-Upload (Drag & Drop, JPG/PNG)
+  - Benutzername/User-ID automatisch aus Login
+  - Screenshots in Supabase Storage (`feedback-screenshots`)
+  - Feedback in neuer Supabase-Tabelle `feedback`
+  - Erfolgsbestätigung + Auto-Close nach 2 Sekunden
+
+### ⚠️ Supabase-Migration manuell anwenden
+Die Datei `supabase/migrations/20260402000001_feedback.sql` muss noch im Supabase Dashboard ausgeführt werden:
+1. Supabase Dashboard öffnen → SQL-Editor
+2. Inhalt der Datei einfügen und ausführen
+3. Danach auch den Storage-Bucket `feedback-screenshots` prüfen (wird durch die Migration angelegt)
+
 ### Was als nächstes zu tun ist
+- Supabase-Migration `20260402000001_feedback.sql` manuell anwenden (SQL-Editor im Dashboard)
 - Neues Spiel hinzufügen (nach Bedarf)
 
 ### Veränderte Dateien (2026-04-02)
-- `index.html` — Pixel Jump statt Doodle Jump, CSS-Klasse `.t-pixel`
-- `style.css` — `.t-doodle` → `.t-pixel`
-- `login.html` — komplett neues helles Design
+- `index.html` — Pixel Jump, kein Modal mehr, Feedback-Button + Modal + JS
+- `style.css` — `.t-pixel`, kein Modal-CSS, Feedback-CSS hinzugefügt
+- `login.html` — helles Design
 - `games/pixel-jump/` — umbenannt aus `games/doodle-jump/`
-- `games/pixel-jump/index.html` — Titel + spiel_name auf `pixel-jump`
-- `games/pixel-jump/style.css` — neu extrahiert
-- `games/pixel-jump/game.js` — neu extrahiert
-- `games/space-blaster/style.css` — neu extrahiert
-- `games/space-blaster/game.js` — neu extrahiert
-- `games/blockfall/style.css` — neu extrahiert
-- `games/blockfall/game.js` — neu extrahiert
-- `games/memory-match/style.css` — neu extrahiert
-- `games/memory-match/game.js` — neu extrahiert
-- `games/arkanoid/style.css` — neu extrahiert
-- `games/arkanoid/game.js` — neu extrahiert
-- `games/neon-runner/style.css` — neu extrahiert
-- `games/neon-runner/game.js` — neu extrahiert
+- `games/pixel-jump/style.css` — Touch-Buttons unsichtbar, extrahiert
+- `games/pixel-jump/game.js` — extrahiert
+- `games/space-blaster/style.css`, `game.js` — extrahiert
+- `games/blockfall/style.css`, `game.js` — extrahiert
+- `games/memory-match/style.css`, `game.js` — extrahiert
+- `games/arkanoid/style.css`, `game.js` — extrahiert
+- `games/neon-runner/style.css`, `game.js` — extrahiert
+- `supabase/migrations/20260402000001_feedback.sql` — neu (manuell anwenden!)
 - `NOTES.md` — aktualisiert
