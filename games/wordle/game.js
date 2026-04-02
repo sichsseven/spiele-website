@@ -275,9 +275,9 @@ async function bestaetigen() {
     return;
   }
 
-  // Prüfen ob Wort in der Liste
-  if (!WOERTER.includes(eingabe)) {
-    meldungAnzeigen('Unbekanntes Wort');
+  // Nur Buchstaben (inkl. Umlaute) erlaubt
+  if (!/^[A-ZÄÖÜ]{5}$/.test(eingabe)) {
+    meldungAnzeigen('Nur Buchstaben erlaubt');
     reiheSchütteln(versuche.length);
     return;
   }
