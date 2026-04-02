@@ -150,6 +150,18 @@ function draw() {
   gegnerZeichnen();
   if (bossWave) bossZeichnen();
   spielerZeichnen();
+
+  // Shot-Level über dem Spieler anzeigen
+  if (player && player.shotLevel > 1) {
+    ctx.save();
+    ctx.fillStyle    = 'rgba(58,170,255,.85)';
+    ctx.font         = '700 11px Nunito, sans-serif';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`×${player.shotLevel}`, player.x, player.y - player.h / 2 - 4);
+    ctx.restore();
+  }
+
   bannerZeichnen();
 }
 
@@ -935,7 +947,28 @@ function pwTimerHTML(label, color, verbleibend, gesamt) {
   </div>`;
 }
 
-function hudAktualisieren() {}
+// ── HUD aktualisieren ─────────────────────────────────────────────────────────
+function hudAktualisieren() {
+  const scoreEl = document.getElementById('hud-score');
+  const waveEl  = document.getElementById('hud-wave');
+  const coinsEl = document.getElementById('hud-coins');
+  const livesEl = document.getElementById('hud-lives-icons');
+
+  if (scoreEl) scoreEl.textContent = score;
+  if (waveEl)  waveEl.textContent  = wave;
+  if (coinsEl) coinsEl.textContent = gameCoins;
+
+  // Leben als Raumschiff-Symbole (zeigt auch mehr als 3)
+  if (livesEl) {
+    let html = '';
+    for (let i = 0; i < Math.max(lives, 0); i++) {
+      html += `<svg class="life-icon" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="7,1 12,13 9.5,10.5 4.5,10.5 2,13" fill="#3af"/>
+      </svg>`;
+    }
+    livesEl.innerHTML = html;
+  }
+}
 function rangliste_zeigen() { screenZeigen('screen-lb'); }
 function shop_zeigen()      { screenZeigen('screen-shop'); }
 function spielEnde()        { running = false; if (loopId) cancelAnimationFrame(loopId); screenZeigen('screen-gameover'); }
