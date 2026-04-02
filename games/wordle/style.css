@@ -13,6 +13,15 @@
   --tile-filled: #878a8c;
   --key-bg:     #d3d6da;
   --text:       #1a1a2e;
+  --text-secondary: #555;
+  --text-muted:     #888;
+  --text-faint:     #999;
+  --text-sub:       #444;
+  --text-label:     #666;
+  --text-board:     #333;
+  --primary-hover:  #2a6fd6;
+  --danger-bg:      #fee;
+  --danger-text:    #c0392b;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -71,8 +80,8 @@ header {
 .nav-username { font-weight: 700; }
 .nav-logout-btn {
   padding: .35rem .8rem;
-  background: #fee;
-  color: #c0392b;
+  background: var(--danger-bg);
+  color: var(--danger-text);
   border: none;
   border-radius: 6px;
   font-family: 'Nunito', sans-serif;
@@ -222,6 +231,10 @@ h1.spiel-titel {
   -webkit-tap-highlight-color: transparent;
 }
 .taste:active { transform: scale(.93); }
+.taste:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
 .taste.breit { min-width: 52px; font-size: .8rem; }
 
 /* Tastatur-Farben */
@@ -265,7 +278,7 @@ h1.spiel-titel {
 #endscreen-untertitel {
   text-align: center;
   font-size: .95rem;
-  color: #555;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -282,13 +295,13 @@ h1.spiel-titel {
   padding: .6rem .25rem;
 }
 .stat-zahl  { font-size: 1.6rem; font-weight: 900; }
-.stat-label { font-size: .6rem; font-weight: 700; color: #666; line-height: 1.3; }
+.stat-label { font-size: .6rem; font-weight: 700; color: var(--text-label); line-height: 1.3; }
 
 /* Versuchsverteilung */
 .verteilung-titel {
   font-size: .8rem;
   font-weight: 800;
-  color: #444;
+  color: var(--text-sub);
   text-transform: uppercase;
   letter-spacing: .05em;
 }
@@ -321,7 +334,7 @@ h1.spiel-titel {
 .rangliste-titel {
   font-size: .85rem;
   font-weight: 800;
-  color: #333;
+  color: var(--text-board);
   border-bottom: 2px solid var(--bg);
   padding-bottom: .4rem;
 }
@@ -335,7 +348,7 @@ h1.spiel-titel {
   border-radius: 6px;
 }
 .rang-eintrag:nth-child(odd) { background: var(--bg); }
-.rang-num    { font-weight: 900; width: 18px; text-align: center; color: #999; }
+.rang-num    { font-weight: 900; width: 18px; text-align: center; color: var(--text-faint); }
 .rang-name   { flex: 1; font-weight: 700; }
 .rang-punkte { font-weight: 800; color: var(--correct); }
 
@@ -343,7 +356,7 @@ h1.spiel-titel {
 .login-hinweis {
   text-align: center;
   font-size: .82rem;
-  color: #888;
+  color: var(--text-muted);
 }
 .login-hinweis a { color: var(--primary); font-weight: 700; text-decoration: none; }
 
@@ -361,7 +374,11 @@ h1.spiel-titel {
   cursor: pointer;
   transition: background .2s;
 }
-#naechstes-btn:hover { background: #2a6fd6; }
+#naechstes-btn:hover { background: var(--primary-hover); }
+#naechstes-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
 
 /* ── Responsive ──────────────────────────────── */
 @media (min-width: 400px) {
