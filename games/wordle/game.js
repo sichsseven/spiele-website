@@ -207,8 +207,8 @@ function tastaturRendern() {
 function tastaturHandler(e) {
   if (beendet || animiert) return;
   const key = e.key.toUpperCase();
-  if (key === 'ENTER')     { tasteTippen('ENTER'); return; }
-  if (key === 'BACKSPACE') { tasteTippen('⌫');     return; }
+  if (key === 'ENTER')     { e.preventDefault(); tasteTippen('ENTER'); return; }
+  if (key === 'BACKSPACE') { e.preventDefault(); tasteTippen('⌫');     return; }
   if (/^[A-ZÄÖÜ]$/.test(key)) tasteTippen(key);
 }
 
