@@ -30,7 +30,44 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('modal-neustart-sieg')
     .addEventListener('click', neuesSpiel);
   neuesSpiel();
+  bgAnimationStarten();
 });
+
+// ── Hintergrund-Animation: lebende Zellen ─────────────────────────────────────
+function bgAnimationStarten() {
+  const overlay = document.getElementById('bg-overlay');
+  if (!overlay) return;
+
+  const zahlenFarben = {
+    '1': '#1565c0', '2': '#2e7d32', '3': '#c62828', '4': '#283593',
+    '5': '#b71c1c', '6': '#00695c', '7': '#212121', '8': '#757575',
+  };
+  // Häufiger Zahlen, seltener Minen/Flaggen
+  const inhalte = ['1','1','2','2','3','3','4','2','1','3','5','6','💣','🚩'];
+
+  function zelleSpawnen() {
+    const el = document.createElement('div');
+    const inhalt = inhalte[Math.floor(Math.random() * inhalte.length)];
+    const dauer  = 2800 + Math.random() * 2200;
+
+    el.className = 'bg-zelle';
+    el.textContent = inhalt;
+    el.style.setProperty('--dauer', dauer + 'ms');
+    el.style.left = (Math.random() * 98) + 'vw';
+    el.style.top  = (Math.random() * 96) + 'vh';
+    if (zahlenFarben[inhalt]) el.style.color = zahlenFarben[inhalt];
+
+    overlay.appendChild(el);
+    setTimeout(() => el.remove(), dauer);
+  }
+
+  // Erste Welle verteilt starten
+  for (let i = 0; i < 15; i++) {
+    setTimeout(zelleSpawnen, Math.random() * 2500);
+  }
+  // Laufend neue Zellen spawnen
+  setInterval(zelleSpawnen, 380);
+}
 
 // ── Schwierigkeit wechseln ─────────────────────────────────────────────────────
 function schwierigkeitWechseln() {

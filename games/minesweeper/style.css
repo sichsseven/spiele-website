@@ -27,9 +27,13 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+@keyframes bg-drift {
+  from { background-position: 0 0, 0 15px, 15px -15px, -15px 0; }
+  to   { background-position: 30px 30px, 30px 45px, 45px 15px, 15px 30px; }
+}
+
 body {
   font-family: 'Nunito', sans-serif;
-  /* Schachbrettmuster wie das Spielfeld selbst */
   background-color: var(--gruen-hell);
   background-image:
     linear-gradient(45deg, var(--gruen-dunkel) 25%, transparent 25%),
@@ -38,11 +42,57 @@ body {
     linear-gradient(-45deg, transparent 75%, var(--gruen-dunkel) 75%);
   background-size: 30px 30px;
   background-position: 0 0, 0 15px, 15px -15px, -15px 0;
+  animation: bg-drift 10s linear infinite;
   color: var(--text);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
+
+/* Vignette an den Rändern */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(20,50,5,.3) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Hintergrund-Overlay für lebende Zellen ─── */
+#bg-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+@keyframes bg-zelle-anim {
+  0%   { opacity: 0; transform: scale(.6); }
+  18%  { opacity: 1; transform: scale(1); }
+  75%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(.85); }
+}
+
+.bg-zelle {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background: rgba(232, 201, 154, .72);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  opacity: 0;
+  animation: bg-zelle-anim var(--dauer, 3s) ease-in-out forwards;
+  box-shadow: 0 1px 3px rgba(0,0,0,.18);
+}
+
+/* Alles über dem Hintergrund */
+header, #hud, main, .modal-overlay { position: relative; z-index: 1; }
 
 /* ── Header ─────────────────────────────────── */
 header {
