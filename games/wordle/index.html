@@ -22,7 +22,7 @@
   <h1 class="spiel-titel">Wordle</h1>
 
   <!-- Fehlermeldung / Hinweis -->
-  <div id="meldung"></div>
+  <div id="meldung" aria-live="polite" aria-atomic="true"></div>
 
   <!-- 6 × 5 Spielfeld (wird per JS befüllt) -->
   <div id="spielfeld"></div>
@@ -35,7 +35,7 @@
 <div id="endscreen" class="versteckt" role="dialog" aria-modal="true" aria-labelledby="endscreen-titel">
   <div id="endscreen-karte">
 
-    <div id="endscreen-titel"></div>
+    <h2 id="endscreen-titel"></h2>
     <div id="endscreen-untertitel"></div>
 
     <!-- Statistiken -->

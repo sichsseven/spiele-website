@@ -394,14 +394,18 @@ function tastaturAktualisieren(ergebnis) {
 
 // ── Statistiken laden (Supabase) ──────────────────────────────────────────────
 async function statsLaden() {
-  const eintrag = await PZ.loadScore('wordle');
-  if (eintrag?.extra_daten) {
-    const d = eintrag.extra_daten;
-    stats.gespielt   = d.gespielt   ?? 0;
-    stats.gewonnen   = d.gewonnen   ?? 0;
-    stats.aktSerie   = d.aktSerie   ?? 0;
-    stats.maxSerie   = d.maxSerie   ?? 0;
-    stats.verteilung = Array.isArray(d.verteilung) ? d.verteilung : [0,0,0,0,0,0];
+  try {
+    const eintrag = await PZ.loadScore('wordle');
+    if (eintrag?.extra_daten) {
+      const d = eintrag.extra_daten;
+      stats.gespielt   = d.gespielt   ?? 0;
+      stats.gewonnen   = d.gewonnen   ?? 0;
+      stats.aktSerie   = d.aktSerie   ?? 0;
+      stats.maxSerie   = d.maxSerie   ?? 0;
+      stats.verteilung = Array.isArray(d.verteilung) ? d.verteilung : [0,0,0,0,0,0];
+    }
+  } catch (err) {
+    console.warn('[Wordle] Statistiken konnten nicht geladen werden:', err);
   }
 }
 
@@ -419,9 +423,13 @@ async function statsSpeichern(gewonnen, versuchsAnzahl) {
     stats.aktSerie = 0;
   }
 
-  const user = await PZ.getUser();
-  if (user) {
-    await PZ.saveGameData('wordle', stats.gewonnen, 1, { ...stats });
+  try {
+    const user = await PZ.getUser();
+    if (user) {
+      await PZ.saveGameData('wordle', stats.gewonnen, 1, { ...stats });
+    }
+  } catch (err) {
+    console.warn('[Wordle] Statistiken konnten nicht gespeichert werden:', err);
   }
 }
 
@@ -498,8 +506,14 @@ function statsHTML(gewonnen) {
 
 // HTML für Rangliste
 async function ranglisteHTML() {
-  const eintraege = await PZ.getLeaderboard('wordle', 10);
-  if (!eintraege || !eintraege.length) return '';
+  let eintraege = [];
+  try {
+    eintraege = await PZ.getLeaderboard('wordle', 10) || [];
+  } catch (err) {
+    console.warn('[Wordle] Rangliste konnte nicht geladen werden:', err);
+    return '';
+  }
+  if (!eintraege.length) return '';
 
   const zeilen = eintraege.map(e => `
     <div class="rang-eintrag">
