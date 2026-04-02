@@ -1003,7 +1003,71 @@ async function spielEnde() {
   screenZeigen('screen-gameover');
 }
 
-function shop_zeigen()      { screenZeigen('screen-shop'); }
+// ── Shop ──────────────────────────────────────────────────────────────────────
+function shop_zeigen() {
+  screenZeigen('screen-shop');
+  shopRendern();
+}
+
+function shopRendern() {
+  const coinsEl = document.getElementById('shop-coins');
+  if (coinsEl) coinsEl.textContent = pdata.coins;
+
+  const pwGrid    = document.getElementById('shop-pw-duration');
+  const livesGrid = document.getElementById('shop-max-lives');
+  if (pwGrid)    pwGrid.innerHTML    = shopKartenHTML('pwDuration', '⏱');
+  if (livesGrid) livesGrid.innerHTML = shopKartenHTML('maxLives',   '❤');
+}
+
+function shopKartenHTML(key, icon) {
+  const stufen  = UPGRADE_DEFS[key];
+  const aktuell = pdata.upgrades?.[key] || 0;
+
+  return stufen.map((s, i) => {
+    const gekauft  = i < aktuell;
+    const istNaechste = i === aktuell;
+    const gesperrt = i > aktuell;
+    const genugMuenzen = pdata.coins >= s.cost;
+
+    const klass    = gekauft ? 'owned' : gesperrt ? 'locked' : '';
+    const btnText  = gekauft  ? '✓ Gekauft'
+                   : gesperrt ? '🔒 Gesperrt'
+                   : `🪙 ${s.cost}`;
+    const btnKlass = (gekauft || gesperrt || !genugMuenzen) ? 'done' : 'buy';
+    const disabled = (gekauft || gesperrt) ? 'disabled' : '';
+    const desc     = gekauft  ? 'Bereits aktiviert'
+                   : gesperrt ? 'Vorherige Stufe kaufen'
+                   : `${pdata.coins} Münzen verfügbar`;
+
+    return `<div class="shop-card ${klass}">
+      <div class="shop-card-icon">${icon}</div>
+      <div class="shop-card-info">
+        <div class="shop-card-name">Stufe ${i + 1}: ${s.label}</div>
+        <div class="shop-card-desc">${desc}</div>
+      </div>
+      <button class="shop-card-btn ${btnKlass}" ${disabled}
+        onclick="upgradeKaufen('${key}',${i})">${btnText}</button>
+    </div>`;
+  }).join('');
+}
+
+async function upgradeKaufen(key, stufe) {
+  const aktuell = pdata.upgrades?.[key] || 0;
+  if (stufe !== aktuell) return;   // Muss nächste Stufe sein
+
+  const def = UPGRADE_DEFS[key][stufe];
+  if (!def) return;
+  if (pdata.coins < def.cost) return;
+
+  pdata.coins          -= def.cost;
+  pdata.upgrades[key]   = stufe + 1;
+
+  // Sofort in Supabase sichern
+  await spielerDatenSpeichern();
+
+  shopRendern();
+  titelMuenzenZeigen();
+}
 
 // ── Rangliste ─────────────────────────────────────────────────────────────────
 async function rangliste_zeigen() {
