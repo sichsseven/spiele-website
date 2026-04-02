@@ -731,18 +731,209 @@ function bossTod() {
     welleSpawnen();
   }, 2200);
 }
-function partikelSpawnen(x, y, color, n) {}
-function partikelZeichnen() {}
-function partikelUpdate() {}
-function muenzenSpawnen(x, y) {}
-function muenzenZeichnen()   {}
-function muenzenUpdate()     {}
-function powerupSpawnen(x, y) {}
-function powerupsZeichnen()   {}
-function powerupsUpdate()     {}
-function pwTimerUpdate()       {}
-function pwTimerHudAktualisieren() {}
-function laserTrefferCheck()  {}
+// ── Power-Up Konfiguration ────────────────────────────────────────────────────
+const PW_CONFIG = {
+  shot2:    { label: '×2',    color: '#38bdf8', shotLevel: 2 },
+  shot3:    { label: '×3',    color: '#818cf8', shotLevel: 3 },
+  shot4:    { label: '×4',    color: '#a78bfa', shotLevel: 4 },
+  shot5:    { label: '×5',    color: '#e879f9', shotLevel: 5 },
+  fastfire: { label: '⚡',    color: '#fbbf24' },
+  laser:    { label: '🔴',    color: '#f472b6' },
+  shield:   { label: '◈',     color: '#34d399' },
+  heart:    { label: '❤',     color: '#f43f5e' },
+};
+
+const PW_POOL = [
+  'shot2','shot2','shot3','shot3','shot4','shot5',
+  'fastfire','fastfire','laser','shield','shield','heart',
+];
+
+function partikelSpawnen(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 5,
+      vy: (Math.random() - 0.5) * 5,
+      life: 1,
+      color,
+      r: 2 + Math.random() * 2,
+    });
+  }
+}
+
+function partikelZeichnen() {
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle   = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+
+function partikelUpdate() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x    += p.vx;
+    p.y    += p.vy;
+    p.vx   *= 0.9;
+    p.vy   *= 0.9;
+    p.life -= 0.04;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function muenzenSpawnen(x, y) {
+  const waveStark = wave >= 6;
+  const chance    = waveStark ? 0.35 : 0.08;
+  if (Math.random() > chance) return;
+  const value = waveStark && Math.random() < 0.4
+    ? (Math.random() < 0.5 ? 2 : 3)
+    : 1;
+  coins.push({ x, y, vy: 1.2 + Math.random() * 0.6, value });
+}
+
+function muenzenZeichnen() {
+  coins.forEach(c => {
+    ctx.save();
+    ctx.fillStyle   = '#ffd600';
+    ctx.shadowColor = '#ffd600';
+    ctx.shadowBlur  = 8;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    if (c.value > 1) {
+      ctx.fillStyle  = '#000';
+      ctx.shadowBlur = 0;
+      ctx.font       = '700 7px Nunito, sans-serif';
+      ctx.textAlign  = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(c.value, c.x, c.y);
+    }
+    ctx.restore();
+  });
+}
+
+function muenzenUpdate() {
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const c = coins[i];
+    c.y += c.vy;
+    if (c.y > CH + 20) { coins.splice(i, 1); continue; }
+    if (player && kollision(c.x, c.y, player.x, player.y, 28, 28)) {
+      gameCoins += c.value;
+      coins.splice(i, 1);
+      hudAktualisieren();
+    }
+  }
+}
+
+function powerupSpawnen(x, y) {
+  const type = PW_POOL[Math.floor(Math.random() * PW_POOL.length)];
+  const cfg  = PW_CONFIG[type];
+  powerups.push({ x, y, vy: 1.5, type, color: cfg.color, label: cfg.label });
+}
+
+function powerupsZeichnen() {
+  powerups.forEach(p => {
+    ctx.save();
+    ctx.fillStyle   = p.color;
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur  = 12;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle    = '#fff';
+    ctx.shadowBlur   = 0;
+    ctx.font         = '700 9px Nunito, sans-serif';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.label, p.x, p.y);
+    ctx.restore();
+  });
+}
+
+function powerupsUpdate() {
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    const p = powerups[i];
+    p.y += p.vy;
+    if (p.y > CH + 20) { powerups.splice(i, 1); continue; }
+    if (player && kollision(p.x, p.y, player.x, player.y, 36, 36)) {
+      powerupAktivieren(p.type);
+      powerups.splice(i, 1);
+    }
+  }
+}
+
+function pwDauer() {
+  const stufe = pdata.upgrades?.pwDuration || 0;
+  const bonus = stufe > 0 ? UPGRADE_DEFS.pwDuration[stufe - 1].bonus : 0;
+  return PW_BASE_DURATION + bonus;
+}
+
+function powerupAktivieren(type) {
+  const cfg = PW_CONFIG[type];
+  if (type.startsWith('shot')) {
+    // Shot-Level nur erhöhen, nie senken
+    if (cfg.shotLevel > player.shotLevel) player.shotLevel = cfg.shotLevel;
+  } else if (type === 'fastfire') {
+    activePw.fastFire = pwDauer();
+  } else if (type === 'laser') {
+    activePw.laser = pwDauer();
+  } else if (type === 'shield') {
+    activePw.shield = pwDauer();
+  } else if (type === 'heart') {
+    lives++;
+    hudAktualisieren();
+  }
+}
+
+function pwTimerUpdate() {
+  if (activePw.fastFire > 0) activePw.fastFire--;
+  if (activePw.laser    > 0) activePw.laser--;
+  if (activePw.shield   > 0) activePw.shield--;
+  if (activePw.laser    > 0) laserTrefferCheck();
+  pwTimerHudAktualisieren();
+}
+
+function laserTrefferCheck() {
+  if (!player || activePw.laser <= 0) return;
+  if (activePw.laser % 3 !== 0) return;
+  for (let j = enemies.length - 1; j >= 0; j--) {
+    const e = enemies[j];
+    if (Math.abs(e.x - player.x) < e.w / 2 + 6) {
+      e.hp -= 0.5;
+      partikelSpawnen(e.x, e.y, e.color, 2);
+      if (e.hp <= 0) gegnerTod(e, j);
+    }
+  }
+  if (bossWave && boss?.alive && Math.abs(boss.x - player.x) < boss.w / 2 + 8) {
+    boss.hp -= 0.5;
+    if (boss.hp <= 0) bossTod();
+  }
+}
+
+function pwTimerHudAktualisieren() {
+  const container = document.getElementById('pw-timers');
+  if (!container) return;
+  const gesamt = pwDauer();
+  let html = '';
+  if (activePw.fastFire > 0) html += pwTimerHTML('⚡ Schnell', '#fbbf24', activePw.fastFire, gesamt);
+  if (activePw.laser    > 0) html += pwTimerHTML('🔴 Laser',  '#f472b6', activePw.laser,    gesamt);
+  if (activePw.shield   > 0) html += pwTimerHTML('◈ Schild',  '#34d399', activePw.shield,   gesamt);
+  container.innerHTML = html;
+}
+
+function pwTimerHTML(label, color, verbleibend, gesamt) {
+  const pct = Math.max(0, (verbleibend / gesamt * 100)).toFixed(1);
+  const sek = Math.ceil(verbleibend / FPS_TARGET);
+  return `<div class="pw-timer-item">
+    <span class="pw-timer-label">${label} ${sek}s</span>
+    <div class="pw-timer-bar-wrap">
+      <div class="pw-timer-bar" style="width:${pct}%;background:${color}"></div>
+    </div>
+  </div>`;
+}
 
 function hudAktualisieren() {}
 function rangliste_zeigen() { screenZeigen('screen-lb'); }
