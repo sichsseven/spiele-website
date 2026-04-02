@@ -44,18 +44,18 @@
 </main>
 
 <!-- GAME OVER MODAL -->
-<div id="modal-gameover" class="modal-overlay versteckt" role="dialog" aria-modal="true">
+<div id="modal-gameover" class="modal-overlay versteckt" role="dialog" aria-modal="true" aria-labelledby="gameover-titel">
   <div class="modal-karte">
-    <h2>💥 Mine getroffen!</h2>
+    <h2 id="gameover-titel">💥 Mine getroffen!</h2>
     <p>Zeit: <strong><span id="gameover-zeit">0</span>s</strong></p>
     <button id="modal-neustart" class="modal-btn">Nochmal spielen</button>
   </div>
 </div>
 
 <!-- SIEG MODAL -->
-<div id="modal-sieg" class="modal-overlay versteckt" role="dialog" aria-modal="true">
+<div id="modal-sieg" class="modal-overlay versteckt" role="dialog" aria-modal="true" aria-labelledby="sieg-titel">
   <div class="modal-karte">
-    <h2>🎉 Gewonnen!</h2>
+    <h2 id="sieg-titel">🎉 Gewonnen!</h2>
     <p>Zeit: <strong><span id="sieg-zeit">0</span>s</strong></p>
     <div id="sieg-rangliste"></div>
     <div id="sieg-login" class="login-hinweis" style="display:none">
