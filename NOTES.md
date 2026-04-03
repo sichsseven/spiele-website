@@ -1,5 +1,17 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Heutiger Stand (2026-04-04)
+
+### Task 1: Blockfall komplett löschen ✅
+**Status:** DONE
+- `games/blockfall/` Ordner gelöscht (rekursiv)
+- `index.html`:
+  - Blockfall-Spielkarte entfernt (Zeilen 72-90)
+  - Spielzähler: "9 Spiele" → "8 Spiele"
+  - Feedback-Dropdown: blockfall-Option entfernt
+- Git commit `0e2437f`: "feat: Blockfall entfernt"
+- Git push erfolgreich
+
 ## Heutiger Stand (2026-04-02)
 
 ### Minesweeper (2026-04-02) ✅
@@ -160,6 +172,17 @@
 - Physik-Geschwindigkeit: 3 Schritte/Frame (~180/s) → zeitbasiert 1 Schritt/50ms (~20/s)
 - Physik-Akkumulator auf max 3 Schritte begrenzt (kein Aufholen nach Tab-Wechsel)
 - Akkumulator wird nach BFS-Check zurückgesetzt
+
+### Blockfall entfernt + Pixel Drop Sand-Zerfall (2026-04-04) ✅
+- Blockfall komplett entfernt: Ordner `games/blockfall/`, Spielkarte, Feedback-Dropdown-Option
+- Spielzähler 9 → 8 Spiele
+- Pixel Drop: internes Grid von 10×20 auf 70×140 umgestellt (BLOCK_SCALE=7)
+- Jede Block-Zelle = 7×7 Sub-Pixel-Cluster; zerfällt beim Aufprall in Sand-Pixel
+- `physGitter` (140×70) ersetzt altes `gitter` (20×10)
+- `subGr` ersetzt `zellenGr`
+- BFS, Physik, Ghost, Rendering, Block-Platzierung vollständig angepasst
+- `physikWarRuhig`-Guard: verhindert BFS-Aufrufe 60x/Sekunde im ruhigen Zustand
+- BFS queue.shift() → head-pointer für O(n) statt O(n²)
 
 ### Was als nächstes zu tun ist
 - Weitere Spiele entwickeln oder Bestehende erweitern
