@@ -146,6 +146,64 @@ function panelHintergrundZeichnen() {
   ctx.stroke();
 }
 
+// ── Pixel-Physik ──────────────────────────────────────────────────────────────
+// Gibt true zurück wenn mindestens ein Pixel bewegt wurde
+function physikSchritt() {
+  let bewegung = false;
+
+  // Von vorletzter Zeile nach oben iterieren
+  for (let z = GRID_HOEHE - 2; z >= 0; z--) {
+    for (let s = 0; s < GRID_BREITE; s++) {
+      const farbe = gitter[z][s];
+      if (!farbe) continue;
+
+      // Direkt nach unten fallen
+      if (!gitter[z + 1][s]) {
+        gitter[z + 1][s] = farbe;
+        gitter[z][s]     = null;
+        bewegung          = true;
+        continue;
+      }
+
+      // Diagonal rutschen (nur wenn direkt unten blockiert)
+      const linksrei  = s > 0               && !gitter[z + 1][s - 1];
+      const rechtsrei = s < GRID_BREITE - 1 && !gitter[z + 1][s + 1];
+
+      if (linksrei && rechtsrei) {
+        // Zufällig eine Seite wählen
+        const richtung = Math.random() < 0.5 ? -1 : 1;
+        gitter[z + 1][s + richtung] = farbe;
+        gitter[z][s]               = null;
+        bewegung                    = true;
+      } else if (linksrei) {
+        gitter[z + 1][s - 1] = farbe;
+        gitter[z][s]         = null;
+        bewegung              = true;
+      } else if (rechtsrei) {
+        gitter[z + 1][s + 1] = farbe;
+        gitter[z][s]         = null;
+        bewegung              = true;
+      }
+    }
+  }
+
+  return bewegung;
+}
+
+// Gibt true zurück solange Pixel noch in Bewegung sind
+function physikLaeuftNoch() {
+  for (let z = 0; z < GRID_HOEHE - 1; z++) {
+    for (let s = 0; s < GRID_BREITE; s++) {
+      if (!gitter[z][s]) continue;
+      if (!gitter[z + 1][s]) return true;
+      const linksrei  = s > 0               && !gitter[z + 1][s - 1];
+      const rechtsrei = s < GRID_BREITE - 1 && !gitter[z + 1][s + 1];
+      if (linksrei || rechtsrei) return true;
+    }
+  }
+  return false;
+}
+
 // ── Haupt-Draw ────────────────────────────────────────────────────────────────
 function draw() {
   ctx.clearRect(0, 0, CW, CH);
@@ -157,7 +215,43 @@ function draw() {
 function tick() {
   if (!running) return;
   loopId = requestAnimationFrame(tick);
+
+  // Physik: 3 Durchläufe pro Frame für flüssiges Fallen
+  if (!pruefeGerade) {
+    let nochBewegung = false;
+    for (let i = 0; i < 3; i++) {
+      if (physikSchritt()) nochBewegung = true;
+    }
+
+    // Wenn Physik fertig: Gefahren-Check → Verbindungs-Check
+    if (!nochBewegung && !physikLaeuftNoch()) {
+      nachPhysikPruefen();
+    }
+  }
+
   draw();
+}
+
+// Wird einmalig aufgerufen wenn Physik zur Ruhe kommt
+function nachPhysikPruefen() {
+  // Gefahrenlinie: Pixel in Zeile 0 oder 1?
+  for (let z = 0; z < GEFAHREN_Z; z++) {
+    for (let s = 0; s < GRID_BREITE; s++) {
+      if (gitter[z][s]) { spielEnde(); return; }
+    }
+  }
+
+  // Verbindungs-Check (Task 7 füllt aus)
+  const verbunden = verbindungsPruefen();
+  if (verbunden) {
+    // Physik erneut starten (Pixel darüber fallen)
+    // tick() macht das automatisch
+  }
+}
+
+// Platzhalter – wird in Task 7 implementiert
+function verbindungsPruefen() {
+  return false;
 }
 
 // ── Screens ────────────────────────────────────────────────────────────────────
