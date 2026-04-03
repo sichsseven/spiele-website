@@ -133,9 +133,18 @@
 2. **Touch-Steuerung**: Schiff folgt direkt dem Finger (player.x = touchX), kein links/rechts mehr
 3. **Blaues Markieren**: user-select:none in style.css, touchstart non-passive + preventDefault, user-scalable=no im Viewport
 
+### Pixel Drop (2026-04-03) ✅
+- `games/pixel-drop/` angelegt: index.html, game.js, style.css
+- 10×20 Grid, Pixel-Physik (Fallen + Rutschen, 3 Durchläufe/Frame)
+- 17 Block-Formen (7 Tetris + 10 Extra), Drag & Drop mit Ghost-Vorschau
+- BFS-Verbindungs-Check: Farbe von Rand zu Rand → Pixel verschwinden
+- Punkte-Multiplikator: ×1 bis ×3 je nach gleichzeitigen Farben
+- Game Over: Gefahrenlinie / kein Platz mehr
+- Supabase-Rangliste via PZ.getLeaderboard / PZ.saveGameData
+- Startseite: Pixel-Drop-Karte hinzugefügt (9. Spiel)
+
 ### Was als nächstes zu tun ist
-- Task 9: Permanenter Upgrade-Shop
-- Task 10: Wellen-Banner, Boden-Check, Mobile-Polish
+- Weitere Spiele entwickeln oder Bestehende erweitern
 
 ### Veränderte Dateien (2026-04-02)
 - `index.html` — Pixel Jump, kein Modal mehr, Feedback-Button + Modal + JS
