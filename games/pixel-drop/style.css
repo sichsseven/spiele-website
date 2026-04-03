@@ -133,9 +133,9 @@ html, body {
   transform: translateX(-50%);
   display: block;
 }
-/* Spielscreen: dunkler Hintergrund damit kein Weiß neben dem Canvas sichtbar ist */
+/* Spielscreen: mittleres Blau, hebt sich vom dunklen Spielfeld ab */
 #screen-game {
-  background: #101c30;
+  background: #1a3a6e;
   overflow: hidden;
 }
 

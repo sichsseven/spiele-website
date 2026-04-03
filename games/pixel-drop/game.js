@@ -138,7 +138,7 @@ function layoutBerechnen() {
 
   const ausB = Math.floor(verfBreite / GRID_BREITE);
   const ausH = Math.floor(verfHoehe  / GRID_HOEHE);
-  zellenGr = Math.max(18, Math.min(ausB, ausH, 52));
+  zellenGr = Math.max(16, Math.min(ausB, ausH, 40));
 
   const gitBreitePx = GRID_BREITE * zellenGr;
   const gitHoehePx  = GRID_HOEHE  * zellenGr;
@@ -221,11 +221,12 @@ function pixelZeichnen(spalte, zeile, farbe, alpha) {
 
 // ── Panel-Hintergrund zeichnen (ohne Blöcke) ─────────────────────────────────
 function panelHintergrundZeichnen() {
-  ctx.fillStyle = '#f0f4f8';
+  // Gleiche Farbe wie der Screen-Hintergrund (#1a3a6e)
+  ctx.fillStyle = '#1a3a6e';
   ctx.fillRect(panOffX - 4, 0, CW - panOffX + 4, CH);
 
   // Trennlinie
-  ctx.strokeStyle = '#e2e8f0';
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
   ctx.lineWidth   = 1;
   ctx.beginPath();
   ctx.moveTo(panOffX - 4, 0);
@@ -244,8 +245,8 @@ function panelZeichnen() {
 
     // Slot-Hintergrund
     ctx.fillStyle = block.gesetzt
-      ? 'rgba(0,0,0,0.03)'
-      : 'rgba(255,255,255,0.7)';
+      ? 'rgba(0,0,0,0.15)'
+      : 'rgba(255,255,255,0.12)';
     ctx.beginPath();
     ctx.roundRect(panOffX + 6, slotY + 8, CW - panOffX - 10, slotH - 16, 10);
     ctx.fill();
