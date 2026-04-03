@@ -63,8 +63,9 @@ let pruefeGerade  = false;
 let loopId        = null;
 let lastTickTime  = 0;
 let physikAccum   = 0;
-const PHYSIK_MS   = 12;
+const PHYSIK_MS   = 5;
 let physikWarRuhig = false; // verhindert mehrfachen BFS-Aufruf pro Settle-Event
+let stabileFrames = 0;      // Frames ohne Bewegung – BFS erst nach ≥3 stabilen Frames
 
 // ── Drag-Zustand ──────────────────────────────────────────────────────────────
 let drag = {
@@ -389,18 +390,24 @@ function tick(timestamp) {
   lastTickTime = timestamp;
 
   // Physik zeitbasiert: ein Schritt alle PHYSIK_MS Millisekunden
-  // Akkumulator auf max 3 Schritte begrenzen (verhindert Aufholen nach Tab-Wechsel)
   if (!pruefeGerade) {
-    physikAccum = Math.min(physikAccum + delta, PHYSIK_MS * 6);
+    physikAccum = Math.min(physikAccum + delta, PHYSIK_MS * 8);
     let nochBewegung = false;
     while (physikAccum >= PHYSIK_MS) {
       if (physikSchritt()) nochBewegung = true;
       physikAccum -= PHYSIK_MS;
     }
 
-    // Wenn Physik fertig: Gefahren-Check → Verbindungs-Check
-    if (!nochBewegung && !physikLaeuftNoch() && !physikWarRuhig) {
+    // Stabilitätszähler: BFS erst nach ≥3 aufeinanderfolgenden ruhigen Frames
+    if (!nochBewegung && !physikLaeuftNoch()) {
+      stabileFrames++;
+    } else {
+      stabileFrames = 0;
+    }
+
+    if (stabileFrames >= 3 && !physikWarRuhig) {
       physikWarRuhig = true;
+      stabileFrames  = 0;
       nachPhysikPruefen();
     }
   }
@@ -417,7 +424,11 @@ function nachPhysikPruefen() {
     }
   }
   const verbunden = verbindungsPruefen();
-  if (verbunden) return;
+  if (verbunden) {
+    // Kettenverbindungen: nach dem nächsten Settle erneut prüfen
+    physikWarRuhig = false;
+    return;
+  }
   if (alleBlocksUnplatzierbar()) { spielEnde(); return; }
 }
 
@@ -525,6 +536,7 @@ function dragEnd(e) {
 // ── Block ins Spielfeld setzen ────────────────────────────────────────────────
 function blockPlatzieren(panelIdx, startVisSpalte) {
   physikWarRuhig = false;
+  stabileFrames  = 0;
   const block = panelBloecke[panelIdx];
 
   // Jede Block-Zelle [bz, bs] → 7×7 Cluster in physGitter
@@ -598,6 +610,7 @@ function spielStarten() {
   score          = 0;
   pruefeGerade   = false;
   physikWarRuhig = false;
+  stabileFrames  = 0;
   drag.aktiv     = false;
   running        = true;
   lastTickTime   = 0;
