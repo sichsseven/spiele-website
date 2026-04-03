@@ -138,7 +138,7 @@ function layoutBerechnen() {
 
   const ausB = Math.floor(verfBreite / GRID_BREITE);
   const ausH = Math.floor(verfHoehe  / GRID_HOEHE);
-  zellenGr = Math.max(16, Math.min(ausB, ausH, 40));
+  zellenGr = Math.max(16, Math.min(ausB, ausH, 26));
 
   const gitBreitePx = GRID_BREITE * zellenGr;
   const gitHoehePx  = GRID_HOEHE  * zellenGr;
