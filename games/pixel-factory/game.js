@@ -779,3 +779,102 @@ function skinModalRendern() {
     grid.appendChild(el);
   }
 }
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  GOLDENE PIXEL + EREIGNISSE                             ║
+// ╚══════════════════════════════════════════════════════════╝
+
+let goldenTimerId = null;
+let ereignisTimerId = null;
+let aktivesGoldElement = null;
+
+function goldenIntervallMs() {
+  let ms = 240000; // 4 Minuten Basis
+  for (const upId of zustand.prestigeUpgrades) {
+    const up = PRESTIGE_UPGRADES.find(u => u.id === upId);
+    if (up?.typ === 'qp_golden_freq') ms /= up.wert;
+  }
+  if (zustand.prestige >= 5) ms *= 0.8;
+  return Math.max(ms, 30000);
+}
+
+function goldenPixelSpawnen() {
+  if (aktivesGoldElement) return;
+
+  const el = document.createElement('div');
+  el.className = 'goldener-pixel';
+
+  const x = 60 + Math.random() * (window.innerWidth - 120);
+  const y = 80 + Math.random() * (window.innerHeight - 160);
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+
+  el.addEventListener('click', () => goldenPixelKlicken(el));
+  document.getElementById('goldenLayer').appendChild(el);
+  aktivesGoldElement = el;
+
+  setTimeout(() => {
+    if (aktivesGoldElement === el) {
+      el.remove();
+      aktivesGoldElement = null;
+    }
+  }, 30000);
+
+  goldenTimerId = setTimeout(goldenPixelSpawnen, goldenIntervallMs());
+}
+
+function goldenPixelKlicken(el) {
+  el.remove();
+  aktivesGoldElement = null;
+  zustand.goldenPixelKlicks++;
+
+  let bonus = berechneteStats.pps * 15 * 60; // 15 Minuten Produktion
+  if (zustand.prestige >= 15) bonus *= 2;
+  for (const upId of zustand.prestigeUpgrades) {
+    const up = PRESTIGE_UPGRADES.find(u => u.id === upId);
+    if (up?.typ === 'qp_golden_bonus') bonus *= up.wert;
+  }
+
+  zustand.pixel += bonus;
+  zustand.lifetimePixel += bonus;
+  if (typeof toastZeigen === 'function') toastZeigen(`⭐ Goldener Pixel! +${fmt(bonus)} Pixel`);
+  errungenschaftenPruefen();
+}
+
+const EREIGNISSE = [
+  { name: 'Produktionsboost', text: '⚡ Produktionsboost! 2× PpS für 60 Sek.', dauer: 60000, ppsM: 2, ppkM: 1 },
+  { name: 'Klick-Boost',      text: '👆 Klick-Boost! 10× PpK für 30 Sek.',     dauer: 30000, ppsM: 1, ppkM: 10 },
+  { name: 'Pixel-Regen',      text: '🌧 Pixel-Regen! +5% Pixel sofort.',         dauer: 0,     ppsM: 1, ppkM: 1, sofort: (z) => { const b = z.pixel * 0.05; z.pixel += b; z.lifetimePixel += b; } },
+];
+
+function ereignisIntervallMs() {
+  let ms = 420000; // 7 Minuten
+  if (zustand.prestige >= 5)  ms *= 0.7;
+  if (zustand.prestige >= 10) ms *= 0.7;
+  return Math.max(ms, 60000);
+}
+
+function zufaelligesEreignis() {
+  const e = EREIGNISSE[Math.floor(Math.random() * EREIGNISSE.length)];
+  const banner = document.getElementById('ereignisBanner');
+
+  if (e.sofort) {
+    e.sofort(zustand);
+  } else if (e.dauer > 0) {
+    aktiveBoosts.ppsMultiplikator = e.ppsM;
+    aktiveBoosts.ppkMultiplikator = e.ppkM;
+    aktiveBoosts.endeMs = Date.now() + e.dauer;
+  }
+
+  banner.textContent = e.text;
+  banner.hidden = false;
+  setTimeout(() => { banner.hidden = true; }, 5000);
+  if (typeof toastZeigen === 'function') toastZeigen(e.text);
+
+  ereignisTimerId = setTimeout(zufaelligesEreignis, ereignisIntervallMs());
+}
+
+function ereignisseStarten() {
+  goldenTimerId = setTimeout(goldenPixelSpawnen, goldenIntervallMs());
+  ereignisTimerId = setTimeout(zufaelligesEreignis, ereignisIntervallMs());
+}
