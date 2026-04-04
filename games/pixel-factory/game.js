@@ -310,3 +310,73 @@ function statsNeuBerechnen() {
   berechneteStats.pps = berechnePPS();
   berechneteStats.ppk = berechnePPK();
 }
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  GAME LOOP                                              ║
+// ╚══════════════════════════════════════════════════════════╝
+
+let letzterFrame = 0;
+let loopId = null;
+let hintergrundInterval = null;
+let spielGestartet = false;
+
+let aktiveBoosts = { ppsMultiplikator: 1, ppkMultiplikator: 1, endeMs: 0 };
+
+function boostAktualisieren() {
+  if (Date.now() > aktiveBoosts.endeMs) {
+    aktiveBoosts.ppsMultiplikator = 1;
+    aktiveBoosts.ppkMultiplikator = 1;
+  }
+}
+
+function gameLoop(timestamp) {
+  if (!letzterFrame) letzterFrame = timestamp;
+  const delta = Math.min(timestamp - letzterFrame, 1000);
+  letzterFrame = timestamp;
+
+  boostAktualisieren();
+
+  const produktion = berechneteStats.pps * aktiveBoosts.ppsMultiplikator * (delta / 1000);
+  zustand.pixel += produktion;
+  zustand.lifetimePixel += produktion;
+
+  if (typeof skinsPruefen === 'function') skinsPruefen();
+
+  if (Math.floor(timestamp / 1000) !== Math.floor((timestamp - delta) / 1000)) {
+    if (typeof errungenschaftenPruefen === 'function') errungenschaftenPruefen();
+  }
+
+  if (typeof prestigeBtnAktualisieren === 'function') prestigeBtnAktualisieren();
+
+  if (!zustand._speedrunOk && zustand.pixel >= 1000) {
+    if ((Date.now() - zustand._speedrunStart) < 60000) zustand._speedrunOk = true;
+  }
+
+  if (typeof renderStats === 'function') renderStats();
+  if (typeof renderHaufen === 'function') renderHaufen();
+
+  loopId = requestAnimationFrame(gameLoop);
+}
+
+function hintergrundTick() {
+  const now = Date.now();
+  const delta = Math.min(now - (zustand.letzterBesuch || now), 2000);
+  zustand.letzterBesuch = now;
+
+  const offlineMult = zustand.prestige >= 10 ? 2 : 1;
+  const produktion = berechneteStats.pps * (delta / 1000) * offlineMult;
+  zustand.pixel += produktion;
+  zustand.lifetimePixel += produktion;
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (loopId) { cancelAnimationFrame(loopId); loopId = null; }
+    zustand.letzterBesuch = Date.now();
+    hintergrundInterval = setInterval(hintergrundTick, 1000);
+  } else {
+    if (hintergrundInterval) { clearInterval(hintergrundInterval); hintergrundInterval = null; }
+    letzterFrame = 0;
+    loopId = requestAnimationFrame(gameLoop);
+  }
+});
