@@ -15,9 +15,12 @@ const GEBAEUDE = [
   { id: 'reaktor',       name: 'Pixel-Reaktor',              basisPreis: 200000,       basisPPS: 400,     farbe: '#fb923c' },
   { id: 'portal',        name: 'Dimensionsportal',           basisPreis: 1000000,      basisPPS: 1500,    farbe: '#818cf8' },
   { id: 'universum',     name: 'Pixel-Universum',            basisPreis: 10000000,     basisPPS: 7000,    farbe: '#2dd4bf' },
-  { id: 'zeitmaschine',  name: 'Zeitmaschine',               basisPreis: 100000000,    basisPPS: 35000,   farbe: '#fbbf24' },
-  { id: 'singularitaet', name: 'Pixel-Singularität',         basisPreis: 1000000000,   basisPPS: 200000,  farbe: '#f43f5e', minPrestige: 20 },
-  { id: 'goettlich',     name: 'Göttliche Fabrik',           basisPreis: 100000000000, basisPPS: 2000000, farbe: '#d946ef', minPrestige: 25 },
+  { id: 'zeitmaschine',  name: 'Zeitmaschine',               basisPreis: 100000000,         basisPPS: 35000,     farbe: '#fbbf24' },
+  { id: 'nanofabrik',    name: 'Nano-Fabrik',                basisPreis: 500000000,         basisPPS: 45000,     farbe: '#06b6d4', minPrestige: 5  },
+  { id: 'biomatrix',     name: 'Bio-Matrix',                 basisPreis: 5000000000,        basisPPS: 220000,    farbe: '#84cc16', minPrestige: 10 },
+  { id: 'warpgenerator', name: 'Warp-Generator',             basisPreis: 50000000000,       basisPPS: 1100000,   farbe: '#ec4899', minPrestige: 15 },
+  { id: 'singularitaet', name: 'Pixel-Singularität',         basisPreis: 500000000000,      basisPPS: 5500000,   farbe: '#f43f5e', minPrestige: 20 },
+  { id: 'goettlich',     name: 'Göttliche Fabrik',           basisPreis: 5000000000000,     basisPPS: 28000000,  farbe: '#d946ef', minPrestige: 25 },
 ];
 
 // Preis eines Gebäudes bei aktueller Anzahl
@@ -121,6 +124,12 @@ const PRESTIGE_UPGRADES = [
   // Besondere (2 Stück)
   { id: 'qp_pps_base', name: 'Quanten-Effizienz', beschreibung: 'PpS ×5 als globaler Bonus',          preisQP: 30, typ: 'qp_global_mult',  wert: 5   },
   { id: 'qp_start',    name: 'Quantum-Start',      beschreibung: 'Starte nach Prestige mit 100 Pixel', preisQP: 25, typ: 'qp_start_bonus',  wert: 100 },
+  // ✦ Meilenstein-Upgrades (jede 10. Prestige-Stufe)
+  { id: 'ms_10', name: '✦ Meilenstein: Dekade I',    beschreibung: 'Alle Produktion ×8 (dauerhaft)',  preisQP: 8,   typ: 'qp_global_mult', wert: 8,   minPrestige: 10, meilenstein: true },
+  { id: 'ms_20', name: '✦ Meilenstein: Dekade II',   beschreibung: 'Alle Produktion ×20 (dauerhaft)', preisQP: 25,  typ: 'qp_global_mult', wert: 20,  minPrestige: 20, meilenstein: true },
+  { id: 'ms_30', name: '✦ Meilenstein: Dekade III',  beschreibung: 'Klick-Leistung ×500 (dauerhaft)', preisQP: 75,  typ: 'qp_klick_mult',  wert: 500, minPrestige: 30, meilenstein: true },
+  { id: 'ms_40', name: '✦ Meilenstein: Dekade IV',   beschreibung: 'Alle Produktion ×75 (dauerhaft)', preisQP: 200, typ: 'qp_global_mult', wert: 75,  minPrestige: 40, meilenstein: true },
+  { id: 'ms_50', name: '✦ Meilenstein: Dekade V',    beschreibung: 'Alle Produktion ×300 (dauerhaft)',preisQP: 500, typ: 'qp_global_mult', wert: 300, minPrestige: 50, meilenstein: true },
 ];
 
 // === SKINS ===
@@ -564,7 +573,8 @@ function gebaeudeIconZeichen(id) {
   const icons = {
     maschine: '⚙', foerderband: '⇒', drucker: '▤', sortieranlage: '⊞',
     labor: '⌬', quantencomp: '◈', reaktor: '⊕', portal: '⊗',
-    universum: '✦', zeitmaschine: '↻', singularitaet: '◉', goettlich: '✧',
+    universum: '✦', zeitmaschine: '↻', nanofabrik: '◆', biomatrix: '⬡',
+    warpgenerator: '⊜', singularitaet: '◉', goettlich: '✧',
   };
   return icons[id] || '?';
 }
@@ -661,9 +671,20 @@ function shopPrestigeRendern() {
   const container = document.getElementById('shopPrestige');
   container.innerHTML = '';
 
-  const verfuegbar = PRESTIGE_UPGRADES.filter(up => !zustand.prestigeUpgrades.includes(up.id));
+  // Nur Upgrades die noch nicht gekauft sind und deren Prestige-Voraussetzung erfüllt ist
+  const verfuegbar = PRESTIGE_UPGRADES.filter(up =>
+    !zustand.prestigeUpgrades.includes(up.id) &&
+    (!up.minPrestige || zustand.prestige >= up.minPrestige)
+  );
 
-  if (verfuegbar.length === 0) {
+  // Gesperrte Meilenstein-Upgrades als Vorschau anzeigen
+  const gesperrteMeilensteine = PRESTIGE_UPGRADES.filter(up =>
+    !zustand.prestigeUpgrades.includes(up.id) &&
+    up.meilenstein &&
+    up.minPrestige && zustand.prestige < up.minPrestige
+  );
+
+  if (verfuegbar.length === 0 && gesperrteMeilensteine.length === 0) {
     container.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:0.85rem;text-align:center">Alle Quantum-Upgrades gekauft!</div>';
     return;
   }
@@ -671,12 +692,23 @@ function shopPrestigeRendern() {
   for (const up of verfuegbar) {
     const kannKaufen = zustand.quantumPixel >= up.preisQP;
     const el = document.createElement('div');
-    el.className = `upgrade-eintrag prestige-up${kannKaufen ? '' : ' zu-teuer'}`;
+    el.className = `upgrade-eintrag prestige-up${up.meilenstein ? ' meilenstein-up' : ''}${kannKaufen ? '' : ' zu-teuer'}`;
     el.innerHTML = `
       <div class="upgrade-name">${up.name}</div>
       <div class="upgrade-beschreibung">${up.beschreibung}</div>
       <div class="upgrade-preis">⬡ ${fmt(up.preisQP)} Quantum-Pixel</div>`;
     el.addEventListener('click', () => prestigeUpgradeKaufen(up));
+    container.appendChild(el);
+  }
+
+  // Gesperrte Meilensteine als Ausblick zeigen
+  for (const up of gesperrteMeilensteine) {
+    const el = document.createElement('div');
+    el.className = 'upgrade-eintrag prestige-up meilenstein-up gesperrt';
+    el.innerHTML = `
+      <div class="upgrade-name">${up.name}</div>
+      <div class="upgrade-beschreibung">Ab Prestige ${up.minPrestige} verfügbar</div>
+      <div class="upgrade-preis">⬡ ${fmt(up.preisQP)} Quantum-Pixel</div>`;
     container.appendChild(el);
   }
 }
@@ -1130,7 +1162,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   ereignisseStarten();
 
   // Autosave alle 60 Sekunden (kein Toast)
-  setInterval(() => spielstandSpeichern(false), 60000);
+  setInterval(() => spielstandSpeichern(false), 30000);
 
   // Beim Verlassen: letzterBesuch aktualisieren damit Offline-Bonus stimmt
   window.addEventListener('beforeunload', () => {

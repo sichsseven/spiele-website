@@ -90,7 +90,11 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .upgrade-eintrag:hover:not(.zu-teuer) { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255,190,11,0.15); }
 .upgrade-eintrag.zu-teuer { opacity: 0.6; cursor: not-allowed; }
 .upgrade-eintrag.prestige-up { border-color: rgba(139,92,246,0.3); background: rgba(139,92,246,0.04); }
-.upgrade-eintrag.prestige-up:hover:not(.zu-teuer) { border-color: var(--prestige); box-shadow: 0 0 0 2px rgba(139,92,246,0.15); }
+.upgrade-eintrag.prestige-up:hover:not(.zu-teuer):not(.gesperrt) { border-color: var(--prestige); box-shadow: 0 0 0 2px rgba(139,92,246,0.15); }
+.upgrade-eintrag.meilenstein-up { border-color: rgba(245,158,11,0.5); background: linear-gradient(135deg, rgba(255,251,235,0.8), rgba(254,243,199,0.6)); }
+.upgrade-eintrag.meilenstein-up:hover:not(.zu-teuer):not(.gesperrt) { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(245,158,11,0.25); }
+.upgrade-eintrag.meilenstein-up .upgrade-preis { color: var(--gold); }
+.upgrade-eintrag.meilenstein-up.gesperrt { opacity: 0.45; cursor: not-allowed; }
 .upgrade-name { font-weight: 700; font-size: 0.88rem; }
 .upgrade-beschreibung { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
 .upgrade-preis { font-size: 0.8rem; font-weight: 700; color: var(--primary); margin-top: 4px; }
