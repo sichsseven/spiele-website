@@ -427,7 +427,7 @@ function zufaelligerHaufenPixel(w, h) {
     y = cy + (Math.random() * 2 - 1) * ry;
   } while (Math.pow((x - cx) / rx, 2) + Math.pow((y - cy) / ry, 2) > 1);
   const groesse = 4 + Math.random() * 8;
-  return { x, y, groesse, farbIndex: Math.floor(Math.random() * 4), dy: Math.random() * 0.3 - 0.15 };
+  return { x, y, groesse, farbIndex: Math.floor(Math.random() * 4), dy: Math.random() * 0.3 - 0.15, phase: Math.random() * Math.PI * 2 };
 }
 
 function renderHaufen() {
@@ -466,7 +466,7 @@ function renderHaufen() {
       ctx.globalAlpha = 0.7 + 0.3 * Math.sin(animationsWinkel + p.x / 20);
     } else if (skin.kristall) {
       farbe = skin.farben[p.farbIndex % skin.farben.length];
-      ctx.globalAlpha = 0.5 + 0.4 * Math.random();
+      ctx.globalAlpha = 0.5 + 0.4 * Math.sin(animationsWinkel * 0.8 + p.phase);
     } else {
       farbe = skin.farben[p.farbIndex % skin.farben.length];
     }
@@ -518,7 +518,7 @@ function klickHandler(event) {
   );
 
   document.getElementById('klickInfo').textContent = '+' + fmt(ppk) + ' Pixel';
-  errungenschaftenPruefen();
+  if (typeof errungenschaftenPruefen === 'function') errungenschaftenPruefen();
 }
 
 function renderStats() {
