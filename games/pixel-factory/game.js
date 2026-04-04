@@ -926,3 +926,214 @@ function errungenschaftenModalRendern() {
     grid.appendChild(el);
   }
 }
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SUPABASE SPEICHERN / LADEN                             ║
+// ╚══════════════════════════════════════════════════════════╝
+
+async function spielstandSpeichern(mitToast = true) {
+  const user = await PZ.getUser();
+  if (!user) {
+    if (mitToast) toastZeigen('⚠ Nicht eingeloggt – Spielstand nicht gespeichert');
+    return;
+  }
+
+  zustand.letzterBesuch = Date.now();
+
+  // _speedrunStart ist nur Laufzeit, nicht speichern
+  const { _speedrunStart, ...zustandZumSpeichern } = zustand;
+
+  await PZ.saveGameData(
+    'pixel-factory',
+    Math.floor(zustand.lifetimePixel),
+    zustand.prestige,
+    zustandZumSpeichern
+  );
+
+  if (mitToast) toastZeigen('💾 Gespeichert!');
+}
+
+async function spielstandLaden() {
+  const daten = await PZ.loadScore('pixel-factory');
+  if (!daten || !daten.extra_daten) return false;
+
+  // Gespeicherten Zustand mit Standard zusammenführen (neue Felder ergänzen)
+  const standard = standardZustand();
+  zustand = { ...standard, ...daten.extra_daten, _speedrunStart: Date.now() };
+
+  // Offline-Bonus berechnen
+  const jetzt = Date.now();
+  const deltaMs = Math.max(0, jetzt - (zustand.letzterBesuch || jetzt));
+  const maxMs = maxOfflineStunden() * 3600 * 1000;
+  const bonusMs = Math.min(deltaMs, maxMs);
+
+  if (bonusMs > 60000) {
+    statsNeuBerechnen();
+    const bonus = berechneteStats.pps * (bonusMs / 1000) * 0.5; // 50 % Offline-Effizienz
+    if (bonus > 0) {
+      zustand.pixel += bonus;
+      zustand.lifetimePixel += bonus;
+      zustand._offlineBonusErhalten = true;
+
+      const minuten = Math.floor(bonusMs / 60000);
+      const banner = document.getElementById('offlineBonus');
+      banner.textContent = `💤 Offline-Bonus: +${fmt(bonus)} Pixel (${minuten} Minuten)`;
+      banner.hidden = false;
+      setTimeout(() => { banner.hidden = true; }, 8000);
+    }
+  }
+
+  zustand.letzterBesuch = jetzt;
+  return true;
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  RANGLISTE                                              ║
+// ╚══════════════════════════════════════════════════════════╝
+
+let ranglisteAktivTab = 'pixel';
+
+async function ranglisteRendern() {
+  const inhalt = document.getElementById('ranglisteInhalt');
+  inhalt.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted)">Lade…</div>';
+
+  const eintraege = await PZ.getLeaderboard('pixel-factory', 10);
+  const eigenerUser = await PZ.getUser();
+  const eigenerId = eigenerUser?.id;
+
+  if (!eintraege.length) {
+    inhalt.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted)">Noch keine Einträge</div>';
+    return;
+  }
+
+  // Prestige-Tab: client-seitig nach level sortieren
+  let sortiert = [...eintraege];
+  if (ranglisteAktivTab === 'prestige') {
+    sortiert.sort((a, b) => (b.level || 0) - (a.level || 0));
+  }
+
+  const hauptSpalte = ranglisteAktivTab === 'prestige' ? 'Prestige' : 'Pixel';
+  const nebenSpalte = ranglisteAktivTab === 'prestige' ? 'Pixel' : 'Prestige';
+
+  let html = `<table class="rangliste-tabelle">
+    <thead><tr>
+      <th>#</th><th>Spieler</th><th>${hauptSpalte}</th><th>${nebenSpalte}</th>
+    </tr></thead><tbody>`;
+
+  sortiert.forEach((e, i) => {
+    const rang = i + 1;
+    const klasse = rang === 1 ? 'rang-1' : rang === 2 ? 'rang-2' : rang === 3 ? 'rang-3' : '';
+    const eigenKlasse = e.user_id === eigenerId ? ' rang-eigen' : '';
+    const hauptwert = ranglisteAktivTab === 'prestige'
+      ? (e.level || 0)
+      : fmt(e.punkte || 0);
+    const nebenwert = ranglisteAktivTab === 'prestige'
+      ? fmt(e.punkte || 0)
+      : (e.level || 0);
+    const medal = rang === 1 ? '🥇' : rang === 2 ? '🥈' : rang === 3 ? '🥉' : rang;
+    html += `<tr class="${klasse}${eigenKlasse}">
+      <td>${medal}</td>
+      <td>${e.username || 'Anonym'}</td>
+      <td>${hauptwert}</td>
+      <td>${nebenwert}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  inhalt.innerHTML = html;
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  INITIALISIERUNG                                        ║
+// ╚══════════════════════════════════════════════════════════╝
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await PZ.updateNavbar();
+
+  // Spielstand laden (oder frischen Zustand verwenden)
+  const geladen = await spielstandLaden();
+  if (!geladen) zustand = standardZustand();
+
+  statsNeuBerechnen();
+  skinsPruefen();
+  haufeInitialisieren();
+  shopRendern();
+  errungenschaftenPruefen();
+  prestigeBtnAktualisieren();
+
+  // Canvas – Klick + Touch
+  const canvas = document.getElementById('pixelHaufen');
+  canvas.addEventListener('click', klickHandler);
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    klickHandler(e.changedTouches?.[0] || e);
+  }, { passive: false });
+
+  // Prestige
+  document.getElementById('prestigeBtn').addEventListener('click', prestigeDurchfuehren);
+
+  // Speichern
+  document.getElementById('speichernBtn').addEventListener('click', () => spielstandSpeichern(true));
+
+  // Rangliste
+  document.getElementById('ranglisteBtn').addEventListener('click', () => {
+    document.getElementById('ranglisteModal').classList.remove('versteckt');
+    ranglisteRendern();
+  });
+  document.getElementById('ranglisteSchliessen').addEventListener('click', () => {
+    document.getElementById('ranglisteModal').classList.add('versteckt');
+  });
+  document.querySelectorAll('.rl-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.rl-tab').forEach(t => t.classList.remove('aktiv'));
+      tab.classList.add('aktiv');
+      ranglisteAktivTab = tab.dataset.rl;
+      ranglisteRendern();
+    });
+  });
+
+  // Errungenschaften
+  document.getElementById('errungenschaftenBtn').addEventListener('click', () => {
+    errungenschaftenModalRendern();
+    document.getElementById('errungenschaftenModal').classList.remove('versteckt');
+  });
+  document.getElementById('errungenschaftenSchliessen').addEventListener('click', () => {
+    document.getElementById('errungenschaftenModal').classList.add('versteckt');
+  });
+
+  // Skins
+  document.getElementById('skinBtn').addEventListener('click', () => {
+    skinModalRendern();
+    document.getElementById('skinModal').classList.remove('versteckt');
+  });
+  document.getElementById('skinSchliessen').addEventListener('click', () => {
+    document.getElementById('skinModal').classList.add('versteckt');
+  });
+
+  // Modal-Hintergrund klick schließt Modal
+  document.querySelectorAll('.modal-hintergrund').forEach(m => {
+    m.addEventListener('click', (e) => {
+      if (e.target === m) m.classList.add('versteckt');
+    });
+  });
+
+  // Shop-Tabs
+  document.querySelectorAll('.shop-tab').forEach(tab => {
+    tab.addEventListener('click', () => shopTabAktivieren(tab.dataset.tab));
+  });
+
+  // Game Loop starten
+  spielGestartet = true;
+  loopId = requestAnimationFrame(gameLoop);
+
+  // Ereignisse starten
+  ereignisseStarten();
+
+  // Autosave alle 60 Sekunden (kein Toast)
+  setInterval(() => spielstandSpeichern(false), 60000);
+
+  // Beim Verlassen: letzterBesuch aktualisieren damit Offline-Bonus stimmt
+  window.addEventListener('beforeunload', () => {
+    zustand.letzterBesuch = Date.now();
+  });
+});

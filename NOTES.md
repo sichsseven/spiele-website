@@ -184,6 +184,17 @@
 - `physikWarRuhig`-Guard: verhindert BFS-Aufrufe 60x/Sekunde im ruhigen Zustand
 - BFS queue.shift() → head-pointer für O(n) statt O(n²)
 
+### Pixel Factory – Fertigstellung (2026-04-04) ✅
+- `spielstandSpeichern()` + `spielstandLaden()` via PZ.saveGameData/loadScore implementiert
+- Offline-Bonus: 50 % der verpassten Produktion, begrenzt auf maxOfflineStunden(), ab 1 Min. Abwesenheit
+- Autosave alle 60 Sekunden (kein Toast), manuelle Speichern-Button zeigt Toast
+- `ranglisteRendern()`: lädt Top 10, zwei Tabs (Meiste Pixel / Prestige), Prestige-Tab sortiert client-seitig nach level
+- `DOMContentLoaded`-Init: alle Buttons und Event-Listener verdrahtet (Canvas-Klick, Touch, Prestige, Speichern, Rangliste, Errungenschaften, Skins, Shop-Tabs, Modal-Backdrop)
+- `beforeunload`: letzterBesuch aktualisiert für korrekten Offline-Bonus beim nächsten Start
+- Startseite: Pixel-Factory-Karte hinzugefügt (9. Spiel), Zähler 8→9, Footer aktualisiert
+- `style.css`: `.t-factory` (gelb), `.tag-idle` (orange) hinzugefügt
+- Feedback-Dropdown: pixel-factory Option ergänzt
+
 ### Was als nächstes zu tun ist
 - Weitere Spiele entwickeln oder Bestehende erweitern
 

@@ -209,6 +209,7 @@ main { padding-top: 64px; }
 .t-wordle  { background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 100%); }
 .t-minesweeper { background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); }
 .t-pixeldrop { background: linear-gradient(135deg, #3b82f6 0%, #f97316 100%); }
+.t-factory   { background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%); }
 
 /* Dekorative Elemente auf den Thumbnails */
 .t-pixel::before {
@@ -296,6 +297,7 @@ main { padding-top: 64px; }
 .tag-puzzle  { background: rgba(99,102,241,0.1);  color: #5b5ee8; }
 .tag-memory  { background: rgba(168,85,247,0.1);  color: #9333ea; }
 .tag-runner  { background: rgba(245,158,11,0.1);  color: #d97706; }
+.tag-idle    { background: rgba(249,115,22,0.1);  color: #c2410c; }
 .card-live {
   display: flex; align-items: center; gap: 5px;
   font-size: 0.7rem; font-weight: 800;
