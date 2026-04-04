@@ -88,9 +88,14 @@ const SYNERGIE_UPGRADES = [
 ];
 
 // Alle normalen Upgrades zusammenführen
+// Typ-Felder Referenz:
+//   klick_add, klick_mult, gebaeude_mult  → wert (Zahl)
+//   offline_stunden                        → stunden (Zahl, kein wert-Feld)
+//   synergie                               → faktor (Zahl, kein wert-Feld)
 const UPGRADES = [...KLICK_UPGRADES, ...GEBAEUDE_UPGRADES, ...OFFLINE_UPGRADES, ...SYNERGIE_UPGRADES];
 
 // === PRESTIGE-UPGRADES (mit Quantum-Pixel kaufbar) ===
+// Kein 'bedingung'-Feld – sie sind immer sichtbar (nur QP-Preis entscheidet)
 const PRESTIGE_UPGRADES = [
   // Globale Multiplikatoren (10 Stück)
   { id: 'qp_global_1',  name: 'Quanten-Fabrik I',    beschreibung: 'Alle Produktion ×1,5',   preisQP: 1,    typ: 'qp_global_mult', wert: 1.5  },
