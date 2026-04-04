@@ -690,3 +690,41 @@ function prestigeUpgradeKaufen(up) {
   statsNeuBerechnen();
   shopRendern();
 }
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  PRESTIGE                                               ║
+// ╚══════════════════════════════════════════════════════════╝
+
+function prestigeDurchfuehren() {
+  const schwelle = zustand.prestige === 0 ? 1000 : 1000 * Math.pow(10, zustand.prestige);
+  if (zustand.pixel < schwelle && zustand.lifetimePixel < schwelle) return;
+
+  const qpGewinn = berechneQPGewinn();
+
+  if (!confirm(`Prestige durchführen?\n\n+${fmt(qpGewinn)} Quantum-Pixel\n\nDeine Pixel und Gebäude werden zurückgesetzt.\nQuantum-Pixel, Upgrades und Skins bleiben erhalten.`)) return;
+
+  zustand.quantumPixel += qpGewinn;
+  zustand._gesamtQP += qpGewinn;
+  zustand.prestige += 1;
+  zustand.pixel = 0;
+  zustand.gebaeude = Object.fromEntries(GEBAEUDE.map(g => [g.id, 0]));
+  zustand.upgrades = [];
+  zustand._speedrunStart = Date.now();
+  zustand._speedrunOk = false;
+
+  // QP-Start-Bonus anwenden falls vorhanden
+  const startBonusGekauft = zustand.prestigeUpgrades.includes('qp_start');
+  if (startBonusGekauft) {
+    const startBonus = PRESTIGE_UPGRADES.find(u => u.id === 'qp_start');
+    if (startBonus) zustand.pixel += startBonus.wert;
+  }
+
+  skinsPruefen();
+  statsNeuBerechnen();
+  haufeInitialisieren();
+  shopRendern();
+  errungenschaftenPruefen();
+
+  if (typeof toastZeigen === 'function') toastZeigen(`✦ Prestige ${zustand.prestige}! +${fmt(qpGewinn)} Quantum-Pixel`);
+  if (typeof spielstandSpeichern === 'function') spielstandSpeichern();
+}
