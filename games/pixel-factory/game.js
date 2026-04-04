@@ -549,3 +549,144 @@ function shopTabAktivieren(tabName) {
   document.getElementById('shopUpgrades').classList.toggle('versteckt', tabName !== 'upgrades');
   document.getElementById('shopPrestige').classList.toggle('versteckt', tabName !== 'prestige');
 }
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SHOP                                                   ║
+// ╚══════════════════════════════════════════════════════════╝
+
+function shopRendern() {
+  shopGebaeudeRendern();
+  shopUpgradesRendern();
+  shopPrestigeRendern();
+}
+
+function gebaeudeIconZeichen(id) {
+  const icons = {
+    maschine: '⚙', foerderband: '⇒', drucker: '▤', sortieranlage: '⊞',
+    labor: '⌬', quantencomp: '◈', reaktor: '⊕', portal: '⊗',
+    universum: '✦', zeitmaschine: '↻', singularitaet: '◉', goettlich: '✧',
+  };
+  return icons[id] || '?';
+}
+
+function shopGebaeudeRendern() {
+  const container = document.getElementById('shopGebaeude');
+  container.innerHTML = '';
+
+  for (const g of GEBAEUDE) {
+    if (g.minPrestige && zustand.prestige < g.minPrestige) {
+      const el = document.createElement('div');
+      el.className = 'gebaeude-eintrag gesperrt';
+      el.innerHTML = `
+        <div class="gebaeude-icon" style="background:${g.farbe}22">🔒</div>
+        <div class="gebaeude-info">
+          <div class="gebaeude-name">${g.name}</div>
+          <div class="gebaeude-pps">Ab Prestige ${g.minPrestige}</div>
+        </div>`;
+      container.appendChild(el);
+      continue;
+    }
+
+    const anzahl = zustand.gebaeude[g.id] || 0;
+    const preis = gebaeudePreis(g, anzahl);
+    const kannKaufen = zustand.pixel >= preis;
+    const el = document.createElement('div');
+    el.className = `gebaeude-eintrag${kannKaufen ? '' : ' zu-teuer'}`;
+
+    el.innerHTML = `
+      <div class="gebaeude-icon" style="background:${g.farbe}22; color:${g.farbe}">
+        ${gebaeudeIconZeichen(g.id)}
+      </div>
+      <div class="gebaeude-info">
+        <div class="gebaeude-name">${g.name}</div>
+        <div class="gebaeude-pps">${fmt(g.basisPPS)}/s pro Stück</div>
+      </div>
+      <div>
+        <div class="gebaeude-preis">${fmt(preis)}</div>
+      </div>
+      <div class="gebaeude-anzahl">${anzahl > 0 ? anzahl : ''}</div>`;
+
+    el.addEventListener('click', () => gebaeudeKaufen(g));
+    container.appendChild(el);
+  }
+}
+
+function gebaeudeKaufen(g) {
+  const anzahl = zustand.gebaeude[g.id] || 0;
+  const preis = gebaeudePreis(g, anzahl);
+  if (zustand.pixel < preis) return;
+  zustand.pixel -= preis;
+  zustand.gebaeude[g.id] = anzahl + 1;
+  statsNeuBerechnen();
+  shopRendern();
+}
+
+function shopUpgradesRendern() {
+  const container = document.getElementById('shopUpgrades');
+  container.innerHTML = '';
+
+  // Nur Upgrades die noch nicht gekauft wurden und deren Bedingung erfüllt ist
+  const verfuegbar = UPGRADES.filter(up =>
+    !zustand.upgrades.includes(up.id) && up.bedingung(zustand)
+  );
+
+  if (verfuegbar.length === 0) {
+    container.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:0.85rem;text-align:center">Noch keine Upgrades verfügbar</div>';
+    return;
+  }
+
+  for (const up of verfuegbar) {
+    const kannKaufen = zustand.pixel >= up.preis;
+    const el = document.createElement('div');
+    el.className = `upgrade-eintrag${kannKaufen ? '' : ' zu-teuer'}`;
+    el.innerHTML = `
+      <div class="upgrade-name">${up.name}</div>
+      <div class="upgrade-beschreibung">${up.beschreibung}</div>
+      <div class="upgrade-preis">${fmt(up.preis)} Pixel</div>`;
+    el.addEventListener('click', () => upgradeKaufen(up));
+    container.appendChild(el);
+  }
+}
+
+function upgradeKaufen(up) {
+  if (zustand.upgrades.includes(up.id)) return;
+  if (zustand.pixel < up.preis) return;
+  zustand.pixel -= up.preis;
+  zustand.upgrades.push(up.id);
+  statsNeuBerechnen();
+  shopRendern();
+}
+
+function shopPrestigeRendern() {
+  const container = document.getElementById('shopPrestige');
+  container.innerHTML = '';
+
+  const verfuegbar = PRESTIGE_UPGRADES.filter(up => !zustand.prestigeUpgrades.includes(up.id));
+
+  if (verfuegbar.length === 0) {
+    container.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:0.85rem;text-align:center">Alle Quantum-Upgrades gekauft!</div>';
+    return;
+  }
+
+  for (const up of verfuegbar) {
+    const kannKaufen = zustand.quantumPixel >= up.preisQP;
+    const el = document.createElement('div');
+    el.className = `upgrade-eintrag prestige-up${kannKaufen ? '' : ' zu-teuer'}`;
+    el.innerHTML = `
+      <div class="upgrade-name">${up.name}</div>
+      <div class="upgrade-beschreibung">${up.beschreibung}</div>
+      <div class="upgrade-preis">⬡ ${fmt(up.preisQP)} Quantum-Pixel</div>`;
+    el.addEventListener('click', () => prestigeUpgradeKaufen(up));
+    container.appendChild(el);
+  }
+}
+
+function prestigeUpgradeKaufen(up) {
+  if (zustand.prestigeUpgrades.includes(up.id)) return;
+  if (zustand.quantumPixel < up.preisQP) return;
+  zustand.quantumPixel -= up.preisQP;
+  zustand.prestigeUpgrades.push(up.id);
+  if (up.typ === 'qp_start_bonus') zustand.pixel += up.wert;
+  statsNeuBerechnen();
+  shopRendern();
+}
