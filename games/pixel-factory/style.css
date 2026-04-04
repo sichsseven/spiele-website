@@ -146,12 +146,12 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 /* === GOLDENE PIXEL === */
 #goldenLayer { position: fixed; inset: 0; pointer-events: none; z-index: 150; }
 .goldener-pixel { position: absolute; width: 44px; height: 44px; cursor: pointer; pointer-events: all; animation: goldenAuftauchen 0.5s ease; display: flex; align-items: center; justify-content: center; }
-.goldener-pixel::before { content: ''; display: block; width: 32px; height: 32px; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 4px; box-shadow: 0 0 12px rgba(245,158,11,0.6); animation: goldenPulsieren 1.5s ease-in-out infinite; }
+.goldener-pixel::before { content: ''; display: block; width: 32px; height: 32px; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 4px; box-shadow: 0 0 12px rgba(245,158,11,0.6); animation: goldenPulsieren 1.5s ease-in-out infinite; will-change: transform; }
 @keyframes goldenAuftauchen { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
 @keyframes goldenPulsieren { 0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(245,158,11,0.6); } 50% { transform: scale(1.15); box-shadow: 0 0 20px rgba(245,158,11,0.9); } }
 
 /* === PARTIKEL === */
-.partikel { position: fixed; pointer-events: none; z-index: 160; font-size: 0.8rem; font-weight: 700; color: var(--primary); animation: partikelFliegen 0.8s ease-out forwards; white-space: nowrap; }
+.partikel { position: fixed; pointer-events: none; z-index: 160; font-size: 0.8rem; font-weight: 700; color: var(--primary); animation: partikelFliegen 0.8s ease-out forwards; white-space: nowrap; will-change: transform, opacity; }
 @keyframes partikelFliegen { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx, 0px), -70px) scale(0.6); } }
 
 /* === RESPONSIVE === */
