@@ -500,3 +500,52 @@ function partikelErzeugen(x, y, text) {
   setTimeout(() => el.remove(), 900);
 }
 
+// ╔══════════════════════════════════════════════════════════╗
+// ║  KLICK-MECHANIK + UI-RENDERING                          ║
+// ╚══════════════════════════════════════════════════════════╝
+
+function klickHandler(event) {
+  const ppk = berechneteStats.ppk * aktiveBoosts.ppkMultiplikator;
+  zustand.pixel += ppk;
+  zustand.lifetimePixel += ppk;
+  zustand.gesamtKlicks++;
+
+  const rect = event.currentTarget.getBoundingClientRect();
+  partikelErzeugen(
+    event.clientX || rect.left + rect.width / 2,
+    event.clientY || rect.top + rect.height / 2,
+    '+' + fmt(ppk)
+  );
+
+  document.getElementById('klickInfo').textContent = '+' + fmt(ppk) + ' Pixel';
+  errungenschaftenPruefen();
+}
+
+function renderStats() {
+  document.getElementById('statPixel').textContent = fmt(zustand.pixel) + ' Pixel';
+  document.getElementById('statPPS').textContent = fmt(berechneteStats.pps) + '/s';
+  document.getElementById('statPPK').textContent = fmt(berechneteStats.ppk);
+  document.getElementById('statQP').textContent = fmt(zustand.quantumPixel) + ' QP';
+  document.getElementById('statPrestige').textContent = zustand.prestige;
+}
+
+function prestigeBtnAktualisieren() {
+  const btn = document.getElementById('prestigeBtn');
+  const info = document.getElementById('prestigeInfo');
+  const schwelle = zustand.prestige === 0 ? 1000 : 1000 * Math.pow(10, zustand.prestige);
+  if (zustand.pixel >= schwelle || zustand.lifetimePixel >= schwelle) {
+    btn.disabled = false;
+    const qp = berechneQPGewinn();
+    info.textContent = `+${fmt(qp)} Quantum-Pixel`;
+  } else {
+    btn.disabled = true;
+    info.textContent = `Brauche ${fmt(schwelle)} Pixel`;
+  }
+}
+
+function shopTabAktivieren(tabName) {
+  document.querySelectorAll('.shop-tab').forEach(t => t.classList.toggle('aktiv', t.dataset.tab === tabName));
+  document.getElementById('shopGebaeude').classList.toggle('versteckt', tabName !== 'gebaeude');
+  document.getElementById('shopUpgrades').classList.toggle('versteckt', tabName !== 'upgrades');
+  document.getElementById('shopPrestige').classList.toggle('versteckt', tabName !== 'prestige');
+}
