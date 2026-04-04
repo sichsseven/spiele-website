@@ -377,6 +377,6 @@ document.addEventListener('visibilitychange', () => {
   } else {
     if (hintergrundInterval) { clearInterval(hintergrundInterval); hintergrundInterval = null; }
     letzterFrame = 0;
-    loopId = requestAnimationFrame(gameLoop);
+    if (spielGestartet) loopId = requestAnimationFrame(gameLoop);
   }
 });
