@@ -792,9 +792,12 @@ function prestigeDurchfuehren() {
   if (zustand.pixel < schwelle && zustand.lifetimePixel < schwelle) return;
 
   const qpGewinn = berechneQPGewinn();
+  document.getElementById('pcQP').textContent = `+${fmt(qpGewinn)} Quantum-Pixel`;
+  document.getElementById('prestigeConfirmModal').classList.remove('versteckt');
+  document.getElementById('prestigeConfirmModal').dataset.qp = qpGewinn;
+}
 
-  if (!confirm(`Prestige durchführen?\n\n+${fmt(qpGewinn)} Quantum-Pixel\n\nDeine Pixel und Gebäude werden zurückgesetzt.\nQuantum-Pixel, Upgrades und Skins bleiben erhalten.`)) return;
-
+function prestigeAusfuehren(qpGewinn) {
   zustand.quantumPixel += qpGewinn;
   zustand._gesamtQP += qpGewinn;
   zustand.prestige += 1;
@@ -804,7 +807,6 @@ function prestigeDurchfuehren() {
   zustand._speedrunStart = Date.now();
   zustand._speedrunOk = false;
 
-  // QP-Start-Bonus anwenden falls vorhanden
   const startBonusGekauft = zustand.prestigeUpgrades.includes('qp_start');
   if (startBonusGekauft) {
     const startBonus = PRESTIGE_UPGRADES.find(u => u.id === 'qp_start');
@@ -816,9 +818,8 @@ function prestigeDurchfuehren() {
   haufeInitialisieren();
   shopRendern();
   errungenschaftenPruefen();
-
-  if (typeof toastZeigen === 'function') toastZeigen(`✦ Prestige ${zustand.prestige}! +${fmt(qpGewinn)} Quantum-Pixel`);
-  if (typeof spielstandSpeichern === 'function') spielstandSpeichern();
+  toastZeigen(`✦ Prestige ${zustand.prestige}! +${fmt(qpGewinn)} Quantum-Pixel`);
+  spielstandSpeichern();
 }
 
 // ╔══════════════════════════════════════════════════════════╗
@@ -1163,6 +1164,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Prestige
   document.getElementById('prestigeBtn').addEventListener('click', prestigeDurchfuehren);
+
+  // Prestige Bestätigungs-Modal
+  document.getElementById('prestigeConfirmJa').addEventListener('click', () => {
+    const qpGewinn = Number(document.getElementById('prestigeConfirmModal').dataset.qp);
+    document.getElementById('prestigeConfirmModal').classList.add('versteckt');
+    prestigeAnimationZeigen(qpGewinn, () => prestigeAusfuehren(qpGewinn));
+  });
+  document.getElementById('prestigeConfirmNein').addEventListener('click', () => {
+    document.getElementById('prestigeConfirmModal').classList.add('versteckt');
+  });
 
   // Speichern
   document.getElementById('speichernBtn').addEventListener('click', () => spielstandSpeichern(true));
