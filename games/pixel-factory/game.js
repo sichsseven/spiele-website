@@ -822,6 +822,59 @@ function prestigeAusfuehren(qpGewinn) {
   spielstandSpeichern();
 }
 
+function prestigeAnimationZeigen(qpGewinn, callback) {
+  const overlay = document.getElementById('prestigeAnimOverlay');
+  const canvas  = document.getElementById('prestigePartikelCanvas');
+  document.getElementById('paQPText').textContent = `+${fmt(qpGewinn)} Quantum-Pixel`;
+
+  overlay.hidden = false;
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const ctx = canvas.getContext('2d');
+  const farben = ['#8b5cf6','#a78bfa','#fbbf24','#60a5fa','#34d399','#f472b6'];
+  const partikel = [];
+
+  for (let i = 0; i < 130; i++) {
+    partikel.push({
+      x:    Math.random() * canvas.width,
+      y:    canvas.height + Math.random() * 60,
+      vx:   (Math.random() - 0.5) * 5,
+      vy:   -(3 + Math.random() * 6),
+      size: 5 + Math.random() * 9,
+      farbe: farben[Math.floor(Math.random() * farben.length)],
+    });
+  }
+
+  const start = performance.now();
+  const dauer = 2600;
+
+  function frame(now) {
+    const t = (now - start) / dauer;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const p of partikel) {
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.vy += 0.06; // leichte Schwerkraft
+      const alpha = Math.max(0, 1 - t * 1.1);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle   = p.farbe;
+      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    }
+    ctx.globalAlpha = 1;
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      overlay.hidden = true;
+      callback();
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
 // ╔══════════════════════════════════════════════════════════╗
 // ║  SKINS                                                  ║
 // ╚══════════════════════════════════════════════════════════╝
