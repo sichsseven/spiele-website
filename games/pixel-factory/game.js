@@ -186,6 +186,65 @@ const ERRUNGENSCHAFTEN = [
   { id: 'reich',     name: 'Wohlstand',             icon: '💰', text: '1.000 Quantum-Pixel gesammelt (gesamt)', pruefe: (z) => z._gesamtQP >= 1000 },
 ];
 
+// ╔══════════════════════════════════════════════════════════╗
+// ║  TUTORIAL                                               ║
+// ╚══════════════════════════════════════════════════════════╝
+
+const TUTORIAL_SCHRITTE = [
+  {
+    icon:  '🏭',
+    titel: 'Willkommen!',
+    text:  'Klicke auf den <strong>Pixel-Haufen</strong> in der Mitte, um Pixel zu produzieren!',
+  },
+  {
+    icon:  '🏗',
+    titel: 'Gebäude kaufen',
+    text:  'Mit Pixeln kannst du im <strong>Shop rechts</strong> Gebäude kaufen, die automatisch Pixel produzieren.',
+  },
+  {
+    icon:  '✦',
+    titel: 'Prestige',
+    text:  'Wenn du genug Pixel hast, mache <strong>Prestige</strong> für Quantum-Pixel – damit kaufst du dauerhafte Upgrades!',
+  },
+  {
+    icon:  '🎯',
+    titel: "Los geht's!",
+    text:  "Das war's! Baue die größte Pixel-Fabrik der Welt. <em>Viel Erfolg!</em>",
+  },
+];
+
+let tutorialSchritt = 0;
+
+function tutorialZeigen() {
+  const overlay = document.getElementById('tutorialOverlay');
+  if (zustand._tutorialGesehen) {
+    overlay.classList.add('versteckt');
+    return;
+  }
+  tutorialSchritt = 0;
+  tutorialSchrittRendern();
+  overlay.classList.remove('versteckt');
+}
+
+function tutorialSchrittRendern() {
+  const s = TUTORIAL_SCHRITTE[tutorialSchritt];
+  document.getElementById('tutorialIcon').textContent  = s.icon;
+  document.getElementById('tutorialTitel').textContent = s.titel;
+  document.getElementById('tutorialText').innerHTML    = s.text;
+
+  document.querySelectorAll('.tut-punkt').forEach((p, i) => {
+    p.classList.toggle('aktiv', i === tutorialSchritt);
+  });
+
+  const isLast = tutorialSchritt === TUTORIAL_SCHRITTE.length - 1;
+  document.getElementById('tutWeiter').textContent = isLast ? 'Spielen! 🎮' : 'Weiter →';
+}
+
+function tutorialSchliessen() {
+  zustand._tutorialGesehen = true;
+  document.getElementById('tutorialOverlay').classList.add('versteckt');
+}
+
 // Hilfsfunktion: Gesamtgebäude zählen
 function gesamtGebaeude(z) {
   return Object.values(z.gebaeude).reduce((s, n) => s + n, 0);
@@ -215,6 +274,7 @@ function standardZustand() {
     _speedrunOk: false,
     _speedrunStart: Date.now(),
     _gesamtQP: 0,
+    _tutorialGesehen: false,
   };
 }
 
@@ -1196,6 +1256,17 @@ async function ranglisteRendern() {
 document.addEventListener('DOMContentLoaded', async () => {
   await PZ.updateNavbar();
 
+  // Tutorial-Buttons
+  document.getElementById('tutWeiter').addEventListener('click', () => {
+    if (tutorialSchritt < TUTORIAL_SCHRITTE.length - 1) {
+      tutorialSchritt++;
+      tutorialSchrittRendern();
+    } else {
+      tutorialSchliessen();
+    }
+  });
+  document.getElementById('tutSkip').addEventListener('click', tutorialSchliessen);
+
   // Spielstand laden (oder frischen Zustand verwenden)
   const geladen = await spielstandLaden();
   if (!geladen) zustand = standardZustand();
@@ -1302,6 +1373,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Ereignisse starten
   ereignisseStarten();
+
+  // Tutorial bei erstem Start zeigen
+  tutorialZeigen();
 
   // Autosave alle 60 Sekunden (kein Toast)
   setInterval(() => spielstandSpeichern(false), 30000);

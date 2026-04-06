@@ -2,6 +2,35 @@
 
 ## Heutiger Stand (2026-04-06)
 
+### Pixel Factory – Layout & Features (2026-04-06) ✅
+- 3-Spalten-Layout: Stats links | Canvas Mitte | Shop rechts
+- Tutorial (4 Schritte), nur beim ersten Start
+- Bulk-Kauf: ×1/×10/×50/Max für Gebäude
+- Prestige Custom-Modal statt browser confirm()
+- Prestige Partikel-Animation
+- Klick-Ring Puls-Effekt
+- Gebäude-Shop: leistbar Highlight (blau), korrektes HTML-Grid
+- Upgrades-Tab: abwechselnd Klick/Produktion, leistbar/pps-/ppk-Klassen
+- Quantum-Upgrades-Tab: leistbar Klasse
+
+### Task 7: JS – Prestige-Modal (Pixel Factory) ✅
+**Status:** DONE
+- `prestigeDurchfuehren()` ersetzt:
+  - Zeigt Modal statt browser `confirm()` zu nutzen
+  - Berechnet `qpGewinn`, schreibt in `#pcQP` Element
+  - Setzt `data-qp` auf Modal-Element mit Gewinn
+  - Entfernt `versteckt`-Klasse um Modal zu zeigen
+- `prestigeAusfuehren(qpGewinn)` neue Funktion:
+  - Führt Prestige-Logik aus (pixel/gebäude zurücksetzen, prestige+1, etc.)
+  - Skins-Check, Stats-Neuberechnung, Hauf-Init, Shop-Render
+  - Toast-Benachrichtigung + Spielstand-Speicherung
+- Modal-Button-Listener in `DOMContentLoaded`:
+  - `#prestigeConfirmJa`: Extrahiert `data-qp`, schließt Modal, ruft `prestigeAnimationZeigen()` auf (wird in Task 8 implementiert) mit Callback zu `prestigeAusfuehren(qpGewinn)`
+  - `#prestigeConfirmNein`: Schließt Modal ohne Aktion
+- Git commit `79ed9a5`: "feat(pixel-factory): prestige custom-modal statt browser confirm"
+
+### Weiterer Stand (2026-04-06)
+
 ### Task 5: JS – Bulk-Kauf (Pixel Factory) ✅
 **Status:** DONE
 - `gebaeudeKaufen()` Funktion ersetzt mit Bulk-Kauf-Logik:
