@@ -661,11 +661,15 @@ function shopGebaeudeRendern() {
 }
 
 function gebaeudeKaufen(g) {
-  const anzahl = zustand.gebaeude[g.id] || 0;
-  const preis = gebaeudePreis(g, anzahl);
-  if (zustand.pixel < preis) return;
-  zustand.pixel -= preis;
-  zustand.gebaeude[g.id] = anzahl + 1;
+  const menge = bulkMenge === 0 ? gebaeudeMaxMenge(g) : bulkMenge;
+  if (menge <= 0) return;
+  for (let i = 0; i < menge; i++) {
+    const anzahl = zustand.gebaeude[g.id] || 0;
+    const preis = gebaeudePreis(g, anzahl);
+    if (zustand.pixel < preis) break;
+    zustand.pixel -= preis;
+    zustand.gebaeude[g.id] = anzahl + 1;
+  }
   statsNeuBerechnen();
   shopRendern();
 }
@@ -1191,6 +1195,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Shop-Tabs
   document.querySelectorAll('.shop-tab').forEach(tab => {
     tab.addEventListener('click', () => shopTabAktivieren(tab.dataset.tab));
+  });
+
+  // Bulk-Kauf Buttons
+  document.querySelectorAll('.bulk-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.bulk-btn').forEach(b => b.classList.remove('aktiv'));
+      btn.classList.add('aktiv');
+      bulkMenge = Number(btn.dataset.menge);
+      shopGebaeudeRendern();
+    });
+  });
+
+  // Bulk-Leiste nur bei Gebäude-Tab zeigen
+  const bulkLeiste = document.getElementById('bulkLeiste');
+  document.querySelectorAll('.shop-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      bulkLeiste.classList.toggle('versteckt', tab.dataset.tab !== 'gebaeude');
+    });
   });
 
   // Game Loop starten
