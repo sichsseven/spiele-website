@@ -1,5 +1,22 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Heutiger Stand (2026-04-06)
+
+### Task 5: JS – Bulk-Kauf (Pixel Factory) ✅
+**Status:** DONE
+- `gebaeudeKaufen()` Funktion ersetzt mit Bulk-Kauf-Logik:
+  - `bulkMenge === 0` → `gebaeudeMaxMenge(g)` (Max möglich), sonst `bulkMenge`
+  - Schleife über Menge: kaufe so viele wie möglich, bricht bei fehlenden Pixeln ab
+- Bulk-Button Event-Listener in `DOMContentLoaded` verdrahtet:
+  - `.bulk-btn` Klick: entfernt `aktiv`-Klasse von allen, fügt zu geklicktem Button hinzu
+  - Setzt `bulkMenge` aus `btn.dataset.menge`
+  - Ruft `shopGebaeudeRendern()` auf für UI-Update
+- Bulk-Leiste Sichtbarkeit:
+  - Nur im Gebäude-Tab sichtbar
+  - Event-Listener auf Shop-Tab-Klicks: `.bulkLeiste.classList.toggle('versteckt', ...)`
+- Git commit `51ffe27`: "feat(pixel-factory): bulk-kauf x1/x10/x50/max"
+- Git push erfolgreich
+
 ## Heutiger Stand (2026-04-04)
 
 ### Task 1: Blockfall komplett löschen ✅
