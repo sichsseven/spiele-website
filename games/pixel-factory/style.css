@@ -351,18 +351,17 @@ body {
   position: relative;
 }
 
-/* Kann es sich leisten → grüne Hervorhebung */
+/* Kann es sich leisten → blaue Hervorhebung */
 .gebaeude-eintrag.leistbar {
-  border-color: var(--emerald);
-  background: linear-gradient(to right, rgba(16,185,129,0.06), white);
-  box-shadow: 0 0 0 1px rgba(16,185,129,0.2);
+  border-color: var(--primary);
+  background: rgba(58,134,255,0.04);
+  box-shadow: 0 0 0 2px var(--primary), 0 2px 12px rgba(58,134,255,0.18);
 }
 .gebaeude-eintrag.leistbar:hover {
-  border-color: var(--emerald);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(16,185,129,0.2);
+  box-shadow: 0 0 0 2px var(--primary), 0 4px 16px rgba(58,134,255,0.25);
 }
-.gebaeude-eintrag.leistbar .gebaeude-preis { color: var(--emerald); font-weight: 900; }
+.gebaeude-eintrag.leistbar .gebaeude-preis { color: var(--primary); font-weight: 900; }
 
 /* Zu teuer → gedimmt */
 .gebaeude-eintrag.zu-teuer { opacity: 0.55; cursor: not-allowed; }

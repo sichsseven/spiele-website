@@ -223,6 +223,30 @@ let zustand = standardZustand();
 // Abgeleitete Stats (werden laufend neu berechnet)
 let berechneteStats = { pps: 0, ppk: 1 };
 
+let bulkMenge = 1; // 0 = Max
+
+function gebaeudeGesamtPreis(g, menge) {
+  const anzahl = zustand.gebaeude[g.id] || 0;
+  let total = 0;
+  for (let i = 0; i < menge; i++) {
+    total += gebaeudePreis(g, anzahl + i);
+  }
+  return total;
+}
+
+function gebaeudeMaxMenge(g) {
+  let n = 0;
+  let tempPixel = zustand.pixel;
+  let tempAnzahl = zustand.gebaeude[g.id] || 0;
+  while (true) {
+    const p = gebaeudePreis(g, tempAnzahl + n);
+    if (tempPixel < p) break;
+    tempPixel -= p;
+    n++;
+  }
+  return n;
+}
+
 // === ZAHLENFORMATIERUNG ===
 const EINHEITEN = ['', 'K', 'M', 'B', 'T', 'Qd', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
 
@@ -600,16 +624,22 @@ function shopGebaeudeRendern() {
         <div class="gebaeude-info">
           <div class="gebaeude-name">${g.name}</div>
           <div class="gebaeude-pps">Ab Prestige ${g.minPrestige}</div>
-        </div>`;
+        </div>
+        <div class="gebaeude-preis-block"></div>`;
       container.appendChild(el);
       continue;
     }
 
     const anzahl = zustand.gebaeude[g.id] || 0;
-    const preis = gebaeudePreis(g, anzahl);
-    const kannKaufen = zustand.pixel >= preis;
+    const menge = bulkMenge === 0 ? gebaeudeMaxMenge(g) : bulkMenge;
+    const preis = menge <= 1 ? gebaeudePreis(g, anzahl) : gebaeudeGesamtPreis(g, menge);
+    const kannKaufen = zustand.pixel >= gebaeudePreis(g, anzahl);
     const el = document.createElement('div');
-    el.className = `gebaeude-eintrag${kannKaufen ? '' : ' zu-teuer'}`;
+    el.className = `gebaeude-eintrag${kannKaufen ? ' leistbar' : ' zu-teuer'}`;
+
+    const bulkInfo = menge > 1 && kannKaufen
+      ? `<div class="gebaeude-bulk-info">×${menge} = ${fmt(preis)}</div>`
+      : (menge > 1 ? `<div class="gebaeude-bulk-info">×${menge}</div>` : '');
 
     el.innerHTML = `
       <div class="gebaeude-icon" style="background:${g.farbe}22; color:${g.farbe}">
@@ -619,10 +649,11 @@ function shopGebaeudeRendern() {
         <div class="gebaeude-name">${g.name}</div>
         <div class="gebaeude-pps">${fmt(g.basisPPS)}/s pro Stück</div>
       </div>
-      <div>
-        <div class="gebaeude-preis">${fmt(preis)}</div>
-      </div>
-      <div class="gebaeude-anzahl">${anzahl > 0 ? anzahl : ''}</div>`;
+      <div class="gebaeude-preis-block">
+        <div class="gebaeude-preis">${fmt(menge <= 1 ? preis : gebaeudePreis(g, anzahl))}</div>
+        ${anzahl > 0 ? `<div class="gebaeude-anzahl-badge">${anzahl}</div>` : ''}
+        ${bulkInfo}
+      </div>`;
 
     el.addEventListener('click', () => gebaeudeKaufen(g));
     container.appendChild(el);
