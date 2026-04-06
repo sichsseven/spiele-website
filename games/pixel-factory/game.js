@@ -218,7 +218,8 @@ let tutorialSchritt = 0;
 function tutorialZeigen() {
   const overlay = document.getElementById('tutorialOverlay');
   if (!overlay) return;
-  if (zustand._tutorialGesehen) return; // versteckt bereits per HTML-Klasse
+  // Nicht zeigen wenn bereits gesehen ODER Spieler hat schon Fortschritt (altes Savegame ohne _tutorialGesehen)
+  if (zustand._tutorialGesehen || zustand.lifetimePixel > 0 || zustand.prestige > 0 || zustand.gesamtKlicks > 0) return;
   tutorialSchritt = 0;
   tutorialSchrittRendern();
   overlay.classList.remove('versteckt');
