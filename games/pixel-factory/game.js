@@ -247,6 +247,19 @@ function gebaeudeMaxMenge(g) {
   return n;
 }
 
+function upgradesInterleaved(upgrades) {
+  const klickTypen = ['klick_add', 'klick_mult'];
+  const klick = upgrades.filter(u => klickTypen.includes(u.typ));
+  const prod  = upgrades.filter(u => !klickTypen.includes(u.typ));
+  const result = [];
+  const maxLen = Math.max(klick.length, prod.length);
+  for (let i = 0; i < maxLen; i++) {
+    if (i < klick.length) result.push(klick[i]);
+    if (i < prod.length)  result.push(prod[i]);
+  }
+  return result;
+}
+
 // === ZAHLENFORMATIERUNG ===
 const EINHEITEN = ['', 'K', 'M', 'B', 'T', 'Qd', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
 
@@ -678,7 +691,6 @@ function shopUpgradesRendern() {
   const container = document.getElementById('shopUpgrades');
   container.innerHTML = '';
 
-  // Nur Upgrades die noch nicht gekauft wurden und deren Bedingung erfüllt ist
   const verfuegbar = UPGRADES.filter(up =>
     !zustand.upgrades.includes(up.id) && up.bedingung(zustand)
   );
@@ -688,10 +700,15 @@ function shopUpgradesRendern() {
     return;
   }
 
-  for (const up of verfuegbar) {
+  const klickTypen = ['klick_add', 'klick_mult'];
+  const sortiert = upgradesInterleaved(verfuegbar);
+
+  for (const up of sortiert) {
+    const istKlick = klickTypen.includes(up.typ);
     const kannKaufen = zustand.pixel >= up.preis;
     const el = document.createElement('div');
-    el.className = `upgrade-eintrag${kannKaufen ? '' : ' zu-teuer'}`;
+    const kategorieKlasse = istKlick ? 'ppk-upgrade' : 'pps-upgrade';
+    el.className = `upgrade-eintrag ${kategorieKlasse}${kannKaufen ? ' leistbar' : ' zu-teuer'}`;
     el.innerHTML = `
       <div class="upgrade-name">${up.name}</div>
       <div class="upgrade-beschreibung">${up.beschreibung}</div>
@@ -735,7 +752,7 @@ function shopPrestigeRendern() {
   for (const up of verfuegbar) {
     const kannKaufen = zustand.quantumPixel >= up.preisQP;
     const el = document.createElement('div');
-    el.className = `upgrade-eintrag prestige-up${up.meilenstein ? ' meilenstein-up' : ''}${kannKaufen ? '' : ' zu-teuer'}`;
+    el.className = `upgrade-eintrag prestige-up${up.meilenstein ? ' meilenstein-up' : ''}${kannKaufen ? ' leistbar' : ' zu-teuer'}`;
     el.innerHTML = `
       <div class="upgrade-name">${up.name}</div>
       <div class="upgrade-beschreibung">${up.beschreibung}</div>
