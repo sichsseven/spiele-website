@@ -29,6 +29,7 @@ body {
   background: var(--bg);
   color: var(--text);
   height: 100vh;
+  height: 100svh; /* iOS Safari: kleine Viewport-Höhe ohne Browser-Chrome */
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -60,6 +61,7 @@ body {
   display: grid;
   grid-template-columns: 260px 1fr 380px;
   height: calc(100vh - 52px);
+  height: calc(100svh - 52px); /* iOS Safari fix */
   overflow: hidden;
 }
 
@@ -73,6 +75,8 @@ body {
   justify-content: flex-start;
   gap: 16px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
 }
 
 /* Klick-Sektion */
