@@ -248,7 +248,8 @@ const SKINS = [
 
   { id: 'regenbogen',   name: 'Regenbogen',       minPrestige: 15, animiert: true,
     farben: ['#f87171','#fbbf24','#34d399','#60a5fa','#a78bfa'],
-    canvasBg: 'linear-gradient(145deg, #fff1f2 0%, #fdf4ff 100%)' },
+    canvasBg: 'linear-gradient(145deg, #fff1f2 0%, #fdf4ff 100%)',
+    bodyClass: 'skin-regenbogen' },
 
   { id: 'kristall',     name: 'Kristall',          minPrestige: 20, kristall: true,
     farben: ['rgba(148,163,184,0.6)','rgba(203,213,225,0.8)','rgba(226,232,240,0.9)','rgba(241,245,249,0.7)'],
@@ -258,18 +259,21 @@ const SKINS = [
   { id: 'plasma',       name: 'Plasma ✦',         minPrestige: 25, pulsierend: true, glitzer: true,
     farben: ['#f0abfc','#e879f9','#d946ef','#a21caf'],
     canvasBg: 'linear-gradient(145deg, #fdf4ff 0%, #fae8ff 100%)',
+    bodyClass: 'skin-plasma',
     theme: { '--primary': '#d946ef', '--primary-dark': '#a21caf', '--bg': '#fdf4ff', '--border': '#f5d0fe', '--prestige': '#a21caf', '--text-muted': '#7e3a8a' } },
 
   // NEUE THEME-SKINS
   { id: 'wald',         name: 'Wald',             minPrestige: 6,
     farben: ['#4ade80','#22c55e','#15803d','#86efac','#713f12'],
     canvasBg: 'linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%)',
+    bgAnim: bgAnimWald,
     theme: { '--primary': '#16a34a', '--primary-dark': '#15803d', '--bg': '#f0fdf4', '--surface': '#ffffff',
              '--border': '#bbf7d0', '--text-muted': '#3f6b4a', '--amber': '#a16207', '--amber-dark': '#854d0e' } },
 
   { id: 'ozean',        name: 'Ozean',            minPrestige: 8,
     farben: ['#22d3ee','#06b6d4','#0891b2','#a5f3fc','#164e63'],
     canvasBg: 'linear-gradient(145deg, #ecfeff 0%, #cffafe 100%)',
+    bodyClass: 'skin-ozean', bgAnim: bgAnimOzean,
     theme: { '--primary': '#0891b2', '--primary-dark': '#0e7490', '--bg': '#ecfeff', '--surface': '#f0ffff',
              '--border': '#a5f3fc', '--text-muted': '#164e63' } },
 
@@ -283,18 +287,21 @@ const SKINS = [
   { id: 'winter',       name: 'Winter',           minPrestige: 14, kristall: true,
     farben: ['#7dd3fc','#38bdf8','#0ea5e9','#e0f2fe','#bfdbfe'],
     canvasBg: 'linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%)',
+    bodyClass: 'skin-winter', bgAnim: bgAnimWinter,
     theme: { '--primary': '#0ea5e9', '--primary-dark': '#0284c7', '--bg': '#f0f9ff', '--surface': '#f8fafc',
              '--border': '#bae6fd', '--text-muted': '#1e4c6b' } },
 
   { id: 'sonnenschein', name: 'Sonnenschein',     minPrestige: 18, glitzer: true,
     farben: ['#fde047','#facc15','#eab308','#fef9c3','#ca8a04'],
     canvasBg: 'linear-gradient(145deg, #fefce8 0%, #fef9c3 100%)',
+    bodyClass: 'skin-sonnenschein',
     theme: { '--primary': '#ca8a04', '--primary-dark': '#a16207', '--bg': '#fefce8', '--surface': '#fffdf0',
              '--border': '#fde68a', '--text-muted': '#713f12', '--amber': '#ca8a04', '--amber-dark': '#a16207' } },
 
   { id: 'kirschbluete', name: 'Kirschblüte ✦',  minPrestige: 22, glitzer: true,
     farben: ['#f9a8d4','#f472b6','#ec4899','#fce7f3','#db2777'],
     canvasBg: 'linear-gradient(145deg, #fdf2f8 0%, #fce7f3 100%)',
+    bgAnim: bgAnimKirschbluete,
     theme: { '--primary': '#ec4899', '--primary-dark': '#db2777', '--bg': '#fdf2f8', '--surface': '#fff9fb',
              '--border': '#fbcfe8', '--text-muted': '#831843', '--prestige': '#db2777', '--prestige-dark': '#be185d' } },
 
@@ -313,18 +320,21 @@ const SKINS = [
   { id: 'maerchen',     name: 'Märchen ✦',        minPrestige: 38, animiert: true,
     farben: ['#f9a8d4','#c4b5fd','#86efac','#fde68a','#67e8f9'],
     canvasBg: 'linear-gradient(145deg, #fdf4ff 0%, #f0f9ff 100%)',
+    bgAnim: bgAnimMaerchen,
     theme: { '--primary': '#9333ea', '--primary-dark': '#7e22ce', '--bg': '#fdf8ff', '--surface': '#fefcff',
              '--border': '#e9d5ff', '--text-muted': '#6b21a8' } },
 
   { id: 'weltraum',     name: 'Weltraum ✦',       minPrestige: 42, pulsierend: true, glitzer: true,
-    farben: ['#818cf8','#6366f1','#4f46e5','#c7d2fe','#312e81'],
-    canvasBg: 'linear-gradient(145deg, #eef2ff 0%, #e0e7ff 100%)',
+    farben: ['#818cf8','#6366f1','#4f46e5','#c7d2fe','#a5b4fc'],
+    canvasBg: 'linear-gradient(145deg, #0f172a 0%, #1e1b4b 50%, #1a0533 100%)',
+    bodyClass: 'skin-weltraum', bgAnim: bgAnimWeltraum,
     theme: { '--primary': '#4f46e5', '--primary-dark': '#4338ca', '--bg': '#eef2ff', '--surface': '#f5f3ff',
              '--border': '#c7d2fe', '--text-muted': '#312e81', '--prestige': '#4f46e5' } },
 
   { id: 'glitzergold',  name: 'Glitter-Gold ✦✦', minPrestige: 50, glitzer: true, animiert: true,
     farben: ['#fbbf24','#f59e0b','#ffffff','#fef3c7','#d97706'],
     canvasBg: 'linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%)',
+    bgAnim: bgAnimGlitzergold,
     theme: { '--primary': '#b45309', '--primary-dark': '#92400e', '--bg': '#fffbeb', '--surface': '#fffef5',
              '--border': '#fde68a', '--text-muted': '#78350f', '--amber': '#b45309' } },
 ];
@@ -1517,6 +1527,127 @@ function skinAnwenden(skin) {
   if (canvas) {
     canvas.style.background = (skin && skin.canvasBg) ? skin.canvasBg : SKIN_DEFAULTS_CANVAS;
     canvas.style.borderColor = skin?.theme?.['--border'] || '';
+  }
+  // Hintergrund-Animation
+  bgAnimStoppen();
+  if (skin?.bgAnim) skin.bgAnim();
+  if (skin?.bodyClass) document.body.classList.add(skin.bodyClass);
+}
+
+let _bgAnimInterval = null;
+
+function bgAnimStoppen() {
+  // Body-Klassen entfernen
+  [...document.body.classList].filter(c => c.startsWith('skin-')).forEach(c => document.body.classList.remove(c));
+  // Interval stoppen
+  if (_bgAnimInterval) { clearInterval(_bgAnimInterval); _bgAnimInterval = null; }
+  // Container leeren + Hintergrund zurücksetzen
+  const c = document.getElementById('bgAnimContainer');
+  if (c) { c.innerHTML = ''; c.style.background = ''; }
+}
+
+// ── Weltraum: Sterne + Sternschnuppen ───────────────────
+function bgAnimWeltraum() {
+  const c = document.getElementById('bgAnimContainer');
+  if (!c) return;
+  c.style.background = 'linear-gradient(180deg, #0f0c29 0%, #1a1050 60%, #2d1b69 100%)';
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement('div');
+    s.className = 'bg-stern';
+    const sz = 1 + Math.random() * 2.5;
+    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;animation-delay:${(Math.random()*5).toFixed(2)}s;animation-duration:${(1.5+Math.random()*3).toFixed(2)}s`;
+    c.appendChild(s);
+  }
+  _bgAnimInterval = setInterval(() => {
+    if (!document.getElementById('bgAnimContainer')) return;
+    const ss = document.createElement('div');
+    ss.className = 'bg-sternschnuppe';
+    ss.style.cssText = `left:${10+Math.random()*50}%;top:${5+Math.random()*35}%;animation-duration:${(0.8+Math.random()*0.8).toFixed(2)}s`;
+    c.appendChild(ss);
+    setTimeout(() => ss.remove(), 2000);
+  }, 3500);
+}
+
+// ── Winter: Schneeflocken ────────────────────────────────
+function bgAnimWinter() {
+  const c = document.getElementById('bgAnimContainer');
+  if (!c) return;
+  const symbole = ['❄','❅','❆','·','*'];
+  for (let i = 0; i < 35; i++) {
+    const s = document.createElement('div');
+    s.className = 'bg-schnee';
+    s.textContent = symbole[Math.floor(Math.random() * symbole.length)];
+    s.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;font-size:${10+Math.random()*14}px;animation-delay:${(Math.random()*7).toFixed(2)}s;animation-duration:${(5+Math.random()*7).toFixed(2)}s`;
+    c.appendChild(s);
+  }
+}
+
+// ── Wald: fallende Blätter ──────────────────────────────
+function bgAnimWald() {
+  const c = document.getElementById('bgAnimContainer');
+  if (!c) return;
+  const blaetter = ['🍃','🍀','🌿','🍂','🌱','🍁'];
+  for (let i = 0; i < 22; i++) {
+    const s = document.createElement('div');
+    s.className = 'bg-blatt';
+    s.textContent = blaetter[Math.floor(Math.random() * blaetter.length)];
+    s.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*50}%;font-size:${12+Math.random()*12}px;animation-delay:${(Math.random()*8).toFixed(2)}s;animation-duration:${(6+Math.random()*8).toFixed(2)}s`;
+    c.appendChild(s);
+  }
+}
+
+// ── Ozean: aufsteigende Blasen ──────────────────────────
+function bgAnimOzean() {
+  const c = document.getElementById('bgAnimContainer');
+  if (!c) return;
+  for (let i = 0; i < 28; i++) {
+    const s = document.createElement('div');
+    s.className = 'bg-blase';
+    const sz = 6 + Math.random() * 22;
+    s.style.cssText = `left:${Math.random()*100}%;width:${sz}px;height:${sz}px;animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(4+Math.random()*6).toFixed(2)}s`;
+    c.appendChild(s);
+  }
+}
+
+// ── Kirschblüte: fallende Blütenblätter ─────────────────
+function bgAnimKirschbluete() {
+  const c = document.getElementById('bgAnimContainer');
+  if (!c) return;
+  for (let i = 0; i < 32; i++) {
+    const s = document.createElement('div');
+    s.className = 'bg-bluete';
+    const hue = 318 + Math.random() * 25;
+    const sz = 7 + Math.random() * 9;
+    s.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*40}%;width:${sz}px;height:${sz}px;background:hsla(${hue},85%,${72+Math.random()*15}%,0.8);animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(4+Math.random()*6).toFixed(2)}s`;
+    c.appendChild(s);
+  }
+}
+
+// ── Märchen: bunte Funkeln ──────────────────────────────
+function bgAnimMaerchen() {
+  const c = document.getElementById('bgAnimContainer');
+  if (!c) return;
+  const farben = ['#a78bfa','#f9a8d4','#86efac','#fde68a','#67e8f9','#fca5a5','#c4b5fd'];
+  for (let i = 0; i < 40; i++) {
+    const s = document.createElement('div');
+    s.className = 'bg-funke';
+    const sz = 2 + Math.random() * 5;
+    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:${farben[Math.floor(Math.random()*farben.length)]};animation-delay:${(Math.random()*5).toFixed(2)}s;animation-duration:${(1.5+Math.random()*3).toFixed(2)}s`;
+    c.appendChild(s);
+  }
+}
+
+// ── Glitzer-Gold: goldene Partikel ──────────────────────
+function bgAnimGlitzergold() {
+  const c = document.getElementById('bgAnimContainer');
+  if (!c) return;
+  const farben = ['#fbbf24','#f59e0b','#fef9c3','#fde68a','#ffffff','#fcd34d'];
+  for (let i = 0; i < 45; i++) {
+    const s = document.createElement('div');
+    s.className = 'bg-glitzer';
+    const sz = 2 + Math.random() * 5;
+    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*90}%;width:${sz}px;height:${sz}px;background:${farben[Math.floor(Math.random()*farben.length)]};animation-delay:${(Math.random()*5).toFixed(2)}s;animation-duration:${(1+Math.random()*2.5).toFixed(2)}s`;
+    c.appendChild(s);
   }
 }
 

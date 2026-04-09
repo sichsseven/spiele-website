@@ -259,6 +259,25 @@
 - `games/pixel-factory/style.css` — Sticky-Fix, Talent-CSS, Skin-Grid erweitert
 - `games/pixel-factory/index.html` — Talent-Button, Talent-Modal
 
+### Pixel Factory – Skin-Animationen aktiviert (2026-04-10) ✅
+
+#### Was gemacht wurde
+- Alle bgAnim-Funktionen und bodyClasses in der SKINS-Array verdrahtet (waren bisher nie aufgerufen)
+- Weltraum: dunkles Canvas-Hintergrund (`#0f172a → #1a0533`), `bgAnim: bgAnimWeltraum`, `bodyClass: 'skin-weltraum'`
+- Winter: `bgAnim: bgAnimWinter`, `bodyClass: 'skin-winter'`; Schneeflocken auf hellem Hintergrund sichtbar gemacht (blau statt weiß)
+- Wald: `bgAnim: bgAnimWald` (fallende Blätter)
+- Ozean: `bgAnim: bgAnimOzean`, `bodyClass: 'skin-ozean'` (Blasen + Wellenoverlay)
+- Kirschblüte: `bgAnim: bgAnimKirschbluete` (fallende Blütenblätter)
+- Märchen: `bgAnim: bgAnimMaerchen` (bunte Funkeln)
+- Glitzer-Gold: `bgAnim: bgAnimGlitzergold` (goldene Partikel)
+- Plasma: `bodyClass: 'skin-plasma'` (pulsierende Kreise via CSS)
+- Sonnenschein: `bodyClass: 'skin-sonnenschein'` (rotierende Lichtstrahlen via CSS)
+- CSS: `.skin-weltraum .klick-label` und `.offline-bonus`/`.ereignis-banner` für dunklen Hintergrund angepasst
+
+#### Veränderte Dateien
+- `games/pixel-factory/game.js` — SKINS-Array: bgAnim + bodyClass für alle animierten Skins
+- `games/pixel-factory/style.css` — Winter-Schneeflocken-Farbe, Weltraum-Texte
+
 ### Was als nächstes zu tun ist
 - Weitere Spiele entwickeln oder Bestehende erweitern
 
