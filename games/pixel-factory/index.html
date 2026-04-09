@@ -45,6 +45,8 @@
       <div class="pc-behalten">✓ Quantum-Pixel bleiben</div>
       <div class="pc-behalten">✓ Prestige-Upgrades bleiben</div>
       <div class="pc-behalten">✓ Skins bleiben</div>
+      <div class="pc-behalten">✓ Talente &amp; Talentpunkte bleiben</div>
+      <div class="pc-behalten talent-punkt-hint">⭐ +1 Talentpunkt erhalten!</div>
     </div>
     <div class="pc-buttons">
       <button class="pc-btn-nein" id="prestigeConfirmNein">Abbrechen</button>
@@ -102,6 +104,9 @@
       <div class="aktionen-reihe">
         <button class="btn-aktion" id="ranglisteBtn">🏆 Rangliste</button>
         <button class="btn-aktion" id="errungenschaftenBtn">🎖 Erfolge</button>
+      </div>
+      <div class="aktionen-reihe">
+        <button class="btn-aktion btn-talent" id="talentBtn">⭐ Talente <span class="talent-badge versteckt" id="talentBadge">0</span></button>
       </div>
       <div class="autosave-indikator" id="autosaveInd">✓ Gespeichert</div>
     </div>
@@ -176,8 +181,17 @@
   </div>
 </div>
 
+<div class="modal-hintergrund versteckt" id="talentModal">
+  <div class="modal modal-breit">
+    <button class="modal-schliessen" id="talentSchliessen">✕</button>
+    <h2>⭐ Talente</h2>
+    <div id="talentPunkteBadge"></div>
+    <div id="talentGrid"></div>
+  </div>
+</div>
+
 <div class="modal-hintergrund versteckt" id="skinModal">
-  <div class="modal">
+  <div class="modal modal-breit">
     <button class="modal-schliessen" id="skinSchliessen">✕</button>
     <h2>🎨 Skins</h2>
     <div id="skinGrid"></div>

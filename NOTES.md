@@ -241,6 +241,24 @@
 - `style.css`: `.t-factory` (gelb), `.tag-idle` (orange) hinzugefügt
 - Feedback-Dropdown: pixel-factory Option ergänzt
 
+### Pixel Factory – Großes Update (2026-04-09) ✅
+
+#### Was gemacht wurde
+- **Bugfix**: `.shop-kopf` hatte `position: sticky; top: 52px` → auf `position: static` geändert, erstes Shop-Item war auf Mobile verdeckt
+- **Gebäude-Verdopplung**: Jedes weitere gekaufte Gebäude verdoppelt seinen PPS-Beitrag (`basisPPS × (2^N - 1)`). Alle `basisPPS`-Werte ×10 skaliert (Einfache Maschine: 0,1 → 1 PPS)
+- **Mehr Upgrades**: KLICK_UPGRADES von 14 auf 22 erweitert, PPS_UPGRADES von 10 auf 20. Glattere Preisstaffelung (×4–5 pro Schritt statt ×5–10). Neuer `pps_mult`-Upgrade-Typ.
+- **Sortierung**: Upgrades-Tab und Quantum-Tab sortieren jetzt aufsteigend nach Preis
+- **Quantum Boosts entfernt**: Die 6 aktivierbaren Boosts (Pixel-Schauer, Goldener Ruf etc.) wurden entfernt
+- **Talent-System**: 20 Talente in 5 Kategorien (Klick, Produktion, Prestige, Start, Besonderes). Pro Prestige +1 Talentpunkt. Jedes Talent kostet 1 Punkt, viele Talente haben maxLevel > 1 (mit weiteren Punkten upgradebar). Levels als ◆◆◆◇◇-Dots angezeigt.
+- **Errungenschaften-Hinweise**: Gesperrte Errungenschaften zeigen jetzt immer den Bedingungstext (statt "Noch nicht erreicht"). Name bleibt "???".
+- **Skin-Themes**: Skins ändern jetzt das komplette UI-Design via CSS Custom Properties. 12 neue Skins hinzugefügt: Wald, Ozean, Wüste, Winter, Sonnenschein, Kirschblüte, Retro, Herbst, Märchen, Weltraum, Glitzer-Gold (20 Skins gesamt)
+- **index.html**: Talent-Button mit Badge, Talent-Modal, Prestige-Modal-Text aktualisiert
+
+#### Veränderte Dateien
+- `games/pixel-factory/game.js` — Hauptlogik komplett überarbeitet
+- `games/pixel-factory/style.css` — Sticky-Fix, Talent-CSS, Skin-Grid erweitert
+- `games/pixel-factory/index.html` — Talent-Button, Talent-Modal
+
 ### Was als nächstes zu tun ist
 - Weitere Spiele entwickeln oder Bestehende erweitern
 
