@@ -11,7 +11,18 @@ function loadPD(){try{return JSON.parse(localStorage.getItem('dj2_pd')||'null')|
 function savePD(d){try{localStorage.setItem('dj2_pd',JSON.stringify(d));}catch(e){}}
 
 // SPIELERDATEN AUS SUPABASE LADEN
+var adminModus=false;
 async function initPlayer(){
+  adminModus=await PZ.adminPanelErstellen([
+    {label:'💰 +5000 Münzen',onClick:function(){pd.coins+=5000;savePD(pd);var sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;}},
+    {label:'🎨 Alle Skins',   onClick:function(){pd.owned=CHARS.map(function(_,i){return i;});savePD(pd);if(typeof renderShop==='function')renderShop();}},
+  ]);
+  if(adminModus){
+    pd.coins=9999;pd.owned=CHARS.map(function(_,i){return i;});
+    savePD(pd);
+    var sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;
+    return;
+  }
   try{
     var username=await PZ.currentUsername();
     if(username)playerName=username;
@@ -787,7 +798,7 @@ function endGame(){
   goTo('sOver');
   // Supabase speichern + Rang ermitteln
   if(typeof PZ!=='undefined'){
-    PZ.saveGameData('pixel-jump',score,1,{coins:pd.coins,owned:pd.owned||[0],sel:pd.sel||0,upgrades:pd.upgrades||{}})
+    if(!adminModus)PZ.saveGameData('pixel-jump',score,1,{coins:pd.coins,owned:pd.owned||[0],sel:pd.sel||0,upgrades:pd.upgrades||{}})
       .then(function(res){if(res&&res.isNewRecord)document.getElementById('nbst').classList.remove('h');})
       .catch(function(){});
     PZ.getLeaderboard('pixel-jump').then(function(lb){

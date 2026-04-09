@@ -644,13 +644,22 @@ window.addEventListener('resize', () => {
   layoutBerechnen();
 });
 
+// ── Admin-Modus ────────────────────────────────────────────────────────────────
+let adminModus = false;
+
 // ── DOMContentLoaded ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // Highscore laden
-  try {
-    const data = await PZ.loadScore('pixel-drop');
-    if (data?.score) highscore = data.score;
-  } catch (_) {}
+  adminModus = await PZ.adminPanelErstellen([
+    {label:'💯 Score +10000', onClick:() => { score += 10000; hudAktualisieren(); }},
+  ]);
+
+  if (!adminModus) {
+    // Highscore laden
+    try {
+      const data = await PZ.loadScore('pixel-drop');
+      if (data?.score) highscore = data.score;
+    } catch (_) {}
+  }
 
   document.getElementById('btn-play').addEventListener('click', spielStarten);
   document.getElementById('btn-lb-title').addEventListener('click', () => rangliste_zeigen('screen-title'));
@@ -719,7 +728,7 @@ async function spielEnde() {
   // Supabase speichern
   const user = await PZ.getUser().catch(() => null);
   const loginHint = document.getElementById('go-login-hint');
-  if (user) {
+  if (user && !adminModus) {
     if (loginHint) loginHint.style.display = 'none';
     try { await PZ.saveGameData('pixel-drop', score, 1, {}); } catch (_) {}
   } else {

@@ -242,7 +242,6 @@ const PZ = {
   _adminModalOeffnen() {
     let overlay = document.getElementById('pzAdminOverlay');
     if (!overlay) {
-      // Basis-Pfad bestimmen (von game-pages aus zwei Ebenen hoch)
       const inGame = window.location.pathname.includes('/games/');
       const base = inGame ? '../../' : '';
       overlay = document.createElement('div');
@@ -257,11 +256,10 @@ const PZ = {
             <a href="${base}games/space-blaster/?admin=1" class="pz-admin-btn">🚀 Space Blaster</a>
             <a href="${base}games/minesweeper/?admin=1" class="pz-admin-btn">💣 Minesweeper</a>
             <a href="${base}games/wordle/?admin=1" class="pz-admin-btn">📝 Wordle</a>
-            <a href="${base}games/arkanoid/?admin=1" class="pz-admin-btn">🧱 Arkanoid</a>
+            <a href="${base}games/arkanoid/?admin=1" class="pz-admin-btn">🧱 Arkanoid X</a>
             <a href="${base}games/memory-match/?admin=1" class="pz-admin-btn">🃏 Memory Match</a>
             <a href="${base}games/neon-runner/?admin=1" class="pz-admin-btn">🌟 Neon Runner</a>
             <a href="${base}games/pixel-drop/?admin=1" class="pz-admin-btn">⬇ Pixel Drop</a>
-            <a href="${base}games/snake/?admin=1" class="pz-admin-btn">🐍 Snake</a>
           </div>
           <button class="pz-admin-schliessen" id="pzAdminSchliessen">Schließen</button>
         </div>`;
@@ -298,6 +296,63 @@ const PZ = {
   _esc(str) {
     return String(str).replace(/[&<>"']/g, c =>
       ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+  },
+
+  /**
+   * Admin-Panel für Spiele erstellen (nur für den Site-Admin im Test-Modus).
+   * Gibt true zurück wenn Admin-Modus aktiv ist, sonst false.
+   * @param {Array<{label:string, onClick:function}>} controls  Spiel-spezifische Buttons
+   * @returns {Promise<boolean>}
+   */
+  async adminPanelErstellen(controls = []) {
+    const user = await this.getUser().catch(() => null);
+    if (!user || user.id !== PZ_ADMIN_ID) return false;
+    if (!new URLSearchParams(location.search).has('admin')) return false;
+
+    // CSS einmalig einbinden
+    if (!document.getElementById('pzAdmCss')) {
+      const s = document.createElement('style');
+      s.id = 'pzAdmCss';
+      s.textContent = `
+        #pzAdminPanel{position:fixed;bottom:16px;right:16px;background:#1e293b;border:2px solid #f59e0b;border-radius:12px;z-index:9999;min-width:190px;font-family:system-ui,sans-serif;box-shadow:0 4px 24px rgba(0,0,0,.5);}
+        .pz-adm-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #334155;color:#fbbf24;font-size:.82rem;font-weight:800;gap:8px;}
+        .pz-adm-badge{background:#f59e0b;color:#1e293b;font-size:.68rem;padding:1px 7px;border-radius:20px;font-weight:900;}
+        .pz-adm-toggle{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:.95rem;line-height:1;padding:0;}
+        .pz-adm-body{padding:8px 10px;display:flex;flex-direction:column;gap:5px;}
+        .pz-adm-btn{background:#334155;color:#e2e8f0;border:none;border-radius:7px;padding:7px 10px;font-size:.8rem;cursor:pointer;text-align:left;font-weight:600;width:100%;}
+        .pz-adm-btn:hover{background:#475569;}
+        .pz-adm-info{color:#64748b;font-size:.75rem;padding:2px 2px 4px;}`;
+      document.head.appendChild(s);
+    }
+
+    // Panel erstellen
+    const panel = document.createElement('div');
+    panel.id = 'pzAdminPanel';
+    const btns = controls.map((c, i) =>
+      `<button class="pz-adm-btn" data-idx="${i}">${c.label}</button>`).join('');
+    panel.innerHTML = `
+      <div class="pz-adm-header">
+        <span>⚙ Test-Modus</span>
+        <span class="pz-adm-badge">ADMIN</span>
+        <button class="pz-adm-toggle" id="pzAdmToggle">▾</button>
+      </div>
+      <div class="pz-adm-body" id="pzAdmBody">
+        <div class="pz-adm-info">Kein Speichern aktiv</div>
+        ${btns}
+      </div>`;
+    document.body.appendChild(panel);
+
+    document.getElementById('pzAdmToggle').addEventListener('click', () => {
+      const body = document.getElementById('pzAdmBody');
+      const tog = document.getElementById('pzAdmToggle');
+      body.style.display = body.style.display === 'none' ? '' : 'none';
+      tog.textContent = body.style.display === 'none' ? '▸' : '▾';
+    });
+    controls.forEach((c, i) => {
+      panel.querySelector(`[data-idx="${i}"]`).addEventListener('click', c.onClick);
+    });
+
+    return true;
   },
 
   /**

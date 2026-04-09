@@ -18,8 +18,19 @@ let timerInterval  = null;
 let sekunden       = 0;
 let flaggenGesetzt = 0;
 
+// ── Admin-Modus ────────────────────────────────────────────────────────────────
+let adminModus = false;
+
 // ── Init ───────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  adminModus = await PZ.adminPanelErstellen([
+    {label:'🔍 Alle Minen zeigen', onClick:() => {
+      document.querySelectorAll('.zelle').forEach(z => {
+        const r = +z.dataset.r, s = +z.dataset.s;
+        if (!isNaN(r) && brett[idx(r, s)]?.mine) z.textContent = '💣';
+      });
+    }},
+  ]);
   PZ.updateNavbar();
   document.getElementById('schwierigkeit-select')
     .addEventListener('change', schwierigkeitWechseln);
@@ -383,6 +394,7 @@ function spielName() {
 // ── Score speichern ────────────────────────────────────────────────────────────
 // punkte = -sekunden → get_leaderboard (DESC) zeigt schnellste Zeit zuerst
 async function scoreSpeichern() {
+  if (adminModus) return;
   try {
     const user = await PZ.getUser();
     if (!user) {

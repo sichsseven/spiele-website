@@ -3,7 +3,16 @@ function loadData(){try{return JSON.parse(localStorage.getItem('memory_data')||'
 function saveData(d){try{localStorage.setItem('memory_data',JSON.stringify(d));}catch(e){}}
 
 // SPIELERDATEN AUS SUPABASE LADEN
+var adminModus=false;
 async function initPlayer(){
+  adminModus=await PZ.adminPanelErstellen([
+    {label:'💰 +5000 Münzen',onClick:function(){pdata.coins+=5000;saveData(pdata);updateCoinDisplay();}},
+    {label:'🎨 Alle Themes',  onClick:function(){pdata.owned=THEMES.map(function(_,i){return i;});saveData(pdata);renderShopUI();}},
+  ]);
+  if(adminModus){
+    pdata.coins=9999;pdata.owned=THEMES.map(function(_,i){return i;});
+    saveData(pdata);updateCoinDisplay();return;
+  }
   try{
     var data=await PZ.loadScore('memory-match');
     if(data&&data.extra_daten){
@@ -189,7 +198,7 @@ function endGame(){
   pdata.coins+=gameCoins;saveData(pdata);updateCoinDisplay();
   // Supabase speichern (asynchron)
   if(typeof PZ!=='undefined'){
-    PZ.saveGameData('memory-match',score,level,{coins:pdata.coins,owned:pdata.owned,sel:pdata.sel}).catch(()=>{});
+    if(!adminModus)PZ.saveGameData('memory-match',score,level,{coins:pdata.coins,owned:pdata.owned,sel:pdata.sel}).catch(()=>{});
     PZ.getUser().then(u=>{var h=document.getElementById('login-hint');if(h)h.style.display=u?'none':'flex';}).catch(()=>{});
   }
   document.getElementById('res-score').textContent=score;

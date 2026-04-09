@@ -403,8 +403,21 @@ function spielStarten() {
   welleSpawnen();
 }
 
+// ── Admin-Modus ────────────────────────────────────────────────────────────────
+let adminModus = false;
+
 // ── Spielerdaten laden (Supabase) ──────────────────────────────────────────────
 async function spielerDatenLaden() {
+  adminModus = await PZ.adminPanelErstellen([
+    {label:'💰 +5000 Münzen', onClick:() => { pdata.coins += 5000; titelMuenzenZeigen(); }},
+    {label:'⚡ Upgrades max',  onClick:() => { pdata.upgrades.pwDuration = 5; pdata.upgrades.maxLives = 5; }},
+  ]);
+  if (adminModus) {
+    pdata.coins = 9999;
+    pdata.upgrades = { pwDuration: 5, maxLives: 5 };
+    titelMuenzenZeigen();
+    return;
+  }
   try {
     const data = await PZ.loadScore('space-blaster');
     if (data?.extra_daten) {
@@ -415,6 +428,7 @@ async function spielerDatenLaden() {
 }
 
 async function spielerDatenSpeichern() {
+  if (adminModus) return;
   try {
     await PZ.saveGameData('space-blaster', score, wave, {
       coins:    pdata.coins,

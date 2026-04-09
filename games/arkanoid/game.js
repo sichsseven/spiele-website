@@ -3,7 +3,16 @@ function loadData(){try{return JSON.parse(localStorage.getItem('ark_data')||'nul
 function saveData(d){try{localStorage.setItem('ark_data',JSON.stringify(d));}catch(e){}}
 
 // SPIELERDATEN AUS SUPABASE LADEN
+var adminModus=false;
 async function initPlayer(){
+  adminModus=await PZ.adminPanelErstellen([
+    {label:'💰 +5000 Münzen',onClick:function(){pdata.coins+=5000;saveData(pdata);updateCoinDisplay();}},
+    {label:'🎨 Alle Skins',   onClick:function(){pdata.owned=PADDLES.map(function(_,i){return i;});saveData(pdata);renderShopUI();}},
+  ]);
+  if(adminModus){
+    pdata.coins=9999;pdata.owned=PADDLES.map(function(_,i){return i;});
+    saveData(pdata);updateCoinDisplay();return;
+  }
   try{
     var data=await PZ.loadScore('arkanoid');
     if(data&&data.extra_daten){
@@ -226,7 +235,7 @@ function showVictory(){
   document.getElementById('res-coins').textContent=gameCoins;
   pdata.coins+=gameCoins;saveData(pdata);updateCoinDisplay();
   if(typeof PZ!=='undefined'){
-    PZ.saveGameData('arkanoid',score,LEVELS,{coins:pdata.coins,owned:pdata.owned,sel:pdata.sel}).catch(()=>{});
+    if(!adminModus)PZ.saveGameData('arkanoid',score,LEVELS,{coins:pdata.coins,owned:pdata.owned,sel:pdata.sel}).catch(()=>{});
     PZ.getUser().then(u=>{var h=document.getElementById('login-hint');if(h)h.style.display=u?'none':'flex';}).catch(()=>{});
   }
   showScreen('gameover');
@@ -238,7 +247,7 @@ function endGame(){
   pdata.coins+=gameCoins;saveData(pdata);updateCoinDisplay();
   // Supabase speichern (asynchron)
   if(typeof PZ!=='undefined'){
-    PZ.saveGameData('arkanoid',score,level,{coins:pdata.coins,owned:pdata.owned,sel:pdata.sel}).catch(()=>{});
+    if(!adminModus)PZ.saveGameData('arkanoid',score,level,{coins:pdata.coins,owned:pdata.owned,sel:pdata.sel}).catch(()=>{});
     PZ.getUser().then(u=>{var h=document.getElementById('login-hint');if(h)h.style.display=u?'none':'flex';}).catch(()=>{});
   }
   document.getElementById('res-score').textContent=score;

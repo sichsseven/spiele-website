@@ -126,13 +126,18 @@ let stats = {
   verteilung:  [0, 0, 0, 0, 0, 0], // Index i = Sieg im (i+1). Versuch
 };
 
+// ── Admin-Modus ───────────────────────────────────────────────────────────────
+let adminModus = false;
+
 // ── Init ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  adminModus = await PZ.adminPanelErstellen([
+    {label:'💡 Wort anzeigen', onClick:() => { alert('Lösung: ' + zielwort); }},
+  ]);
   PZ.updateNavbar();
   neuesSpiel();
   document.addEventListener('keydown', tastaturHandler);
-  // Stats im Hintergrund laden (blockiert das Spiel nicht)
-  statsLaden();
+  if (!adminModus) statsLaden();
 });
 
 // ── Neues Spiel ───────────────────────────────────────────────────────────────
@@ -424,6 +429,7 @@ async function statsSpeichern(gewonnen, versuchsAnzahl) {
     stats.aktSerie = 0;
   }
 
+  if (adminModus) return;
   try {
     const user = await PZ.getUser();
     if (user) {

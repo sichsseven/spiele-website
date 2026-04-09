@@ -3,7 +3,16 @@ function loadData(){try{return JSON.parse(localStorage.getItem('nr_data')||'null
 function saveData(d){try{localStorage.setItem('nr_data',JSON.stringify(d));}catch(e){}}
 
 // SPIELERDATEN AUS SUPABASE LADEN
+var adminModus=false;
 async function initPlayer(){
+  adminModus=await PZ.adminPanelErstellen([
+    {label:'💰 +5000 Münzen',onClick:function(){pdata.coins+=5000;saveData(pdata);updateCoinDisplay();}},
+    {label:'🎨 Alle Skins',   onClick:function(){pdata.owned=CHARS.map(function(_,i){return i;});saveData(pdata);renderShopUI();}},
+  ]);
+  if(adminModus){
+    pdata.coins=9999;pdata.owned=CHARS.map(function(_,i){return i;});pdata.bestDist=0;
+    saveData(pdata);updateCoinDisplay();return;
+  }
   try{
     var data=await PZ.loadScore('neon-runner');
     if(data&&data.extra_daten){
@@ -258,7 +267,7 @@ function endGame(){
   saveData(pdata);updateCoinDisplay();
   // Supabase speichern (asynchron)
   if(typeof PZ!=='undefined'){
-    PZ.saveGameData('neon-runner',score,1,{coins:pdata.coins,owned:pdata.owned,sel:pdata.sel,bestDist:pdata.bestDist}).catch(()=>{});
+    if(!adminModus)PZ.saveGameData('neon-runner',score,1,{coins:pdata.coins,owned:pdata.owned,sel:pdata.sel,bestDist:pdata.bestDist}).catch(()=>{});
     PZ.getUser().then(u=>{var h=document.getElementById('login-hint');if(h)h.style.display=u?'none':'flex';}).catch(()=>{});
   }
   document.getElementById('res-score').textContent=score;
