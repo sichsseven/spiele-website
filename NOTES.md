@@ -1,5 +1,29 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Heutiger Stand (2026-04-10) – Update 2
+
+### Pixel Factory – Screenshot-basierte Skin-Hintergründe ✅
+- Alle bgAnim-Funktionen komplett neugeschrieben nach Screenshots als Referenz:
+  - **Weltraum**: Andromeda-Spiralgalaxie (Spiralarme, leuchtender Kern, 160 Sterne, Sternschnuppen)
+  - **Kirschblüte**: Japanische Minimalszene (Vulkan links, Kirschbaum rechts, pinke Sonne, See)
+  - **Winter**: Pixel-Art Hütte bei Nacht (dunkle Nacht, Hütte mit Fensterlicht, Tannenbäume, Schnee)
+  - **Wald**: Üppiger Wald mit Lichtstrahlen (Sonnenstrahlen, Tiefe, Bäume, Pollen)
+  - **Ozean**: Unterwasser von unten (Licht von oben, Fischschwarm, Blasen)
+  - **Märchen**: Bunte Märchenlandschaft (Regenbogen, Wolken, Turm, Hügel, Blumen)
+  - **Glitter-Gold**: Schwarzer Marmor mit Gold-Fluss (dunkler Marmor, goldene Bänder, Glitzer)
+- Neue bgAnim-Funktionen hinzugefügt:
+  - **Wüste**: Wüste mit Mesas + Kakteen + Hitzeflimmern
+  - **Sonnenschein**: Riesige Sonne aus dem Weltraum (dunkler Weltraum, massiver Sonnenball)
+  - **Herbst**: Roter Herbstbaum beim Sonnenuntergang (dramatischer Himmel, Silhouetten, Blätter)
+  - **Retro**: Retrowave Neon-Gaming (dunkles Violett, Neon-Glows, Retrowave-Grid, CRT-Bildschirm)
+- 3 neue Skins:
+  - **Midnight Drive** (minPrestige: 55): Anime Tokio Nacht, Neon-Schilder, Regen, Gebäude
+  - **Dark City** (minPrestige: 60): Dunkle Stadt von unten, Wolkenkratzer, weißes Licht, Regen
+  - **Chrome** (minPrestige: 65): Schwarzer Hintergrund, silberne Metallflammen, Glitzer
+- Neue CSS: Keyframes (fischSchwimmen, regenFallen, sonnePulse, lichtStrahl, chromBewegen, gebaeudeLicht, wolkeDriften)
+- Neue Partikel-Klassen: .bg-fisch, .bg-regen, .bg-pixel
+- Geänderte Dateien: game.js, style.css
+
 ## Heutiger Stand (2026-04-10)
 
 ### Pixel Factory – Animierte Skin-Hintergründe ✅

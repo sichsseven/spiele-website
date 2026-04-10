@@ -1265,10 +1265,17 @@ body {
   to { transform: translateX(50%); }
 }
 
-/* Winter – Schneeflocken auf hellem Hintergrund sichtbar machen */
+/* Retro, Sonnenschein, Herbst, Glitzergold – dunkler Hintergrund */
+.skin-retro .klick-label,
+.skin-sonnenschein .klick-label {
+  color: #fde68a;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+}
+
+/* Winter – Schneeflocken auf dunklem Nachthintergrund sichtbar */
 .skin-winter .bg-schnee {
-  color: rgba(14, 165, 233, 0.65);
-  text-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+  color: rgba(190, 220, 255, 0.8);
+  text-shadow: 0 0 5px rgba(150, 200, 255, 0.5);
 }
 
 /* Weltraum – Texte im Mittelbereich auf dunklem Hintergrund lesbar */
@@ -1285,4 +1292,89 @@ body {
   background: rgba(30, 27, 75, 0.9);
   color: #e0e7ff;
   border-color: rgba(129, 140, 248, 0.5);
+}
+
+/* Dunkle Skins – Text-Lesbarkeit */
+.skin-midnight .klick-label,
+.skin-darkcity .klick-label,
+.skin-chrome .klick-label,
+.skin-sonnenschein2 .klick-label {
+  color: #e2e8f0;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+}
+.skin-midnight .offline-bonus,
+.skin-darkcity .offline-bonus,
+.skin-chrome .offline-bonus {
+  background: rgba(10, 10, 25, 0.9);
+  color: #e2e8f0;
+  border-color: rgba(100, 100, 200, 0.4);
+}
+
+/* Neue Partikel-Klassen */
+.bg-fisch {
+  position: absolute;
+  width: 14px; height: 5px;
+  background: rgba(180, 220, 240, 0.6);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: fischSchwimmen linear infinite;
+}
+
+.bg-regen {
+  position: absolute;
+  width: 1px; height: 16px;
+  background: linear-gradient(180deg, transparent, rgba(170, 210, 255, 0.55));
+  border-radius: 1px;
+  animation: regenFallen linear infinite;
+}
+
+.bg-pixel {
+  position: absolute;
+  border-radius: 2px;
+  animation: glitzerFallen ease-in-out infinite;
+}
+
+/* Neue Keyframes */
+@keyframes fischSchwimmen {
+  0%   { transform: translateX(-20px) scaleX(1); opacity: 0; }
+  5%   { opacity: 0.65; }
+  48%  { opacity: 0.65; }
+  50%  { opacity: 0; transform: translateX(calc(var(--w, 400px) + 30px)) scaleX(1); }
+  51%  { transform: translateX(calc(var(--w, 400px) + 30px)) scaleX(-1); opacity: 0; }
+  55%  { opacity: 0.65; }
+  98%  { opacity: 0.65; }
+  100% { transform: translateX(-20px) scaleX(-1); opacity: 0; }
+}
+
+@keyframes regenFallen {
+  0%   { transform: translateY(-20px) translateX(0); opacity: 0; }
+  8%   { opacity: 0.55; }
+  92%  { opacity: 0.55; }
+  100% { transform: translateY(110vh) translateX(-20px); opacity: 0; }
+}
+
+@keyframes sonnePulse {
+  0%,100% { opacity: 0.85; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.06); }
+}
+
+@keyframes lichtStrahl {
+  0%,100% { opacity: 0.05; }
+  50%      { opacity: 0.18; }
+}
+
+@keyframes chromBewegen {
+  0%   { transform: translateX(0)   translateY(0)    scale(1); }
+  33%  { transform: translateX(10px) translateY(-14px) scale(1.05); }
+  66%  { transform: translateX(-8px) translateY(8px)   scale(0.96); }
+  100% { transform: translateX(0)   translateY(0)    scale(1); }
+}
+
+@keyframes gebaeudeLicht {
+  0%,100% { opacity: 0.25; }
+  50%      { opacity: 0.95; }
+}
+
+@keyframes wolkeDriften {
+  0%,100% { transform: translateX(0); }
+  50%      { transform: translateX(18px); }
 }
