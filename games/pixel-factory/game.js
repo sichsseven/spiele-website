@@ -1039,6 +1039,15 @@ function renderHaufen() {
     }
   }
 
+  // Bei Bild-Hintergrund: Schatten für Kontrast der Pixel gegen das Foto
+  const mitBildHintergrund = !!skin.bgAnim;
+  if (mitBildHintergrund) {
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+  }
+
   // Pixel zeichnen
   for (const p of haufenPartikel) {
     let farbe;
@@ -1064,6 +1073,14 @@ function renderHaufen() {
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
       ctx.fillRect(Math.round(p.x - 1), Math.round(p.y - 1), 2, 2);
     }
+  }
+
+  // Schatten zurücksetzen
+  if (mitBildHintergrund) {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
   }
 
   // Rahmen
@@ -1235,6 +1252,7 @@ function shopGebaeudeRendern() {
   container.innerHTML = '';
 
   for (const g of GEBAEUDE) {
+    // Prestige-gesperrte Gebäude
     if (g.minPrestige && zustand.prestige < g.minPrestige) {
       const el = document.createElement('div');
       el.className = 'gebaeude-eintrag gesperrt';
@@ -1250,9 +1268,28 @@ function shopGebaeudeRendern() {
     }
 
     const anzahl = zustand.gebaeude[g.id] || 0;
+    const basisPreis = gebaeudePreis(g, 0);
+    const kannKaufen = zustand.pixel >= gebaeudePreis(g, anzahl);
+
+    // Noch nicht gekauft UND noch nicht leistbar → als ??? anzeigen
+    if (anzahl === 0 && !kannKaufen) {
+      const el = document.createElement('div');
+      el.className = 'gebaeude-eintrag fragezeichen';
+      el.innerHTML = `
+        <div class="gebaeude-icon" style="background:rgba(148,163,184,0.15); color:#94a3b8; font-size:1.3rem">?</div>
+        <div class="gebaeude-info">
+          <div class="gebaeude-name" style="color:#94a3b8; letter-spacing:0.1em">???</div>
+          <div class="gebaeude-pps">Noch nicht verfügbar</div>
+        </div>
+        <div class="gebaeude-preis-block">
+          <div class="gebaeude-preis" style="color:#94a3b8">${fmt(basisPreis)}</div>
+        </div>`;
+      container.appendChild(el);
+      continue;
+    }
+
     const menge = bulkMenge === 0 ? gebaeudeMaxMenge(g) : bulkMenge;
     const preis = menge <= 1 ? gebaeudePreis(g, anzahl) : gebaeudeGesamtPreis(g, menge);
-    const kannKaufen = zustand.pixel >= gebaeudePreis(g, anzahl);
     const el = document.createElement('div');
     el.className = `gebaeude-eintrag${kannKaufen ? ' leistbar' : ' zu-teuer'}`;
 
