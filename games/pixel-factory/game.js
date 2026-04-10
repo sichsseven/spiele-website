@@ -1567,7 +1567,7 @@ function bgAnimStoppen() {
   if (_bgAnimInterval) { clearInterval(_bgAnimInterval); _bgAnimInterval = null; }
   // Container leeren + Hintergrund zurücksetzen
   const c = document.getElementById('bgAnimContainer');
-  if (c) { c.innerHTML = ''; c.style.background = ''; }
+  if (c) { c.innerHTML = ''; c.style.background = ''; c.style.backgroundImage = ''; }
 }
 
 // Hilfsfunktion: einfaches Element erstellen und anhängen
@@ -1579,212 +1579,87 @@ function _bgEl(c, css, html) {
   return el;
 }
 
-// ── Weltraum: Spiralgalaxie (Andromeda) ─────────────────────
+// Hilfsfunktion: Bild als Hintergrund setzen
+function _bgBild(c, datei) {
+  c.style.cssText = `position:absolute;inset:0;background-image:url(assets/${datei});background-size:cover;background-position:center;background-repeat:no-repeat`;
+}
+
+// ── Weltraum ─────────────────────────────────────────────────
 function bgAnimWeltraum() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  c.style.background = 'radial-gradient(ellipse at 50% 50%,#0d0a2e 0%,#050215 60%,#000000 100%)';
-  // Tiefer Nebel-Hintergrund
-  _bgEl(c,'position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(30,20,100,0.5) 0%,transparent 60%)');
-  _bgEl(c,'position:absolute;inset:0;background:radial-gradient(ellipse at 75% 65%,rgba(80,20,120,0.35) 0%,transparent 55%)');
-  // Galaxie-Halo (äußeres Leuchten)
-  _bgEl(c,'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:320px;height:160px;border-radius:50%;background:radial-gradient(ellipse,rgba(60,40,180,0.22) 0%,rgba(120,60,200,0.12) 40%,transparent 75%);filter:blur(18px)');
-  // Galaxie-Spiralkern (leuchtendes Zentrum)
-  _bgEl(c,'position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);width:80px;height:50px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,220,255,0.95) 0%,rgba(220,160,255,0.7) 35%,rgba(150,80,230,0.3) 65%,transparent 100%);filter:blur(6px)');
-  // Spiral-Arme (blaue, angewinkelte Ellipsen)
-  _bgEl(c,'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);width:280px;height:90px;border-radius:50%;background:linear-gradient(90deg,transparent 5%,rgba(80,120,255,0.18) 30%,rgba(100,150,255,0.28) 50%,rgba(80,120,255,0.18) 70%,transparent 95%);filter:blur(10px)');
-  _bgEl(c,'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(150deg);width:240px;height:70px;border-radius:50%;background:linear-gradient(90deg,transparent 5%,rgba(60,100,220,0.15) 30%,rgba(80,130,240,0.22) 50%,rgba(60,100,220,0.15) 70%,transparent 95%);filter:blur(12px)');
-  _bgEl(c,'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(60deg);width:200px;height:55px;border-radius:50%;background:linear-gradient(90deg,transparent 10%,rgba(120,80,200,0.12) 40%,rgba(140,100,220,0.18) 50%,transparent 90%);filter:blur(14px)');
-  // Äußere Sternwolke
-  _bgEl(c,'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:380px;height:200px;border-radius:50%;background:radial-gradient(ellipse,transparent 40%,rgba(100,120,200,0.08) 65%,transparent 85%);filter:blur(6px)');
-  // 160 Sterne
-  for (let i = 0; i < 160; i++) {
-    const sz = Math.random() < 0.08 ? 2.5 + Math.random() : 0.7 + Math.random() * 1.6;
-    const glow = sz > 2 ? `;box-shadow:0 0 ${Math.round(sz*3)}px rgba(200,200,255,0.8)` : '';
-    const col = Math.random() < 0.15 ? `rgba(200,180,255,0.9)` : Math.random() < 0.1 ? `rgba(180,210,255,0.9)` : 'rgba(255,255,255,0.9)';
-    _bgEl(c,`position:absolute;left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz.toFixed(1)}px;height:${sz.toFixed(1)}px;background:${col};border-radius:50%${glow};animation:sternFunkeln ${(2+Math.random()*5).toFixed(1)}s ease-in-out ${(Math.random()*7).toFixed(1)}s infinite`);
+  c.style.backgroundImage = 'url(assets/weltraum.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  // Funkelnde Sterne über dem Bild
+  for (let i = 0; i < 55; i++) {
+    const sz = 0.8 + Math.random() * 2;
+    _bgEl(c,`position:absolute;left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:white;border-radius:50%;animation:sternFunkeln ${(2+Math.random()*4).toFixed(1)}s ease-in-out ${(Math.random()*6).toFixed(1)}s infinite`);
   }
   // Sternschnuppen
   _bgAnimInterval = setInterval(() => {
     if (!document.getElementById('bgAnimContainer')) return;
     const ss = document.createElement('div');
     ss.className = 'bg-sternschnuppe';
-    ss.style.cssText = `left:${5+Math.random()*65}%;top:${3+Math.random()*40}%;animation-duration:${(0.5+Math.random()*0.8).toFixed(2)}s`;
+    ss.style.cssText = `left:${5+Math.random()*60}%;top:${4+Math.random()*38}%;animation-duration:${(0.6+Math.random()*0.9).toFixed(2)}s`;
     c.appendChild(ss);
     setTimeout(() => ss.remove(), 2000);
   }, 3500);
 }
 
-// ── Kirschblüte: Japanische Minimalszene ────────────────────
+// ── Kirschblüte ───────────────────────────────────────────
 function bgAnimKirschbluete() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Himmel: dunkleres Pink/Lila oben, heller am Horizont (wie Screenshot)
-  c.style.background = 'linear-gradient(180deg,#6b2d5e 0%,#a0406e 25%,#c85a7a 50%,#d4708a 72%,#e8909a 88%,#f0b0a8 100%)';
-  // Wasser/See in der Mitte
-  _bgEl(c,'position:absolute;bottom:18%;left:0;right:0;height:10%;background:linear-gradient(180deg,rgba(140,60,100,0.6) 0%,rgba(100,40,80,0.8) 100%)');
-  _bgEl(c,'position:absolute;bottom:18%;left:0;right:0;height:10%;background:linear-gradient(180deg,rgba(200,130,160,0.2) 0%,transparent 100%);filter:blur(2px)');
-  // Horizont-Leiste
-  _bgEl(c,'position:absolute;bottom:26%;left:0;right:0;height:3%;background:rgba(180,80,110,0.4);filter:blur(4px)');
-  // Vulkan links (dunkle Silhouette)
-  _bgEl(c,'position:absolute;bottom:18%;left:-2%;width:0;height:0;border-left:60px solid transparent;border-right:60px solid transparent;border-bottom:140px solid rgba(50,15,35,0.85)');
-  _bgEl(c,'position:absolute;bottom:18%;left:10px;width:0;height:0;border-left:25px solid transparent;border-right:25px solid transparent;border-bottom:55px solid rgba(50,15,35,0.85)');
-  // Vulkan-Rauch
-  _bgEl(c,'position:absolute;bottom:50%;left:1%;width:18px;height:35px;background:radial-gradient(ellipse,rgba(220,200,220,0.4) 0%,transparent 70%);filter:blur(5px)');
-  // Pinke Sonne am Horizont rechts
-  _bgEl(c,'position:absolute;bottom:19%;right:12%;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,rgba(255,160,160,0.95) 0%,rgba(230,100,130,0.7) 50%,transparent 100%);box-shadow:0 0 30px rgba(230,100,130,0.5)');
-  // Kirschbaum rechts
-  _bgEl(c,'position:absolute;bottom:18%;right:8%;width:12px;height:35%;background:linear-gradient(180deg,#2d1a0e,#3d2010);border-radius:4px 4px 2px 2px');
-  // Äste rechts-Baum
-  _bgEl(c,'position:absolute;bottom:42%;right:12%;width:35px;height:7px;background:#3d2010;border-radius:4px;transform:rotate(-50deg);transform-origin:100% 50%');
-  _bgEl(c,'position:absolute;bottom:46%;right:19%;width:30px;height:7px;background:#3d2010;border-radius:4px;transform:rotate(-20deg);transform-origin:100% 50%');
-  _bgEl(c,'position:absolute;bottom:48%;right:6%;width:28px;height:6px;background:#3d2010;border-radius:4px;transform:rotate(40deg);transform-origin:0% 50%');
-  _bgEl(c,'position:absolute;bottom:38%;right:5%;width:22px;height:6px;background:#3d2010;border-radius:4px;transform:rotate(65deg);transform-origin:0% 50%');
-  // Blütenwolken am Baum (rechts)
-  [['60%','8%','22%','18%','rgba(220,140,180,0.9)'],
-   ['72%','3%','20%','16%','rgba(200,110,160,0.85)'],
-   ['65%','18%','18%','15%','rgba(230,160,190,0.82)'],
-   ['55%','14%','16%','14%','rgba(210,130,170,0.78)'],
-   ['76%','14%','18%','15%','rgba(220,145,175,0.80)'],
-   ['68%','28%','14%','12%','rgba(200,120,160,0.75)'],
-  ].forEach(([l,t,w,h,bg]) => _bgEl(c,`position:absolute;left:${l};top:${t};width:${w};height:${h};background:${bg};border-radius:50%;filter:blur(10px)`));
-  // Fallende Blütenblätter
-  for (let i = 0; i < 35; i++) {
-    const sz = 5 + Math.random() * 9;
+  c.style.backgroundImage = 'url(assets/kirschbluete.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  for (let i = 0; i < 38; i++) {
+    const sz = 6 + Math.random() * 10;
     const el = document.createElement('div');
     el.className = 'bg-bluete';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;width:${sz}px;height:${sz}px;background:hsla(330,70%,${70+Math.random()*20}%,0.85);animation-delay:${(Math.random()*10).toFixed(2)}s;animation-duration:${(6+Math.random()*10).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*80}%;width:${sz}px;height:${sz}px;background:hsla(330,75%,${(72+Math.random()*18).toFixed(0)}%,0.85);animation-delay:${(Math.random()*10).toFixed(2)}s;animation-duration:${(5+Math.random()*9).toFixed(2)}s`;
     c.appendChild(el);
   }
 }
 
-// ── Winter: Pixelart-Hütte bei Nacht ────────────────────────
+// ── Winter ───────────────────────────────────────────────
 function bgAnimWinter() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Dunkle Nacht (wie Screenshot: sehr dunkelblaues Nacht-Ambiente)
-  c.style.background = 'linear-gradient(180deg,#0a1628 0%,#0f1e35 40%,#142240 75%,#1a2a4a 100%)';
-  // Sterne (klein, statisch)
-  for (let i = 0; i < 35; i++) {
-    _bgEl(c,`position:absolute;left:${Math.random()*100}%;top:${Math.random()*55}%;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;background:rgba(200,220,255,${0.3+Math.random()*0.5});border-radius:50%`);
-  }
-  // Schneeboden
-  _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:18%;background:linear-gradient(180deg,#c8d8f0 0%,#dce8f8 100%)');
-  // Schneeglanz auf Boden
-  _bgEl(c,'position:absolute;bottom:16%;left:10%;width:80%;height:4%;background:rgba(220,235,255,0.3);filter:blur(5px);border-radius:50%');
-  // Dunkle Tannenbäume links
-  [{l:'0%',b:18,s:1.1},{l:'7%',b:18,s:0.75},{l:'13%',b:18,s:0.9}].forEach(({l,b,s}) => {
-    const h=160*s, w=68*s;
-    _bgEl(c,`position:absolute;bottom:${b}%;left:${l};width:0;height:0;border-left:${w*0.45}px solid transparent;border-right:${w*0.45}px solid transparent;border-bottom:${h*0.55}px solid rgba(15,35,20,0.95)`);
-    _bgEl(c,`position:absolute;bottom:${b+19*s}%;left:${l};width:0;height:0;border-left:${w*0.38}px solid transparent;border-right:${w*0.38}px solid transparent;border-bottom:${h*0.45}px solid rgba(18,42,25,0.95)`);
-    _bgEl(c,`position:absolute;bottom:${b+32*s}%;left:${l};width:0;height:0;border-left:${w*0.28}px solid transparent;border-right:${w*0.28}px solid transparent;border-bottom:${h*0.32}px solid rgba(20,48,28,0.95)`);
-    // Schnee auf Baum
-    _bgEl(c,`position:absolute;bottom:${b+52*s}%;left:calc(${l} + ${(w*0.28-w*0.16).toFixed(0)}px);width:${(w*0.32).toFixed(0)}px;height:${(h*0.06).toFixed(0)}px;background:rgba(210,228,248,0.85);border-radius:50%;filter:blur(2px)`);
-  });
-  // Dunkle Tannenbäume rechts
-  [{l:'78%',b:18,s:0.85},{l:'85%',b:18,s:1},{l:'91%',b:18,s:0.7}].forEach(({l,b,s}) => {
-    const h=160*s, w=68*s;
-    _bgEl(c,`position:absolute;bottom:${b}%;left:${l};width:0;height:0;border-left:${w*0.45}px solid transparent;border-right:${w*0.45}px solid transparent;border-bottom:${h*0.55}px solid rgba(15,35,20,0.95)`);
-    _bgEl(c,`position:absolute;bottom:${b+19*s}%;left:${l};width:0;height:0;border-left:${w*0.38}px solid transparent;border-right:${w*0.38}px solid transparent;border-bottom:${h*0.45}px solid rgba(18,42,25,0.95)`);
-    _bgEl(c,`position:absolute;bottom:${b+32*s}%;left:${l};width:0;height:0;border-left:${w*0.28}px solid transparent;border-right:${w*0.28}px solid transparent;border-bottom:${h*0.32}px solid rgba(20,48,28,0.95)`);
-    _bgEl(c,`position:absolute;bottom:${b+52*s}%;left:calc(${l} + ${(w*0.28-w*0.16).toFixed(0)}px);width:${(w*0.32).toFixed(0)}px;height:${(h*0.06).toFixed(0)}px;background:rgba(210,228,248,0.85);border-radius:50%;filter:blur(2px)`);
-  });
-  // Hütte – Grundkörper (dunkelbraun/Holz)
-  _bgEl(c,'position:absolute;bottom:18%;left:50%;transform:translateX(-50%);width:120px;height:70px;background:linear-gradient(180deg,#3d1f0a 0%,#2d1608 100%);border-radius:2px');
-  // Hütte – Dach
-  _bgEl(c,'position:absolute;bottom:37%;left:50%;transform:translateX(-50%);width:0;height:0;border-left:75px solid transparent;border-right:75px solid transparent;border-bottom:48px solid #1a0c05');
-  // Schnee auf Dach
-  _bgEl(c,'position:absolute;bottom:56%;left:50%;transform:translateX(-50%);width:120px;height:12px;background:rgba(210,228,248,0.9);border-radius:50%;filter:blur(3px)');
-  // Schornstein
-  _bgEl(c,'position:absolute;bottom:55%;left:calc(50% + 20px);width:14px;height:28px;background:#1a0c05;border-radius:2px 2px 0 0');
-  // Rauch aus Schornstein
-  _bgEl(c,'position:absolute;bottom:70%;left:calc(50% + 18px);width:20px;height:30px;background:radial-gradient(ellipse,rgba(140,140,160,0.4) 0%,transparent 70%);filter:blur(5px)');
-  // Fenster links (warm leuchtendes Licht)
-  _bgEl(c,'position:absolute;bottom:23%;left:calc(50% - 40px);width:24px;height:20px;background:linear-gradient(135deg,#fde68a,#fbbf24,#f59e0b);border-radius:2px;box-shadow:0 0 18px 6px rgba(251,191,36,0.5),0 0 35px 10px rgba(251,191,36,0.2)');
-  // Fenster rechts
-  _bgEl(c,'position:absolute;bottom:23%;left:calc(50% + 16px);width:24px;height:20px;background:linear-gradient(135deg,#fde68a,#fbbf24,#f59e0b);border-radius:2px;box-shadow:0 0 18px 6px rgba(251,191,36,0.5),0 0 35px 10px rgba(251,191,36,0.2)');
-  // Lichtschein auf Schnee vor Hütte
-  _bgEl(c,'position:absolute;bottom:18%;left:50%;transform:translateX(-50%);width:160px;height:30px;background:radial-gradient(ellipse,rgba(251,191,36,0.18) 0%,transparent 70%);filter:blur(8px)');
-  // Person in der Tür (Silhouette)
-  _bgEl(c,'position:absolute;bottom:18%;left:calc(50% + 2px);width:10px;height:26px;background:rgba(10,5,2,0.9);border-radius:3px 3px 0 0');
-  // Schneeflocken (angepasste Farbe für dunklen Hintergrund)
-  const sym = ['❄','❅','·','*'];
-  for (let i = 0; i < 48; i++) {
+  c.style.backgroundImage = 'url(assets/winter.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  const sym = ['❄','❅','❆','·','*'];
+  for (let i = 0; i < 50; i++) {
     const el = document.createElement('div');
     el.className = 'bg-schnee';
     el.textContent = sym[Math.floor(Math.random()*sym.length)];
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;font-size:${8+Math.random()*16}px;color:rgba(200,225,255,0.75);animation-delay:${(Math.random()*12).toFixed(2)}s;animation-duration:${(7+Math.random()*11).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;font-size:${8+Math.random()*16}px;color:rgba(200,225,255,0.8);animation-delay:${(Math.random()*12).toFixed(2)}s;animation-duration:${(7+Math.random()*11).toFixed(2)}s`;
     c.appendChild(el);
   }
 }
 
-// ── Wald: Üppiger Wald mit Lichtstrahlen ────────────────────
+// ── Wald ───────────────────────────────────────────────────
 function bgAnimWald() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Sattes Grün, hell oben (Licht), dunkel unten (Waldboden)
-  c.style.background = 'linear-gradient(180deg,#a8e6a0 0%,#5abf5a 22%,#2d8b35 50%,#1a5c20 75%,#0f3d14 100%)';
-  // Atmosphärisches Himmelslicht von oben
-  _bgEl(c,'position:absolute;top:0;left:50%;transform:translateX(-50%);width:100%;height:55%;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,200,0.2) 0%,rgba(180,255,160,0.08) 50%,transparent 80%)');
-  // Lichtstrahlen (schräge angewinkelte Streifen)
-  [[-25,8,42],[10,22,38],[-15,58,35],[20,78,30],[-30,30,32],[15,50,28],[-10,70,25],[25,15,22]].forEach(([ang,left,op]) => {
-    _bgEl(c,`position:absolute;top:-10%;left:${left}%;width:22px;height:150%;background:linear-gradient(180deg,rgba(255,255,180,0.${op}) 0%,rgba(255,255,180,0.0${Math.round(op/3)}) 60%,transparent 100%);transform:rotate(${ang}deg);transform-origin:50% 0%;filter:blur(8px);animation:lichtStrahl ${(3+Math.random()*4).toFixed(1)}s ease-in-out ${(Math.random()*4).toFixed(1)}s infinite`);
-  });
-  // Waldboden (dunkel mit Gras-Anmutung)
-  _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:22%;background:linear-gradient(180deg,#1a5c20 0%,#0d3a12 100%)');
-  // Grashalme-Andeutung
-  _bgEl(c,'position:absolute;bottom:18%;left:0;right:0;height:8%;background:linear-gradient(180deg,rgba(80,180,60,0.4) 0%,transparent 100%);filter:blur(3px)');
-  // Bäume hinten (hell, weit weg)
-  [{x:'2%',w:'10%',h:'62%'},{x:'14%',w:'12%',h:'68%'},{x:'30%',w:'10%',h:'58%'},
-   {x:'46%',w:'11%',h:'65%'},{x:'62%',w:'12%',h:'60%'},{x:'76%',w:'10%',h:'63%'},{x:'90%',w:'9%',h:'55%'}
-  ].forEach(({x,w,h}) => _bgEl(c,`position:absolute;bottom:20%;left:${x};width:${w};height:${h};background:rgba(40,140,50,0.45);border-radius:48% 52% 18% 18% / 55% 55% 15% 15%;filter:blur(3px)`));
-  // Bäume vorne (dunkel, nah)
-  [{x:'-2%',w:'14%',h:'55%'},{x:'12%',w:'13%',h:'60%'},{x:'28%',w:'12%',h:'52%'},
-   {x:'44%',w:'12%',h:'56%'},{x:'60%',w:'13%',h:'58%'},{x:'76%',w:'12%',h:'50%'},{x:'90%',w:'11%',h:'48%'}
-  ].forEach(({x,w,h}) => _bgEl(c,`position:absolute;bottom:20%;left:${x};width:${w};height:${h};background:rgba(15,65,20,0.92);border-radius:45% 55% 10% 10% / 50% 50% 8% 8%`));
-  // Schwebende Pollen/Lichtpunkte
-  for (let i = 0; i < 30; i++) {
+  c.style.backgroundImage = 'url(assets/wald.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  for (let i = 0; i < 25; i++) {
     const sz = 2 + Math.random() * 4;
-    _bgEl(c,`position:absolute;left:${Math.random()*100}%;top:${5+Math.random()*70}%;width:${sz}px;height:${sz}px;background:rgba(255,255,200,${0.3+Math.random()*0.4});border-radius:50%;filter:blur(1px);animation:blattFallen ${(8+Math.random()*12).toFixed(1)}s ease-in-out ${(Math.random()*8).toFixed(1)}s infinite`);
+    _bgEl(c,`position:absolute;left:${Math.random()*100}%;top:${10+Math.random()*70}%;width:${sz}px;height:${sz}px;background:rgba(255,255,200,${(0.4+Math.random()*0.4).toFixed(2)});border-radius:50%;filter:blur(1px);animation:blattFallen ${(8+Math.random()*12).toFixed(1)}s ease-in-out ${(Math.random()*8).toFixed(1)}s infinite`);
   }
-  // Blumen am Boden
-  ['rgba(255,255,255,0.8)','rgba(255,200,200,0.8)','rgba(255,240,150,0.8)'].forEach(col => {
-    for (let i = 0; i < 6; i++) {
-      _bgEl(c,`position:absolute;bottom:${18+Math.random()*5}%;left:${Math.random()*100}%;width:4px;height:4px;background:${col};border-radius:50%`);
-    }
-  });
 }
 
-// ── Ozean: Unterwasser von unten ────────────────────────────
+// ── Ozean ────────────────────────────────────────────────
 function bgAnimOzean() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Unterwasser: dunkel unten, helles Licht von oben (Sonnenlicht durch Wasser)
-  c.style.background = 'linear-gradient(180deg,#e0f7ff 0%,#7ad8f0 12%,#2aadce 30%,#0e7a9e 55%,#064d6e 78%,#032838 100%)';
-  // Helles Lichtbündel von oben (Sonnenlicht durch Wasser)
-  _bgEl(c,'position:absolute;top:0;left:50%;transform:translateX(-50%);width:200px;height:65%;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,0.85) 0%,rgba(140,230,255,0.4) 30%,rgba(0,180,220,0.1) 65%,transparent 100%);filter:blur(8px)');
-  // Kaustik-Lichtflecken (helle Flecken wie Wasserspiegelungen)
-  [['38%','18%',40,28],['55%','22%',32,22],['28%','28%',28,20],['65%','15%',35,24],['45%','35%',22,16]].forEach(([l,t,w,h]) => {
-    _bgEl(c,`position:absolute;left:${l};top:${t};width:${w}px;height:${h}px;background:rgba(255,255,255,0.15);border-radius:50%;filter:blur(6px)`);
-  });
-  // Fische in verschiedenen Tiefen/Bahnen
-  const fischTiefen = [
-    {top:'22%',delay:0,dur:10,sz:1.0,col:'rgba(160,210,240,0.6)'},
-    {top:'28%',delay:2,dur:13,sz:0.8,col:'rgba(140,190,220,0.55)'},
-    {top:'18%',delay:4,dur:11,sz:1.2,col:'rgba(180,225,250,0.65)'},
-    {top:'35%',delay:1,dur:15,sz:0.7,col:'rgba(120,170,200,0.5)'},
-    {top:'25%',delay:5,dur:12,sz:0.9,col:'rgba(150,200,235,0.58)'},
-    {top:'32%',delay:3,dur:14,sz:1.1,col:'rgba(170,215,245,0.62)'},
-  ];
-  fischTiefen.forEach(({top,delay,dur,sz,col}) => {
-    for (let i = 0; i < 4; i++) {
-      const el = document.createElement('div');
-      el.className = 'bg-fisch';
-      el.style.cssText = `top:calc(${top} + ${i*2}%);width:${14*sz}px;height:${5*sz}px;background:${col};animation-duration:${dur+(i*1.5)}s;animation-delay:${delay+(i*2.5)}s`;
-      c.appendChild(el);
-    }
-  });
-  // Aufsteigende Blasen
+  c.style.backgroundImage = 'url(assets/ozean.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   for (let i = 0; i < 22; i++) {
     const sz = 4 + Math.random() * 14;
     const el = document.createElement('div');
@@ -1794,69 +1669,32 @@ function bgAnimOzean() {
   }
 }
 
-// ── Märchen: Bunte Märchenlandschaft mit Regenbogen ─────────
+// ── Märchen ────────────────────────────────────────────
 function bgAnimMaerchen() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Heller blauer Himmel
-  c.style.background = 'linear-gradient(180deg,#38bdf8 0%,#7dd3fc 35%,#bae6fd 65%,#e0f7d4 85%,#b8ebb8 100%)';
-  // Wolken (weiße blur-Ellipsen)
-  [['5%','8%','120px','55px'],['55%','5%','140px','50px'],['30%','15%','90px','40px'],['75%','12%','110px','45px']].forEach(([l,t,w,h]) => {
-    _bgEl(c,`position:absolute;left:${l};top:${t};width:${w};height:${h};background:rgba(255,255,255,0.88);border-radius:50%;filter:blur(12px);animation:wolkeDriften ${(8+Math.random()*6).toFixed(1)}s ease-in-out ${(Math.random()*4).toFixed(1)}s infinite`);
-  });
-  // Regenbogen (konzentrische Halbkreise)
-  const regenbogenFarben = [
-    ['rgba(239,68,68,0.55)',260],['rgba(249,115,22,0.5)',240],['rgba(234,179,8,0.5)',220],
-    ['rgba(34,197,94,0.5)',200],['rgba(59,130,246,0.5)',180],['rgba(139,92,246,0.48)',160]
-  ];
-  regenbogenFarben.forEach(([col,sz]) => {
-    _bgEl(c,`position:absolute;top:5%;right:-${sz/2-60}px;width:${sz}px;height:${sz/2}px;border-radius:${sz/2}px ${sz/2}px 0 0;border:12px solid ${col};border-bottom:none;filter:blur(3px)`);
-  });
-  // Grüne Hügel
-  _bgEl(c,'position:absolute;bottom:0;left:-8%;width:55%;height:35%;background:linear-gradient(180deg,#4ade80 0%,#16a34a 100%);border-radius:65% 75% 0 0/80% 80% 0 0');
-  _bgEl(c,'position:absolute;bottom:0;right:-8%;width:50%;height:28%;background:linear-gradient(180deg,#22c55e 0%,#15803d 100%);border-radius:75% 65% 0 0/80% 80% 0 0');
-  _bgEl(c,'position:absolute;bottom:0;left:25%;width:52%;height:22%;background:linear-gradient(180deg,#4ade80 0%,#166534 100%);border-radius:50% 55% 0 0/70% 70% 0 0');
-  // Rapunzel-Turm (CSS-Rechtecke, kein SVG)
-  _bgEl(c,'position:absolute;bottom:20%;left:calc(50% - 16px);width:32px;height:90px;background:linear-gradient(90deg,#d6bfa0,#c4a882,#d6bfa0)');
-  _bgEl(c,'position:absolute;bottom:56%;left:calc(50% - 22px);width:44px;height:38px;background:linear-gradient(180deg,#8b6a3e,#6b4e2e);border-radius:50% 50% 0 0/55% 55% 0 0');
-  _bgEl(c,'position:absolute;bottom:62%;left:calc(50% + 14px);width:8px;height:24px;background:#6b4e2e;border-radius:2px 2px 0 0');
-  _bgEl(c,'position:absolute;bottom:64%;left:calc(50% - 24px);width:8px;height:20px;background:#6b4e2e;border-radius:2px 2px 0 0');
-  // Turmfenster
-  _bgEl(c,'position:absolute;bottom:35%;left:calc(50% - 8px);width:16px;height:18px;background:rgba(254,240,138,0.9);border-radius:50% 50% 0 0;box-shadow:0 0 10px rgba(253,224,71,0.5)');
-  // Rote Blumen am Boden
-  for (let i = 0; i < 18; i++) {
-    _bgEl(c,`position:absolute;bottom:${18+Math.random()*8}%;left:${Math.random()*100}%;width:${5+Math.random()*5}px;height:${5+Math.random()*5}px;background:hsla(${Math.random()<0.6?0:320},90%,60%,0.8);border-radius:50%`);
-  }
-  // Glitzer/Funken
+  c.style.backgroundImage = 'url(assets/maerchen.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   const farben = ['#67e8f9','#86efac','#fde68a','#f9a8d4','#c4b5fd','#fff'];
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 45; i++) {
     const sz = 2 + Math.random() * 5;
     const el = document.createElement('div');
     el.className = 'bg-funke';
-    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*80}%;width:${sz}px;height:${sz}px;background:${farben[Math.floor(Math.random()*farben.length)]};animation-delay:${(Math.random()*7).toFixed(2)}s;animation-duration:${(1.5+Math.random()*3).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*85}%;width:${sz}px;height:${sz}px;background:${farben[Math.floor(Math.random()*farben.length)]};animation-delay:${(Math.random()*7).toFixed(2)}s;animation-duration:${(1.5+Math.random()*3).toFixed(2)}s`;
     c.appendChild(el);
   }
 }
 
-// ── Glitzer-Gold: Schwarzer Marmor mit Gold-Fluss ───────────
+// ── Glitzer-Gold ─────────────────────────────────────────
 function bgAnimGlitzergold() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Sehr dunkler Marmor-Hintergrund
-  c.style.background = 'linear-gradient(135deg,#0a0800 0%,#1a1200 35%,#0d0a00 60%,#150f00 100%)';
-  // Dunkel-Marmorstruktur
-  _bgEl(c,'position:absolute;inset:0;background:radial-gradient(ellipse at 30% 70%,rgba(40,30,0,0.6) 0%,transparent 55%)');
-  _bgEl(c,'position:absolute;inset:0;background:radial-gradient(ellipse at 75% 20%,rgba(25,18,0,0.5) 0%,transparent 50%)');
-  // Goldene Haupt-Bänder (diagonal)
-  _bgEl(c,'position:absolute;top:-20%;left:20%;width:35%;height:160%;background:linear-gradient(90deg,transparent 0%,rgba(180,130,10,0.12) 20%,rgba(251,191,36,0.55) 45%,rgba(253,224,71,0.65) 50%,rgba(251,191,36,0.55) 55%,rgba(180,130,10,0.12) 80%,transparent 100%);transform:rotate(-20deg);filter:blur(6px)');
-  _bgEl(c,'position:absolute;top:-20%;left:48%;width:22%;height:160%;background:linear-gradient(90deg,transparent 0%,rgba(200,150,20,0.08) 15%,rgba(245,158,11,0.35) 40%,rgba(251,191,36,0.45) 50%,rgba(245,158,11,0.35) 60%,transparent 100%);transform:rotate(-18deg);filter:blur(8px)');
-  _bgEl(c,'position:absolute;top:-20%;left:5%;width:18%;height:160%;background:linear-gradient(90deg,transparent 5%,rgba(217,119,6,0.2) 35%,rgba(245,158,11,0.38) 50%,rgba(217,119,6,0.2) 65%,transparent 95%);transform:rotate(-22deg);filter:blur(10px)');
-  // Silber-Schimmer neben den Goldbändern
-  _bgEl(c,'position:absolute;top:-10%;left:18%;width:4%;height:140%;background:linear-gradient(90deg,transparent,rgba(220,220,220,0.18),transparent);transform:rotate(-20deg);filter:blur(4px)');
-  _bgEl(c,'position:absolute;top:-10%;left:55%;width:3%;height:140%;background:linear-gradient(90deg,transparent,rgba(200,200,200,0.15),transparent);transform:rotate(-18deg);filter:blur(5px)');
-  // Gold-Glitzer-Partikel
-  const farben = ['#fbbf24','#f59e0b','#fef9c3','#fde68a','#fff8dc','#fcd34d','#ffffff'];
-  for (let i = 0; i < 80; i++) {
+  c.style.backgroundImage = 'url(assets/glitzergold.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  const farben = ['#fbbf24','#f59e0b','#fef9c3','#fde68a','#ffffff','#fcd34d'];
+  for (let i = 0; i < 70; i++) {
     const sz = 1.5 + Math.random() * 5, f = farben[Math.floor(Math.random()*farben.length)];
     const el = document.createElement('div');
     el.className = 'bg-glitzer';
@@ -1865,253 +1703,99 @@ function bgAnimGlitzergold() {
   }
 }
 
-// ── Wüste: Wüstenlandschaft mit Mesas ───────────────────────
+// ── Wüste ────────────────────────────────────────────────
 function bgAnimWueste() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Himmel oben blau/weiß, Wüstenboden orange/rot unten
-  c.style.background = 'linear-gradient(180deg,#e8f4fc 0%,#b8daf0 20%,#8bc4e8 38%,#f5c87a 60%,#e8a04a 80%,#d4804a 100%)';
-  // Sonne (hell, oben rechts)
-  _bgEl(c,'position:absolute;top:3%;right:8%;width:65px;height:65px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.98) 0%,rgba(255,240,180,0.7) 35%,transparent 70%);box-shadow:0 0 50px 15px rgba(255,220,100,0.45),0 0 100px 30px rgba(255,200,80,0.2)');
-  // Himmel-Haze
-  _bgEl(c,'position:absolute;top:35%;left:0;right:0;height:8%;background:rgba(245,200,120,0.25);filter:blur(8px)');
-  // Mesas/Felsformationen – verschiedene Formen
-  [
-    {l:'-2%',w:'18%',h:'52%',b:12,col:'#8b3d1a'},
-    {l:'8%',w:'12%',h:'40%',b:12,col:'#a04820'},
-    {l:'68%',w:'16%',h:'48%',b:12,col:'#8b3d1a'},
-    {l:'80%',w:'14%',h:'38%',b:12,col:'#963d18'},
-    {l:'90%',w:'12%',h:'55%',b:12,col:'#7a3015'},
-  ].forEach(({l,w,h,b,col}) => {
-    _bgEl(c,`position:absolute;bottom:${b}%;left:${l};width:${w};height:${h};background:linear-gradient(90deg,${col}dd,${col} 30%,${col}bb 70%,${col}99);border-radius:6px 6px 0 0`);
-    // Schattierung oben
-    _bgEl(c,`position:absolute;bottom:calc(${b}% + ${h});left:${l};width:${w};height:8px;background:rgba(0,0,0,0.2);border-radius:4px 4px 0 0;transform:translateY(100%)`);
-  });
-  // Sandboden
-  _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:14%;background:linear-gradient(180deg,#d4804a 0%,#c06830 100%)');
-  // Sandkörner-Textur (kleine Punkte)
-  for (let i = 0; i < 8; i++) {
-    _bgEl(c,`position:absolute;bottom:${2+Math.random()*10}%;left:${Math.random()*100}%;width:${20+Math.random()*30}px;height:3px;background:rgba(180,100,50,0.3);border-radius:50%;filter:blur(2px)`);
-  }
-  // Kakteen
-  [{l:'22%'},{l:'38%'},{l:'55%'},{l:'42%'}].forEach(({l},i) => {
-    const h = 35 + i*8;
-    // Kaktus-Stamm
-    _bgEl(c,`position:absolute;bottom:12%;left:${l};width:8px;height:${h}px;background:linear-gradient(90deg,#2d6b2d,#3a8a3a,#2d6b2d);border-radius:3px`);
-    // Linker Arm
-    _bgEl(c,`position:absolute;bottom:calc(12% + ${h*0.45}px);left:calc(${l} - 14px);width:14px;height:7px;background:#3a8a3a;border-radius:3px 0 0 3px`);
-    _bgEl(c,`position:absolute;bottom:calc(12% + ${h*0.45+7}px);left:calc(${l} - 14px);width:7px;height:${h*0.28}px;background:#3a8a3a;border-radius:3px 3px 0 0`);
-    // Rechter Arm
-    _bgEl(c,`position:absolute;bottom:calc(12% + ${h*0.55}px);left:calc(${l} + 8px);width:14px;height:7px;background:#3a8a3a;border-radius:0 3px 3px 0`);
-    _bgEl(c,`position:absolute;bottom:calc(12% + ${h*0.55+7}px);left:calc(${l} + 8px);width:7px;height:${h*0.22}px;background:#3a8a3a;border-radius:3px 3px 0 0`);
-  });
-  // Hitzeflimmern am Boden
-  _bgEl(c,'position:absolute;bottom:12%;left:0;right:0;height:5%;background:rgba(255,200,100,0.08);filter:blur(6px);animation:lichtStrahl 2.5s ease-in-out infinite');
+  c.style.backgroundImage = 'url(assets/wueste.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:10%;background:rgba(255,180,60,0.05);filter:blur(8px);animation:lichtStrahl 2.5s ease-in-out infinite');
 }
 
-// ── Sonnenschein: Riesige Nahaufnahme der Sonne ──────────────
+// ── Sonnenschein ────────────────────────────────────────
 function bgAnimSonnenschein() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Dunkler Weltraum
-  c.style.background = 'radial-gradient(ellipse at 70% 50%,#1a0800 0%,#0d0400 50%,#000000 100%)';
-  // Sonnen-Korona-Glow (mehrere konzentrische Leucht-Ringe)
-  _bgEl(c,'position:absolute;bottom:-40%;left:-30%;width:200%;height:200%;border-radius:50%;background:radial-gradient(circle,rgba(255,120,0,0.04) 0%,rgba(255,80,0,0.08) 30%,rgba(200,50,0,0.06) 55%,transparent 75%)');
-  // Sonnen-Hauptkörper (riesig, links-mitte bis raus)
-  _bgEl(c,'position:absolute;bottom:-20%;left:-35%;width:180%;height:180%;border-radius:50%;background:radial-gradient(circle at 45% 45%,rgba(255,255,200,0.95) 0%,rgba(255,220,80,0.9) 10%,rgba(255,160,20,0.85) 22%,rgba(240,100,10,0.8) 38%,rgba(200,60,5,0.75) 55%,rgba(140,30,0,0.5) 70%,transparent 85%);animation:sonnePulse 5s ease-in-out infinite');
-  // Sonnenoberfläche – helle Granulations-Flecken
-  [['40%','35%',40,35,'rgba(255,240,120,0.55)'],['55%','48%',55,45,'rgba(255,200,60,0.4)'],
-   ['25%','50%',38,30,'rgba(255,220,100,0.45)'],['38%','60%',45,35,'rgba(255,180,40,0.38)'],
-   ['50%','38%',30,25,'rgba(255,250,180,0.5)'],['30%','42%',35,28,'rgba(255,210,80,0.42)'],
-   ['46%','55%',42,33,'rgba(255,195,50,0.38)'],['35%','50%',50,40,'rgba(255,230,100,0.35)']
-  ].forEach(([l,t,w,h,col]) => _bgEl(c,`position:absolute;left:${l};top:${t};width:${w}px;height:${h}px;background:${col};border-radius:50%;filter:blur(14px);animation:sonnePulse ${(3+Math.random()*4).toFixed(1)}s ease-in-out ${(Math.random()*3).toFixed(1)}s infinite`));
-  // Solar-Flare rechts oben
-  _bgEl(c,'position:absolute;top:5%;left:35%;width:80px;height:30px;background:rgba(255,180,30,0.35);border-radius:0 50% 50% 0;filter:blur(10px);transform:rotate(-30deg)');
+  c.style.backgroundImage = 'url(assets/sonnenschein.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  _bgEl(c,'position:absolute;inset:0;background:radial-gradient(ellipse at 65% 55%,rgba(255,100,0,0.06) 0%,transparent 60%);animation:sonnePulse 4s ease-in-out infinite');
 }
 
-// ── Herbst: Roter Herbstbaum beim Sonnenuntergang ────────────
+// ── Herbst ────────────────────────────────────────────────
 function bgAnimHerbst() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Dramatischer Himmel: gelb/weiß links (Sonne), blau Mitte, orange/rot rechts
-  c.style.background = 'linear-gradient(90deg,rgba(255,230,80,0.9) 0%,rgba(255,200,60,0.7) 12%,rgba(200,150,40,0.8) 28%,rgba(50,50,100,0.85) 50%,rgba(120,60,20,0.8) 70%,rgba(180,60,20,0.85) 85%,rgba(140,30,10,0.9) 100%)';
-  // Sonne-Aura links
-  _bgEl(c,'position:absolute;top:0;left:-5%;width:55%;height:100%;background:radial-gradient(ellipse at 15% 50%,rgba(255,220,60,0.35) 0%,rgba(255,180,40,0.12) 40%,transparent 65%)');
-  // Dramatische Wolken (dunkle Streifen)
-  _bgEl(c,'position:absolute;top:8%;left:20%;width:60%;height:18%;background:rgba(80,50,20,0.35);border-radius:50%;filter:blur(12px)');
-  _bgEl(c,'position:absolute;top:20%;left:5%;width:40%;height:12%;background:rgba(60,40,10,0.25);border-radius:50%;filter:blur(10px)');
-  // Dunkler Boden/Feld
-  _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:14%;background:linear-gradient(180deg,#1a0c05 0%,#0d0602 100%)');
-  _bgEl(c,'position:absolute;bottom:12%;left:0;right:0;height:4%;background:rgba(60,25,10,0.5);filter:blur(4px)');
-  // Baum-Stamm rechts
-  _bgEl(c,'position:absolute;bottom:14%;left:calc(65% - 10px);width:20px;height:55%;background:linear-gradient(180deg,#2d1505,#1a0c03);border-radius:6px 6px 2px 2px');
-  // Äste
-  _bgEl(c,'position:absolute;bottom:52%;left:calc(65% - 50px);width:45px;height:8px;background:#2d1505;border-radius:4px;transform:rotate(-40deg);transform-origin:100% 50%');
-  _bgEl(c,'position:absolute;bottom:58%;left:calc(65% - 30px);width:35px;height:7px;background:#2d1505;border-radius:4px;transform:rotate(-20deg);transform-origin:100% 50%');
-  _bgEl(c,'position:absolute;bottom:62%;left:calc(65% + 10px);width:40px;height:7px;background:#2d1505;border-radius:4px;transform:rotate(25deg);transform-origin:0% 50%');
-  _bgEl(c,'position:absolute;bottom:56%;left:calc(65% + 8px);width:30px;height:7px;background:#2d1505;border-radius:4px;transform:rotate(50deg);transform-origin:0% 50%');
-  // Baumkrone (dichte rote Ellipsen, malerisch durch Überlappung)
-  [['38%','8%','36%','28%','rgba(180,20,10,0.92)'],
-   ['55%','5%','30%','26%','rgba(200,30,10,0.88)'],
-   ['44%','22%','32%','24%','rgba(160,15,8,0.85)'],
-   ['62%','18%','28%','22%','rgba(190,25,10,0.82)'],
-   ['36%','2%','26%','20%','rgba(140,10,5,0.78)'],
-   ['66%','8%','24%','20%','rgba(170,20,8,0.80)'],
-   ['48%','30%','26%','18%','rgba(150,12,6,0.75)'],
-  ].forEach(([l,t,w,h,col]) => _bgEl(c,`position:absolute;left:${l};top:${t};width:${w};height:${h};background:${col};border-radius:50%;filter:blur(11px)`));
-  // Menschliche Silhouetten am Fuß des Baums
-  _bgEl(c,'position:absolute;bottom:14%;left:calc(60% - 14px);width:8px;height:22px;background:rgba(5,2,0,0.95);border-radius:4px 4px 0 0');
-  _bgEl(c,'position:absolute;bottom:14%;left:calc(70% + 6px);width:8px;height:18px;background:rgba(5,2,0,0.9);border-radius:4px 4px 0 0');
-  // Fallende rote/orange Blätter
-  const herbstFarben = ['rgba(200,40,10,0.85)','rgba(220,80,10,0.8)','rgba(180,120,15,0.8)','rgba(230,50,10,0.75)','rgba(200,30,5,0.85)'];
-  for (let i = 0; i < 45; i++) {
+  c.style.backgroundImage = 'url(assets/herbst.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  const farben = ['rgba(200,40,10,0.82)','rgba(220,80,10,0.78)','rgba(180,120,15,0.78)','rgba(230,50,10,0.75)','rgba(160,20,5,0.8)'];
+  for (let i = 0; i < 40; i++) {
     const sz = 6 + Math.random() * 10;
     const el = document.createElement('div');
     el.className = 'bg-blatt';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*80}%;width:${sz}px;height:${sz}px;background:${herbstFarben[Math.floor(Math.random()*herbstFarben.length)]};border-radius:${Math.random()<0.5?'50% 0 50% 0':'30% 70% 30% 70%'};animation-delay:${(Math.random()*10).toFixed(2)}s;animation-duration:${(5+Math.random()*9).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*80}%;width:${sz}px;height:${sz}px;background:${farben[Math.floor(Math.random()*farben.length)]};border-radius:${Math.random()<0.5?'50% 0 50% 0':'30% 70% 30% 70%'};animation-delay:${(Math.random()*10).toFixed(2)}s;animation-duration:${(5+Math.random()*9).toFixed(2)}s`;
     c.appendChild(el);
   }
 }
 
-// ── Retro: Retrowave Neon-Gaming-Atmosphäre ─────────────────
+// ── Retro ──────────────────────────────────────────────────
 function bgAnimRetro() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Dunkles Violett/Navy
-  c.style.background = 'linear-gradient(180deg,#0d0818 0%,#130a22 50%,#1a0a2e 100%)';
-  // Neon-Glows an Rändern
-  _bgEl(c,'position:absolute;top:-20%;left:-20%;width:60%;height:60%;background:radial-gradient(circle,rgba(180,40,220,0.2) 0%,transparent 65%)');
-  _bgEl(c,'position:absolute;bottom:-20%;right:-20%;width:55%;height:55%;background:radial-gradient(circle,rgba(220,20,180,0.18) 0%,transparent 65%)');
-  _bgEl(c,'position:absolute;top:20%;right:-10%;width:40%;height:40%;background:radial-gradient(circle,rgba(0,220,255,0.12) 0%,transparent 65%)');
-  // Retrowave-Grid (Boden-Perspektive)
-  _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:35%;overflow:hidden;perspective:200px', `
-    <div style="position:absolute;bottom:0;left:-20%;right:-20%;height:100%;background:repeating-linear-gradient(0deg,transparent,transparent 20px,rgba(180,0,220,0.18) 20px,rgba(180,0,220,0.18) 21px),repeating-linear-gradient(90deg,transparent,transparent 30px,rgba(180,0,220,0.15) 30px,rgba(180,0,220,0.15) 31px);transform:rotateX(55deg);transform-origin:50% 100%"></div>`);
-  // Horizont-Linie
-  _bgEl(c,'position:absolute;bottom:33%;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(220,0,255,0.7) 20%,rgba(0,220,255,0.7) 80%,transparent);box-shadow:0 0 10px rgba(200,0,255,0.5)');
-  // CRT-Bildschirm in der Mitte oben
-  _bgEl(c,'position:absolute;top:6%;left:50%;transform:translateX(-50%);width:90px;height:70px;background:#0a0a14;border:3px solid rgba(50,50,80,0.8);border-radius:8px;box-shadow:0 0 20px rgba(0,255,0,0.15)',
-    '<div style="position:absolute;inset:4px;background:rgba(0,80,0,0.6);border-radius:4px;box-shadow:inset 0 0 20px rgba(0,200,0,0.3)"><div style="position:absolute;top:25%;left:10%;right:10%;height:2px;background:rgba(0,255,0,0.5);box-shadow:0 8px 0 rgba(0,255,0,0.3),0 16px 0 rgba(0,255,0,0.2)"></div></div>');
-  // Scanlines
-  _bgEl(c,'position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);pointer-events:none');
-  // Schwebende Pixel-Blöcke
-  const pixelFarben = ['rgba(255,0,200,0.7)','rgba(0,220,255,0.65)','rgba(180,0,255,0.6)','rgba(0,255,160,0.55)'];
-  for (let i = 0; i < 20; i++) {
+  c.style.backgroundImage = 'url(assets/retro.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  const pixelFarben = ['rgba(255,0,200,0.65)','rgba(0,220,255,0.6)','rgba(180,0,255,0.55)','rgba(0,255,160,0.5)'];
+  for (let i = 0; i < 16; i++) {
     const sz = 4 + Math.random() * 8;
     const el = document.createElement('div');
     el.className = 'bg-pixel';
-    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*70}%;width:${sz}px;height:${sz}px;background:${pixelFarben[Math.floor(Math.random()*pixelFarben.length)]};box-shadow:0 0 6px currentColor;animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(1.5+Math.random()*3).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*80}%;width:${sz}px;height:${sz}px;background:${pixelFarben[Math.floor(Math.random()*pixelFarben.length)]};box-shadow:0 0 6px currentColor;animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(1.5+Math.random()*3).toFixed(2)}s`;
     c.appendChild(el);
   }
 }
 
-// ── Midnight Drive: Tokio Nacht Anime-Szene ──────────────────
+// ── Midnight Drive ─────────────────────────────────────
 function bgAnimMidnight() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Dunkles Nacht-Navy
-  c.style.background = 'linear-gradient(180deg,#060c1a 0%,#0a1228 45%,#0d1530 75%,#101830 100%)';
-  // Sterne
-  for (let i = 0; i < 55; i++) {
-    _bgEl(c,`position:absolute;left:${Math.random()*100}%;top:${Math.random()*45}%;width:${1+Math.random()*1.5}px;height:${1+Math.random()*1.5}px;background:rgba(220,230,255,${0.3+Math.random()*0.5});border-radius:50%`);
-  }
-  // Gebäude-Silhouetten (Hintergrund, verschieden hoch)
-  [{l:'0%',w:'14%',h:'45%'},{l:'10%',w:'10%',h:'38%'},{l:'18%',w:'12%',h:'52%'},{l:'28%',w:'8%',h:'35%'},
-   {l:'55%',w:'12%',h:'48%'},{l:'65%',w:'10%',h:'40%'},{l:'74%',w:'13%',h:'55%'},{l:'85%',w:'10%',h:'37%'},{l:'93%',w:'9%',h:'44%'}
-  ].forEach(({l,w,h}) => {
-    _bgEl(c,`position:absolute;bottom:22%;left:${l};width:${w};height:${h};background:rgba(10,15,30,0.92);border-radius:2px 2px 0 0`);
-    // Leuchtendes Fenster
-    for (let i = 0; i < 3+Math.floor(Math.random()*4); i++) {
-      _bgEl(c,`position:absolute;bottom:calc(22% + ${5+Math.random()*40}%);left:calc(${l} + ${Math.random()*8}%);width:${3+Math.random()*4}px;height:${3+Math.random()*4}px;background:rgba(${Math.random()<0.5?'255,220,120':'200,220,255'},0.8);animation:gebaeudeLicht ${(2+Math.random()*4).toFixed(1)}s ease-in-out ${(Math.random()*3).toFixed(1)}s infinite`);
-    }
-  });
-  // Neon-Glows (pink und cyan, wie die Schilder im Bild)
-  _bgEl(c,'position:absolute;top:8%;left:48%;width:100px;height:22px;background:rgba(180,0,220,0.6);border-radius:4px;box-shadow:0 0 20px 5px rgba(180,0,220,0.4),0 0 40px rgba(180,0,220,0.2)');
-  _bgEl(c,'position:absolute;top:14%;left:50%;width:80px;height:14px;background:rgba(0,200,220,0.55);border-radius:3px;box-shadow:0 0 16px 4px rgba(0,200,220,0.35)');
-  _bgEl(c,'position:absolute;top:22%;left:20%;width:65px;height:18px;background:rgba(220,30,80,0.6);border-radius:3px;box-shadow:0 0 18px 4px rgba(220,30,80,0.35)');
-  // Neon-Reflektionen auf der Straße
-  _bgEl(c,'position:absolute;bottom:14%;left:45%;width:90px;height:6px;background:rgba(180,0,220,0.3);filter:blur(4px);border-radius:50%');
-  _bgEl(c,'position:absolute;bottom:12%;left:18%;width:60px;height:4px;background:rgba(220,30,80,0.25);filter:blur(5px);border-radius:50%');
-  // Straße
-  _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:23%;background:linear-gradient(180deg,#1a1e2e 0%,#141828 100%)');
-  // Straßenmitte-Linie
-  _bgEl(c,'position:absolute;bottom:10%;left:0;right:0;height:2px;background:repeating-linear-gradient(90deg,rgba(255,220,100,0.5) 0px,rgba(255,220,100,0.5) 30px,transparent 30px,transparent 55px)');
-  // Auto-Scheinwerfer-Glow
-  _bgEl(c,'position:absolute;bottom:22%;left:25%;width:50px;height:18px;background:rgba(255,230,100,0.5);border-radius:50%;filter:blur(8px)');
-  _bgEl(c,'position:absolute;bottom:22%;left:30%;width:50px;height:18px;background:rgba(255,230,100,0.5);border-radius:50%;filter:blur(8px)');
-  // Regen
-  for (let i = 0; i < 38; i++) {
+  c.style.backgroundImage = 'url(assets/midnight.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  for (let i = 0; i < 45; i++) {
     const el = document.createElement('div');
     el.className = 'bg-regen';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;height:${12+Math.random()*14}px;animation-delay:${(Math.random()*2).toFixed(2)}s;animation-duration:${(0.6+Math.random()*0.5).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;height:${12+Math.random()*14}px;animation-delay:${(Math.random()*2).toFixed(2)}s;animation-duration:${(0.55+Math.random()*0.45).toFixed(2)}s`;
     c.appendChild(el);
   }
 }
 
-// ── Dark City: Dunkle Stadt von unten ───────────────────────
+// ── Dark City ────────────────────────────────────────────
 function bgAnimDarkCity() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Fast schwarz
-  c.style.background = 'radial-gradient(ellipse at 50% 30%,#1a1a1a 0%,#080808 50%,#020202 100%)';
-  // Zentrales Licht (helles Weiß oben-mitte, wie Vanishing Point)
-  _bgEl(c,'position:absolute;top:0;left:50%;transform:translateX(-50%);width:200px;height:60%;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,0.35) 0%,rgba(200,200,200,0.12) 30%,transparent 70%);filter:blur(12px)');
-  _bgEl(c,'position:absolute;top:0;left:50%;transform:translateX(-50%);width:80px;height:40%;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,0.6) 0%,transparent 70%)');
-  // Gebäude links (konvergieren nach oben = clip-path Trapeze)
-  [{l:'0%',br:'38%',h:'88%',col:'rgba(18,18,18,0.98)'},{l:'8%',br:'28%',h:'82%',col:'rgba(22,22,22,0.95)'},
-   {l:'16%',br:'20%',h:'75%',col:'rgba(26,26,26,0.92)'},{l:'23%',br:'14%',h:'68%',col:'rgba(30,30,30,0.9)'}
-  ].forEach(({l,br,h,col},i) => {
-    const w = 10 - i*1.5;
-    _bgEl(c,`position:absolute;bottom:0;left:${l};width:${w}%;height:${h};background:${col};clip-path:polygon(${8+i*5}% 0%,${100-8-i*5}% 0%,100% 100%,0% 100%)`);
-  });
-  // Gebäude rechts (gespiegelt)
-  [{r:'0%',h:'85%',col:'rgba(18,18,18,0.98)'},{r:'8%',h:'78%',col:'rgba(22,22,22,0.95)'},
-   {r:'16%',h:'72%',col:'rgba(26,26,26,0.92)'},{r:'23%',h:'65%',col:'rgba(30,30,30,0.9)'}
-  ].forEach(({r,h,col},i) => {
-    const w = 10 - i*1.5;
-    _bgEl(c,`position:absolute;bottom:0;right:${r};width:${w}%;height:${h};background:${col};clip-path:polygon(${8+i*5}% 0%,${100-8-i*5}% 0%,100% 100%,0% 100%)`);
-  });
-  // Fenster in Gebäuden
-  for (let i = 0; i < 30; i++) {
-    const side = Math.random() < 0.5;
-    const col = Math.random() < 0.3 ? 'rgba(255,200,100,0.7)' : 'rgba(220,230,255,0.55)';
-    _bgEl(c,`position:absolute;bottom:${10+Math.random()*75}%;${side?'left':'right'}:${Math.random()*25}%;width:${2+Math.random()*3}px;height:${2+Math.random()*4}px;background:${col};animation:gebaeudeLicht ${(3+Math.random()*5).toFixed(1)}s ease-in-out ${(Math.random()*4).toFixed(1)}s infinite`);
-  }
-  // Nebel-Band in der Mitte
-  _bgEl(c,'position:absolute;top:45%;left:0;right:0;height:12%;background:rgba(40,40,40,0.35);filter:blur(15px)');
-  // Regen (dichter als bei Midnight)
-  for (let i = 0; i < 55; i++) {
+  c.style.backgroundImage = 'url(assets/darkcity.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  for (let i = 0; i < 60; i++) {
     const el = document.createElement('div');
     el.className = 'bg-regen';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;height:${10+Math.random()*12}px;background:linear-gradient(180deg,transparent,rgba(180,190,200,0.45));animation-delay:${(Math.random()*2).toFixed(2)}s;animation-duration:${(0.5+Math.random()*0.4).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;height:${10+Math.random()*12}px;background:linear-gradient(180deg,transparent,rgba(200,210,220,0.4));animation-delay:${(Math.random()*2).toFixed(2)}s;animation-duration:${(0.45+Math.random()*0.35).toFixed(2)}s`;
     c.appendChild(el);
   }
 }
 
-// ── Chrome: Silberne Metallflammen ───────────────────────────
+// ── Chrome ────────────────────────────────────────────────
 function bgAnimChrome() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  // Reines Schwarz
-  c.style.background = '#000000';
-  // Subtiler Hintergrundglow
-  _bgEl(c,'position:absolute;inset:0;background:radial-gradient(ellipse at 40% 55%,rgba(50,50,60,0.4) 0%,transparent 65%)');
-  // Chrome-Flammen (große blob-artige Formen mit clip-path)
-  const flammen = [
-    // [left, top, width, height, gradientFrom, gradientTo, rotation, delay, duration]
-    ['5%','20%','38%','65%','#e2e8f0','#64748b','-15deg',0,9],
-    ['30%','5%','42%','70%','#ffffff','#94a3b8','10deg',1.5,11],
-    ['55%','25%','35%','60%','#cbd5e1','#475569','-8deg',0.5,8],
-    ['18%','55%','40%','50%','#f1f5f9','#7c8ea6','12deg',2,10],
-    ['62%','10%','30%','55%','#e8edf2','#5a6b7d','-20deg',1,12],
-  ];
-  flammen.forEach(([l,t,w,h,c1,c2,rot,del,dur]) => {
-    _bgEl(c,`position:absolute;left:${l};top:${t};width:${w};height:${h};background:linear-gradient(135deg,${c1} 0%,${c2} 45%,rgba(200,210,220,0.3) 75%,transparent 100%);clip-path:polygon(50% 0%,90% 15%,100% 40%,85% 70%,95% 90%,60% 100%,30% 95%,10% 75%,0% 50%,15% 20%);filter:blur(2px);transform:rotate(${rot});animation:chromBewegen ${dur}s ease-in-out ${del}s infinite`);
-    // Metallic Highlight
-    _bgEl(c,`position:absolute;left:${l};top:${t};width:calc(${w} * 0.3);height:calc(${h} * 0.4);background:linear-gradient(135deg,rgba(255,255,255,0.65) 0%,rgba(255,255,255,0.1) 60%,transparent 100%);clip-path:polygon(40% 5%,90% 20%,80% 55%,20% 40%);filter:blur(4px);transform:rotate(${rot});animation:chromBewegen ${dur}s ease-in-out ${del}s infinite`);
-  });
-  // Glitzer-Partikel (silber/weiß)
-  for (let i = 0; i < 35; i++) {
-    const sz = 1.5 + Math.random() * 4;
+  c.style.backgroundImage = 'url(assets/chrome.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  for (let i = 0; i < 30; i++) {
+    const sz = 1.5 + Math.random() * 3.5;
     const el = document.createElement('div');
     el.className = 'bg-glitzer';
     el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:rgba(255,255,255,0.9);box-shadow:0 0 ${(sz*2.5).toFixed(0)}px rgba(255,255,255,0.7);animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(0.8+Math.random()*2).toFixed(2)}s`;

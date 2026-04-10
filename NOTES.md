@@ -1,28 +1,29 @@
 # NOTES.md — Fortschrittsprotokoll
 
-## Heutiger Stand (2026-04-10) – Update 2
+## Heutiger Stand (2026-04-10) – Update 3
 
-### Pixel Factory – Screenshot-basierte Skin-Hintergründe ✅
-- Alle bgAnim-Funktionen komplett neugeschrieben nach Screenshots als Referenz:
-  - **Weltraum**: Andromeda-Spiralgalaxie (Spiralarme, leuchtender Kern, 160 Sterne, Sternschnuppen)
-  - **Kirschblüte**: Japanische Minimalszene (Vulkan links, Kirschbaum rechts, pinke Sonne, See)
-  - **Winter**: Pixel-Art Hütte bei Nacht (dunkle Nacht, Hütte mit Fensterlicht, Tannenbäume, Schnee)
-  - **Wald**: Üppiger Wald mit Lichtstrahlen (Sonnenstrahlen, Tiefe, Bäume, Pollen)
-  - **Ozean**: Unterwasser von unten (Licht von oben, Fischschwarm, Blasen)
-  - **Märchen**: Bunte Märchenlandschaft (Regenbogen, Wolken, Turm, Hügel, Blumen)
-  - **Glitter-Gold**: Schwarzer Marmor mit Gold-Fluss (dunkler Marmor, goldene Bänder, Glitzer)
-- Neue bgAnim-Funktionen hinzugefügt:
-  - **Wüste**: Wüste mit Mesas + Kakteen + Hitzeflimmern
-  - **Sonnenschein**: Riesige Sonne aus dem Weltraum (dunkler Weltraum, massiver Sonnenball)
-  - **Herbst**: Roter Herbstbaum beim Sonnenuntergang (dramatischer Himmel, Silhouetten, Blätter)
-  - **Retro**: Retrowave Neon-Gaming (dunkles Violett, Neon-Glows, Retrowave-Grid, CRT-Bildschirm)
-- 3 neue Skins:
-  - **Midnight Drive** (minPrestige: 55): Anime Tokio Nacht, Neon-Schilder, Regen, Gebäude
-  - **Dark City** (minPrestige: 60): Dunkle Stadt von unten, Wolkenkratzer, weißes Licht, Regen
-  - **Chrome** (minPrestige: 65): Schwarzer Hintergrund, silberne Metallflammen, Glitzer
-- Neue CSS: Keyframes (fischSchwimmen, regenFallen, sonnePulse, lichtStrahl, chromBewegen, gebaeudeLicht, wolkeDriften)
-- Neue Partikel-Klassen: .bg-fisch, .bg-regen, .bg-pixel
-- Geänderte Dateien: game.js, style.css
+### Pixel Factory – Echte Screenshot-Bilder als Skin-Hintergründe ✅
+- Alle 14 Screenshots als PNG-Dateien in `games/pixel-factory/assets/` kopiert
+- Alle bgAnim-Funktionen verwenden jetzt `background-image: url(assets/...)` mit `cover`
+- Partikel-Animationen werden auf die Bilder gelegt (kein CSS-Nachbau mehr)
+- Animationen pro Skin:
+  - **Weltraum** → funkelnde Sterne + Sternschnuppen über weltraum.png
+  - **Kirschblüte** → 38 fallende Blütenblätter über kirschbluete.png
+  - **Winter** → 50 Schneeflocken über winter.png
+  - **Wald** → 25 schwebende Pollen-Punkte über wald.png
+  - **Ozean** → 22 aufsteigende Blasen über ozean.png
+  - **Märchen** → 45 Funken über maerchen.png
+  - **Glitter-Gold** → 70 Gold-Glitzer-Partikel über glitzergold.png
+  - **Wüste** → Hitzeflimmern über wueste.png
+  - **Sonnenschein** → pulsierender Licht-Overlay über sonnenschein.png
+  - **Herbst** → 40 rote/orange Blätter über herbst.png
+  - **Retro** → 16 Neon-Pixel-Blöcke über retro.png
+  - **Midnight Drive** → 45 Regenstreifen über midnight.png
+  - **Dark City** → 60 dichte Regenstreifen über darkcity.png
+  - **Chrome** → 30 silberne Glitzer-Partikel über chrome.png
+- `bgAnimStoppen()` cleared jetzt auch `c.style.backgroundImage`
+- 3 neue Skins: Midnight Drive (55), Dark City (60), Chrome (65)
+- Geänderte Dateien: game.js, style.css, assets/ (neu)
 
 ## Heutiger Stand (2026-04-10)
 
