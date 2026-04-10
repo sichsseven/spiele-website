@@ -1554,10 +1554,7 @@ function skinAnwenden(skin) {
   }
   // Hintergrund-Animation
   bgAnimStoppen();
-  if (skin?.bgAnim) {
-    skin.bgAnim();
-    document.body.classList.add('skin-mit-bild');
-  }
+  if (skin?.bgAnim) skin.bgAnim();
   if (skin?.bodyClass) document.body.classList.add(skin.bodyClass);
 }
 
@@ -1566,15 +1563,11 @@ let _bgAnimInterval = null;
 function bgAnimStoppen() {
   // Body-Klassen entfernen
   [...document.body.classList].filter(c => c.startsWith('skin-')).forEach(c => document.body.classList.remove(c));
-  document.body.classList.remove('skin-mit-bild');
   // Interval stoppen
   if (_bgAnimInterval) { clearInterval(_bgAnimInterval); _bgAnimInterval = null; }
-  // Partikel-Container leeren
+  // Container leeren + Hintergrund zurücksetzen
   const c = document.getElementById('bgAnimContainer');
   if (c) { c.innerHTML = ''; c.style.background = ''; c.style.backgroundImage = ''; }
-  // Globalen Hintergrund zurücksetzen
-  const g = document.getElementById('bgGlobal');
-  if (g) { g.style.backgroundImage = ''; }
 }
 
 // Hilfsfunktion: einfaches Element erstellen und anhängen
@@ -1586,17 +1579,18 @@ function _bgEl(c, css, html) {
   return el;
 }
 
-// Hilfsfunktion: Bild auf den globalen Vollbild-Container setzen
-function _bgBild(datei) {
-  const g = document.getElementById('bgGlobal');
-  if (g) g.style.backgroundImage = `url(assets/${datei})`;
+// Hilfsfunktion: Bild als Hintergrund setzen
+function _bgBild(c, datei) {
+  c.style.cssText = `position:absolute;inset:0;background-image:url(assets/${datei});background-size:cover;background-position:center;background-repeat:no-repeat`;
 }
 
 // ── Weltraum ─────────────────────────────────────────────────
 function bgAnimWeltraum() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('weltraum.png');
+  c.style.backgroundImage = 'url(assets/weltraum.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   // Funkelnde Sterne über dem Bild
   for (let i = 0; i < 55; i++) {
     const sz = 0.8 + Math.random() * 2;
@@ -1617,7 +1611,9 @@ function bgAnimWeltraum() {
 function bgAnimKirschbluete() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('kirschbluete.png');
+  c.style.backgroundImage = 'url(assets/kirschbluete.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   for (let i = 0; i < 38; i++) {
     const sz = 6 + Math.random() * 10;
     const el = document.createElement('div');
@@ -1631,7 +1627,9 @@ function bgAnimKirschbluete() {
 function bgAnimWinter() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('winter.png');
+  c.style.backgroundImage = 'url(assets/winter.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   const sym = ['❄','❅','❆','·','*'];
   for (let i = 0; i < 50; i++) {
     const el = document.createElement('div');
@@ -1646,7 +1644,9 @@ function bgAnimWinter() {
 function bgAnimWald() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('wald.png');
+  c.style.backgroundImage = 'url(assets/wald.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   for (let i = 0; i < 25; i++) {
     const sz = 2 + Math.random() * 4;
     _bgEl(c,`position:absolute;left:${Math.random()*100}%;top:${10+Math.random()*70}%;width:${sz}px;height:${sz}px;background:rgba(255,255,200,${(0.4+Math.random()*0.4).toFixed(2)});border-radius:50%;filter:blur(1px);animation:blattFallen ${(8+Math.random()*12).toFixed(1)}s ease-in-out ${(Math.random()*8).toFixed(1)}s infinite`);
@@ -1657,7 +1657,9 @@ function bgAnimWald() {
 function bgAnimOzean() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('ozean.png');
+  c.style.backgroundImage = 'url(assets/ozean.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   for (let i = 0; i < 22; i++) {
     const sz = 4 + Math.random() * 14;
     const el = document.createElement('div');
@@ -1671,7 +1673,9 @@ function bgAnimOzean() {
 function bgAnimMaerchen() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('maerchen.png');
+  c.style.backgroundImage = 'url(assets/maerchen.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   const farben = ['#67e8f9','#86efac','#fde68a','#f9a8d4','#c4b5fd','#fff'];
   for (let i = 0; i < 45; i++) {
     const sz = 2 + Math.random() * 5;
@@ -1686,13 +1690,15 @@ function bgAnimMaerchen() {
 function bgAnimGlitzergold() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('glitzergold.png');
+  c.style.backgroundImage = 'url(assets/glitzergold.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   const farben = ['#fbbf24','#f59e0b','#fef9c3','#fde68a','#ffffff','#fcd34d'];
-  for (let i = 0; i < 55; i++) {
+  for (let i = 0; i < 70; i++) {
     const sz = 1.5 + Math.random() * 5, f = farben[Math.floor(Math.random()*farben.length)];
     const el = document.createElement('div');
     el.className = 'bg-glitzer';
-    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:${f};box-shadow:0 0 ${(sz*2.5).toFixed(0)}px ${f};animation-delay:${(Math.random()*8).toFixed(2)}s;animation-duration:${(2.0+Math.random()*3.5).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:${f};box-shadow:0 0 ${(sz*2.5).toFixed(0)}px ${f};animation-delay:${(Math.random()*7).toFixed(2)}s;animation-duration:${(0.8+Math.random()*2.5).toFixed(2)}s`;
     c.appendChild(el);
   }
 }
@@ -1701,7 +1707,9 @@ function bgAnimGlitzergold() {
 function bgAnimWueste() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('wueste.png');
+  c.style.backgroundImage = 'url(assets/wueste.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:10%;background:rgba(255,180,60,0.05);filter:blur(8px);animation:lichtStrahl 2.5s ease-in-out infinite');
 }
 
@@ -1709,7 +1717,9 @@ function bgAnimWueste() {
 function bgAnimSonnenschein() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('sonnenschein.png');
+  c.style.backgroundImage = 'url(assets/sonnenschein.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   _bgEl(c,'position:absolute;inset:0;background:radial-gradient(ellipse at 65% 55%,rgba(255,100,0,0.06) 0%,transparent 60%);animation:sonnePulse 4s ease-in-out infinite');
 }
 
@@ -1717,7 +1727,9 @@ function bgAnimSonnenschein() {
 function bgAnimHerbst() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('herbst.png');
+  c.style.backgroundImage = 'url(assets/herbst.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   const farben = ['rgba(200,40,10,0.82)','rgba(220,80,10,0.78)','rgba(180,120,15,0.78)','rgba(230,50,10,0.75)','rgba(160,20,5,0.8)'];
   for (let i = 0; i < 40; i++) {
     const sz = 6 + Math.random() * 10;
@@ -1732,7 +1744,9 @@ function bgAnimHerbst() {
 function bgAnimRetro() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('retro.png');
+  c.style.backgroundImage = 'url(assets/retro.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   const pixelFarben = ['rgba(255,0,200,0.65)','rgba(0,220,255,0.6)','rgba(180,0,255,0.55)','rgba(0,255,160,0.5)'];
   for (let i = 0; i < 16; i++) {
     const sz = 4 + Math.random() * 8;
@@ -1747,11 +1761,13 @@ function bgAnimRetro() {
 function bgAnimMidnight() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('midnight.png');
-  for (let i = 0; i < 28; i++) {
+  c.style.backgroundImage = 'url(assets/midnight.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  for (let i = 0; i < 45; i++) {
     const el = document.createElement('div');
     el.className = 'bg-regen';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;height:${12+Math.random()*14}px;animation-delay:${(Math.random()*4).toFixed(2)}s;animation-duration:${(1.4+Math.random()*1.0).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;height:${12+Math.random()*14}px;animation-delay:${(Math.random()*2).toFixed(2)}s;animation-duration:${(0.55+Math.random()*0.45).toFixed(2)}s`;
     c.appendChild(el);
   }
 }
@@ -1760,11 +1776,13 @@ function bgAnimMidnight() {
 function bgAnimDarkCity() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('darkcity.png');
-  for (let i = 0; i < 35; i++) {
+  c.style.backgroundImage = 'url(assets/darkcity.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
+  for (let i = 0; i < 60; i++) {
     const el = document.createElement('div');
     el.className = 'bg-regen';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;height:${10+Math.random()*12}px;background:linear-gradient(180deg,transparent,rgba(200,210,220,0.4));animation-delay:${(Math.random()*4).toFixed(2)}s;animation-duration:${(1.2+Math.random()*0.8).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;height:${10+Math.random()*12}px;background:linear-gradient(180deg,transparent,rgba(200,210,220,0.4));animation-delay:${(Math.random()*2).toFixed(2)}s;animation-duration:${(0.45+Math.random()*0.35).toFixed(2)}s`;
     c.appendChild(el);
   }
 }
@@ -1773,7 +1791,9 @@ function bgAnimDarkCity() {
 function bgAnimChrome() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  _bgBild('chrome.png');
+  c.style.backgroundImage = 'url(assets/chrome.png)';
+  c.style.backgroundSize = 'cover';
+  c.style.backgroundPosition = 'center';
   for (let i = 0; i < 30; i++) {
     const sz = 1.5 + Math.random() * 3.5;
     const el = document.createElement('div');

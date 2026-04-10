@@ -56,17 +56,6 @@ body {
 .nav-logout-btn:hover { background: var(--bg); }
 .nav-login-btn { background: var(--primary); color: white; padding: 6px 16px; border-radius: var(--radius-sm); text-decoration: none; font-size: 0.9rem; font-weight: 700; }
 
-/* ── GLOBALER SKIN-HINTERGRUND ──────────────────────── */
-#bgGlobal {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
 /* ── HAUPT-LAYOUT ───────────────────────────────────── */
 .spiel-layout {
   display: grid;
@@ -74,16 +63,6 @@ body {
   height: calc(100vh - 52px);
   height: calc(100svh - 52px); /* iOS Safari fix */
   overflow: hidden;
-  position: relative;
-  z-index: 1;
-}
-
-/* Panels werden glasartig wenn ein Bild-Skin aktiv ist */
-.skin-mit-bild .spiel-links,
-.skin-mit-bild .spiel-rechts {
-  background: color-mix(in srgb, var(--surface) 84%, transparent) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 /* ── LINKE SPALTE ───────────────────────────────────── */
