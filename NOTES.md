@@ -1,5 +1,15 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Heutiger Stand (2026-04-12)
+
+### Neon Runner & Arkanoid X entfernt ✅
+- `games/neon-runner/` Ordner gelöscht
+- `games/arkanoid/` Ordner gelöscht
+- `index.html`: Spielkarten für Neon Runner und Arkanoid X entfernt
+- `index.html`: Feedback-Dropdown-Optionen für beide Spiele entfernt
+- `index.html`: Spielzähler 9 → 7 Spiele (Pill, Footer, Meta-Description, OG-Description)
+- `style.css`: `.t-arkanoid`, `.t-arkanoid::before`, `.t-arkanoid::after`, `.t-runner::before`, `.tag-runner` entfernt
+
 ## Heutiger Stand (2026-04-10) – Update 3
 
 ### Pixel Factory – Echte Screenshot-Bilder als Skin-Hintergründe ✅
