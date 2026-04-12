@@ -534,12 +534,148 @@ function coinsAktualisieren() {
 }
 
 // ══════════════════════════════════════════════════════
-//  8. PARTIKEL & SKINS  (in Task 7 gefüllt)
+//  8. PARTIKEL & SKINS
 // ══════════════════════════════════════════════════════
-function partikelAktualisieren(dt) {}
-function partikelZeichnen() {}
-function skinEffektVorCharakter(dt) {}
-function skinEffektNachCharakter(dt) {}
+function partikelHinzufuegen(x, y, farbe, anzahl = 1, opt = {}) {
+  for (let i = 0; i < anzahl; i++) {
+    const winkel = Math.random() * Math.PI * 2;
+    const v = (opt.minV ?? 20) + Math.random() * (opt.maxV ?? 60);
+    partikel.push({
+      x, y,
+      vx:      Math.cos(winkel) * v,
+      vy:      Math.sin(winkel) * v + (opt.aufwaerts ? -40 : 0),
+      alpha:   1,
+      size:    (opt.minSize ?? 2) + Math.random() * (opt.maxSize ?? 3),
+      color:   Array.isArray(farbe) ? farbe[Math.floor(Math.random() * farbe.length)] : farbe,
+      life:    opt.life ?? 0.6,
+      maxLife: opt.life ?? 0.6,
+    });
+  }
+}
+
+function partikelAktualisieren(dt) {
+  for (let i = partikel.length - 1; i >= 0; i--) {
+    const p = partikel[i];
+    p.x    += p.vx * dt;
+    p.y    += p.vy * dt;
+    p.vy   += 30 * dt;
+    p.life -= dt;
+    p.alpha = Math.max(0, p.life / p.maxLife);
+    if (p.life <= 0) partikel.splice(i, 1);
+  }
+}
+
+function partikelZeichnen() {
+  for (const p of partikel) {
+    ctx.globalAlpha = p.alpha;
+    ctx.fillStyle   = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function trailZeichnen(farbe) {
+  for (let i = 1; i < trail.length; i++) {
+    ctx.globalAlpha = (1 - i / trail.length) * 0.6;
+    ctx.fillStyle   = farbe;
+    ctx.beginPath();
+    ctx.arc(trail[i].x, trail[i].y, SPIELER_GROESSE * 0.4 * (1 - i / trail.length), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function auraZeichnen(farbe, pulsierend = true) {
+  const px   = spieler.x + SPIELER_GROESSE / 2;
+  const py   = CH * SPIELER_Y_RATIO + SPIELER_GROESSE / 2;
+  const r    = SPIELER_GROESSE * (pulsierend ? 1.2 + Math.sin(zeit * 3) * 0.3 : 1.5);
+  const grad = ctx.createRadialGradient(px, py, 0, px, py, r * 2);
+  grad.addColorStop(0,   farbe + 'aa');
+  grad.addColorStop(0.5, farbe + '44');
+  grad.addColorStop(1,   farbe + '00');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(px, py, r * 2, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function blitzeZeichnen() {
+  const px = spieler.x + SPIELER_GROESSE / 2;
+  const py = CH * SPIELER_Y_RATIO + SPIELER_GROESSE / 2;
+  ctx.strokeStyle = '#00f5ff'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.7;
+  for (let i = 0; i < 4; i++) {
+    const ax = px + (Math.random() - 0.5) * 40;
+    const ay = py + (Math.random() - 0.5) * 40;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(ax + (Math.random() - 0.5) * 20, ay + (Math.random() - 0.5) * 20);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function skinEffektVorCharakter(dt) {
+  const effekt = SKINS[pdata.active_skin]?.effekt;
+  switch (effekt) {
+    case 'trail-feuer':  trailZeichnen('#ff6a00'); break;
+    case 'trail-blau':   trailZeichnen('#3a86ff'); break;
+    case 'trail-gruen':  trailZeichnen('#00e676'); break;
+    case 'trail-lila':   trailZeichnen('#9b5de5'); break;
+    case 'aura-cyan':    auraZeichnen('#00f5ff'); break;
+    case 'galaxy':       auraZeichnen('#9b5de5'); break;
+    case 'god':          auraZeichnen(`hsl(${(zeit * 60) % 360}, 100%, 60%)`); break;
+    case 'blitze':       blitzeZeichnen(); break;
+    case 'prism':        auraZeichnen(`hsl(${(zeit * 80) % 360}, 100%, 60%)`, false); break;
+  }
+}
+
+function skinEffektNachCharakter(dt) {
+  const px     = spieler.x + SPIELER_GROESSE / 2;
+  const py     = CH * SPIELER_Y_RATIO + SPIELER_GROESSE / 2;
+  const effekt = SKINS[pdata.active_skin]?.effekt;
+
+  switch (effekt) {
+    case 'partikel-weiss':
+      if (Math.random() < 0.4) partikelHinzufuegen(px + (Math.random()-0.5)*16, py + (Math.random()-0.5)*16, '#e0e0ff', 1, { life: 0.8, maxV: 30, minV: 5 });
+      break;
+    case 'partikel-gelb':
+      if (Math.random() < 0.5) partikelHinzufuegen(px + (Math.random()-0.5)*12, py + (Math.random()-0.5)*12, '#ffe600', 1, { life: 0.5 });
+      break;
+    case 'partikel-blau':
+      if (Math.random() < 0.3) partikelHinzufuegen(px + (Math.random()-0.5)*10, py, '#3a86ff', 1, { aufwaerts: true, minV: 5, maxV: 20, life: 1.0 });
+      break;
+    case 'partikel-gruen':
+      if (Math.random() < 0.3) partikelHinzufuegen(px + (Math.random()-0.5)*14, py + 6, '#00e676', 1, { aufwaerts: true, life: 0.9 });
+      break;
+    case 'trail-feuer':
+    case 'partikel-feuer':
+      if (Math.random() < 0.6) partikelHinzufuegen(px + (Math.random()-0.5)*8, py + 4, ['#ff6a00','#ff2d00','#ffaa00'], 1, { aufwaerts: true, minV: 10, maxV: 40, life: 0.5 });
+      break;
+    case 'partikel-eis':
+      if (Math.random() < 0.4) partikelHinzufuegen(px + (Math.random()-0.5)*14, py + (Math.random()-0.5)*14, ['#a0e4ff','#e0f8ff','#ffffff'], 1, { minV: 5, maxV: 25, life: 0.8 });
+      break;
+    case 'galaxy':
+      if (Math.random() < 0.3) {
+        const a = Math.random() * Math.PI * 2, r = 20 + Math.random() * 15;
+        partikelHinzufuegen(px + Math.cos(a + zeit) * r, py + Math.sin(a + zeit) * r, ['#fff','#c084fc','#60a5fa'], 1, { minV: 2, maxV: 8, life: 1.2 });
+      }
+      break;
+    case 'god':
+      if (Math.random() < 0.5) {
+        const f = `hsl(${Math.random() * 360}, 100%, 65%)`;
+        partikelHinzufuegen(px + (Math.random()-0.5)*30, py + (Math.random()-0.5)*30, f, 1, { minV: 20, maxV: 60, life: 0.7 });
+      }
+      break;
+    case 'prism':
+      if (Math.random() < 0.5) {
+        const f = `hsl(${(zeit * 120 + Math.random() * 60) % 360}, 100%, 65%)`;
+        partikelHinzufuegen(px + (Math.random()-0.5)*20, py + (Math.random()-0.5)*20, f, 1, { minV: 15, maxV: 50, life: 0.6 });
+      }
+      break;
+  }
+}
 
 // ══════════════════════════════════════════════════════
 //  9. UI
