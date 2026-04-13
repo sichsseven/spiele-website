@@ -53,7 +53,7 @@ header {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   padding: .75rem .75rem 1.25rem;
-  gap: .85rem;
+  gap: .9rem;
 }
 
 /* ── SCORE BAR ── */
@@ -80,7 +80,7 @@ header {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
-  gap: 4px;
+  gap: 3px;
   width: min(340px, calc(100vw - 2.5rem));
   height: min(340px, calc(100vw - 2.5rem));
 }
@@ -88,18 +88,10 @@ header {
   background: rgba(255,255,255,.82);
   border-radius: 5px;
 }
-.cell.filled { border-radius: 6px; }
-.cell.preview-ok {
-  opacity: .6 !important;
-  border-radius: 6px;
-}
-.cell.preview-bad {
-  background: rgba(220,60,60,.4) !important;
-  border-radius: 6px;
-}
-.cell.flash {
-  animation: cellFlash .3s ease-out forwards;
-}
+.cell.filled { border-radius: 5px; }
+.cell.preview-ok  { opacity: .6 !important; border-radius: 5px; }
+.cell.preview-bad { background: rgba(220,60,60,.4) !important; border-radius: 5px; }
+.cell.flash { animation: cellFlash .3s ease-out forwards; }
 @keyframes cellFlash {
   0%   { filter: brightness(2.5) saturate(2); }
   100% { filter: brightness(1) saturate(1); }
@@ -107,32 +99,30 @@ header {
 
 /* ── PIECE TRAY ── */
 .tray {
-  display: flex; align-items: flex-end; justify-content: center;
-  gap: 1.25rem;
+  display: flex; align-items: center; justify-content: center;
+  gap: 1rem;
   width: 100%; max-width: 340px;
   min-height: 100px;
 }
 .tray-slot {
   flex: 1; display: flex; align-items: center; justify-content: center;
   min-height: 90px;
-  cursor: grab;
-  touch-action: none;
-  position: relative;
+  cursor: grab; touch-action: none;
   transition: opacity .2s, transform .15s;
 }
-.tray-slot:active { cursor: grabbing; transform: scale(.95); }
-.tray-slot.used { opacity: 0; pointer-events: none; }
+.tray-slot:active { cursor: grabbing; transform: scale(.94); }
+.tray-slot.used   { opacity: 0; pointer-events: none; }
 .tray-slot.cant-fit { opacity: .3; cursor: not-allowed; }
 
-.mini-grid {
+/* ── MINI PIECE (verbundene Form) ── */
+.mini-piece {
   display: grid;
-  gap: 3px;
+  gap: 0;          /* kein Abstand = verbundene Blöcke */
   pointer-events: none;
-  filter: drop-shadow(0 3px 6px rgba(0,0,0,.25));
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,.3));
 }
 .mini-cell {
   width: 16px; height: 16px;
-  border-radius: 4px;
 }
 
 /* ── DRAG GHOST ── */
@@ -141,19 +131,17 @@ header {
   pointer-events: none;
   z-index: 999;
   display: none;
-  gap: 4px;
+  gap: 3px;
   opacity: .88;
-  filter: drop-shadow(0 6px 16px rgba(0,0,0,.3));
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
 }
-#ghost .ghost-cell { border-radius: 6px; }
+#ghost .ghost-cell { border-radius: 5px; }
 
 /* ── SCORE POPUP ── */
 .score-popup {
   position: fixed;
-  font-size: 1.15rem; font-weight: 900;
-  color: #fff;
-  pointer-events: none;
-  z-index: 998;
+  font-size: 1.15rem; font-weight: 900; color: #fff;
+  pointer-events: none; z-index: 998;
   text-shadow: 0 2px 6px rgba(0,0,0,.4);
   animation: popupFloat .9s ease-out forwards;
 }
@@ -173,63 +161,39 @@ header {
 }
 #gameOverScreen.show { display: flex; }
 .go-card {
-  background: #fff;
-  border-radius: 22px;
+  background: #fff; border-radius: 22px;
   padding: 2rem 2rem 1.75rem;
-  width: 100%; max-width: 340px;
-  text-align: center;
+  width: 100%; max-width: 340px; text-align: center;
   box-shadow: 0 20px 60px rgba(0,0,0,.3);
   animation: goSlide .35s cubic-bezier(.34,1.2,.64,1);
 }
 @keyframes goSlide {
   from { opacity: 0; transform: scale(.85) translateY(30px); }
-  to   { opacity: 1; transform: scale(1)  translateY(0); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
-.go-title {
-  font-size: 1.4rem; font-weight: 900; color: #1a1a2e; margin-bottom: .1rem;
-}
-.go-score {
-  font-size: 3.2rem; font-weight: 900;
-  color: #3a86ff; letter-spacing: -.04em;
-  margin: .4rem 0 .1rem;
-}
-.go-hs { font-size: .82rem; font-weight: 700; color: #9ab0cc; margin-bottom: 1.2rem; }
+.go-title  { font-size: 1.4rem; font-weight: 900; color: #1a1a2e; margin-bottom: .1rem; }
+.go-score  { font-size: 3.2rem; font-weight: 900; color: #3a86ff; letter-spacing: -.04em; margin: .4rem 0 .1rem; }
+.go-hs     { font-size: .82rem; font-weight: 700; color: #9ab0cc; margin-bottom: 1.2rem; }
 .go-hs.new-record { color: #22c55e; }
-
-.go-lb {
-  background: #f4f9ff; border-radius: 12px;
-  border: 1px solid #dceeff;
-  padding: .75rem 1rem; margin-bottom: 1.2rem; text-align: left;
-}
-.go-lb-title {
-  font-size: .62rem; font-weight: 900; letter-spacing: .1em;
-  text-transform: uppercase; color: #9ab0cc; margin-bottom: .55rem;
-}
-.lb-row {
-  display: flex; align-items: center; gap: .6rem;
-  font-size: .88rem; font-weight: 700;
-  padding: .2rem 0; color: #5a7aaa;
-}
+.go-lb     { background: #f4f9ff; border-radius: 12px; border: 1px solid #dceeff; padding: .75rem 1rem; margin-bottom: 1.2rem; text-align: left; }
+.go-lb-title { font-size: .62rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: #9ab0cc; margin-bottom: .55rem; }
+.lb-row    { display: flex; align-items: center; gap: .6rem; font-size: .88rem; font-weight: 700; padding: .2rem 0; color: #5a7aaa; }
 .lb-row.me { color: #3a86ff; }
-.lb-rank { width: 1.4rem; font-size: .75rem; color: #b0ccf0; flex-shrink: 0; }
-.lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-empty { font-size: .8rem; color: #9ab0cc; font-weight: 600; }
-
+.lb-rank   { width: 1.4rem; font-size: .75rem; color: #b0ccf0; flex-shrink: 0; }
+.lb-name   { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-empty  { font-size: .8rem; color: #9ab0cc; font-weight: 600; }
 .go-btn {
   display: inline-block; padding: .75rem 2.5rem;
-  background: #3a86ff; color: #fff;
-  border: none; border-radius: 12px;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 900; font-size: 1rem; cursor: pointer;
+  background: #3a86ff; color: #fff; border: none; border-radius: 12px;
+  font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1rem; cursor: pointer;
   box-shadow: 0 4px 16px rgba(58,134,255,.3);
   transition: opacity .15s, transform .15s;
 }
 .go-btn:hover { opacity: .9; transform: translateY(-2px); }
 
-/* ── RESPONSIVE ── */
 @media (max-width: 380px) {
   .mini-cell { width: 13px; height: 13px; }
-  .tray { gap: .75rem; }
+  .tray { gap: .6rem; }
 }
 </style>
 </head>
@@ -244,8 +208,6 @@ header {
 </header>
 
 <div class="game-wrap">
-
-  <!-- SCORE -->
   <div class="score-bar">
     <div class="score-item">
       <div class="score-icon">👑</div>
@@ -257,24 +219,19 @@ header {
     </div>
   </div>
 
-  <!-- GRID -->
   <div class="grid-container">
     <div id="grid"></div>
   </div>
 
-  <!-- PIECE TRAY -->
   <div class="tray" id="tray">
     <div class="tray-slot" id="slot0"></div>
     <div class="tray-slot" id="slot1"></div>
     <div class="tray-slot" id="slot2"></div>
   </div>
-
 </div>
 
-<!-- DRAG GHOST -->
 <div id="ghost"></div>
 
-<!-- GAME OVER -->
 <div id="gameOverScreen">
   <div class="go-card">
     <div class="go-title">Game Over</div>
@@ -296,50 +253,64 @@ header {
 
 const RASTER_SIZE = 8;
 
-const FORMEN = [
-  { z: [[0,0]], f: '#e74c3c' },
-  { z: [[0,0],[0,1]], f: '#e67e22' },
-  { z: [[0,0],[1,0]], f: '#e67e22' },
-  { z: [[0,0],[0,1],[0,2]], f: '#f1c40f' },
-  { z: [[0,0],[1,0],[2,0]], f: '#f1c40f' },
-  { z: [[0,0],[0,1],[1,0],[1,1]], f: '#3498db' },
-  { z: [[0,0],[1,0],[2,0],[2,1]], f: '#e74c3c' },
-  { z: [[0,1],[1,1],[2,0],[2,1]], f: '#9b59b6' },
-  { z: [[0,0],[0,1],[0,2],[1,0]], f: '#1abc9c' },
-  { z: [[0,0],[0,1],[0,2],[1,2]], f: '#e91e8c' },
-  { z: [[0,0],[1,0],[1,1],[1,2]], f: '#f39c12' },
-  { z: [[0,2],[1,0],[1,1],[1,2]], f: '#6c5ce7' },
-  { z: [[0,0],[0,1],[0,2],[1,1]], f: '#9b59b6' },
-  { z: [[0,1],[1,0],[1,1],[2,1]], f: '#e91e8c' },
-  { z: [[0,1],[1,0],[1,1],[1,2]], f: '#1abc9c' },
-  { z: [[0,0],[1,0],[1,1],[2,0]], f: '#f39c12' },
-  { z: [[0,1],[0,2],[1,0],[1,1]], f: '#e67e22' },
-  { z: [[0,0],[0,1],[1,1],[1,2]], f: '#e74c3c' },
-  { z: [[0,0],[1,0],[1,1],[2,1]], f: '#3498db' },
-  { z: [[0,1],[1,0],[1,1],[2,0]], f: '#f1c40f' },
-  { z: [[0,0],[0,1],[0,2],[0,3]], f: '#3498db' },
-  { z: [[0,0],[1,0],[2,0],[3,0]], f: '#3498db' },
-  { z: [[0,0],[0,1],[0,2],[0,3],[0,4]], f: '#6c5ce7' },
-  { z: [[0,0],[1,0],[2,0],[3,0],[4,0]], f: '#6c5ce7' },
-  { z: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]], f: '#e67e22' },
-  { z: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]], f: '#1abc9c' },
-  { z: [[0,0],[0,1],[1,0],[1,1],[2,0],[2,1]], f: '#f39c12' },
-  { z: [[0,0],[0,1],[1,0]], f: '#e91e8c' },
-  { z: [[0,0],[0,1],[1,1]], f: '#9b59b6' },
-  { z: [[0,0],[1,0],[1,1]], f: '#e74c3c' },
-  { z: [[0,1],[1,0],[1,1]], f: '#f1c40f' },
+// ── FARBEN (wie im Reference-Screenshot) ──────────
+const FARBEN = {
+  rot:    '#e84040',
+  orange: '#f07020',
+  gelb:   '#f0c030',
+  gruen:  '#30b870',
+  blau:   '#3880e0',
+  lila:   '#8855d0',
+  rosa:   '#d04090',
+  tuerkis:'#20b8b0',
+};
+const F = FARBEN;
+
+// ── FORMEN NACH SCHWIERIGKEIT ─────────────────────
+// Leicht: kleine Stücke (passen immer gut)
+const FORMEN_LEICHT = [
+  { z: [[0,0]],                       f: F.rot    }, // 1×1
+  { z: [[0,0],[0,1]],                 f: F.orange }, // 1×2 H
+  { z: [[0,0],[1,0]],                 f: F.gelb   }, // 1×2 V
+  { z: [[0,0],[0,1],[0,2]],           f: F.gruen  }, // 1×3 H
+  { z: [[0,0],[1,0],[2,0]],           f: F.blau   }, // 1×3 V
+  { z: [[0,0],[0,1],[1,0],[1,1]],     f: F.lila   }, // 2×2
+  { z: [[0,0],[0,1],[1,0]],           f: F.rosa   }, // Ecke TL
+  { z: [[0,0],[0,1],[1,1]],           f: F.tuerkis}, // Ecke TR
+  { z: [[0,0],[1,0],[1,1]],           f: F.orange }, // Ecke BL
+  { z: [[0,1],[1,0],[1,1]],           f: F.rot    }, // Ecke BR
 ];
 
-// Hellere Variante für inset-highlight
-function hellFarbe(hex) {
-  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-  return `rgb(${Math.min(255,r+60)},${Math.min(255,g+60)},${Math.min(255,b+60)})`;
-}
-function dunkelFarbe(hex) {
-  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-  return `rgb(${Math.max(0,r-40)},${Math.max(0,g-40)},${Math.max(0,b-40)})`;
-}
+// Mittel: L, T, S, Z Formen
+const FORMEN_MITTEL = [
+  { z: [[0,0],[1,0],[2,0],[2,1]],     f: F.rot    }, // L
+  { z: [[0,1],[1,1],[2,0],[2,1]],     f: F.blau   }, // J
+  { z: [[0,0],[0,1],[0,2],[1,0]],     f: F.gruen  }, // L-oben
+  { z: [[0,0],[0,1],[0,2],[1,2]],     f: F.orange }, // J-oben
+  { z: [[0,0],[1,0],[1,1],[1,2]],     f: F.lila   }, // L-unten
+  { z: [[0,2],[1,0],[1,1],[1,2]],     f: F.rosa   }, // J-unten
+  { z: [[0,0],[0,1],[0,2],[1,1]],     f: F.tuerkis}, // T-oben
+  { z: [[0,1],[1,0],[1,1],[2,1]],     f: F.gelb   }, // T-rechts
+  { z: [[0,1],[1,0],[1,1],[1,2]],     f: F.rot    }, // T-unten
+  { z: [[0,0],[1,0],[1,1],[2,0]],     f: F.blau   }, // T-links
+  { z: [[0,1],[0,2],[1,0],[1,1]],     f: F.orange }, // S-H
+  { z: [[0,0],[0,1],[1,1],[1,2]],     f: F.gruen  }, // Z-H
+  { z: [[0,0],[1,0],[1,1],[2,1]],     f: F.lila   }, // S-V
+  { z: [[0,1],[1,0],[1,1],[2,0]],     f: F.rosa   }, // Z-V
+];
 
+// Schwer: lange Stücke und große Blöcke
+const FORMEN_SCHWER = [
+  { z: [[0,0],[0,1],[0,2],[0,3]],                                   f: F.blau   }, // I-4 H
+  { z: [[0,0],[1,0],[2,0],[3,0]],                                   f: F.tuerkis}, // I-4 V
+  { z: [[0,0],[0,1],[0,2],[0,3],[0,4]],                             f: F.lila   }, // I-5 H
+  { z: [[0,0],[1,0],[2,0],[3,0],[4,0]],                             f: F.rosa   }, // I-5 V
+  { z: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],                       f: F.gruen  }, // 2×3
+  { z: [[0,0],[0,1],[1,0],[1,1],[2,0],[2,1]],                       f: F.orange }, // 3×2
+  { z: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],     f: F.rot    }, // 3×3
+];
+
+// ── SPIELZUSTAND ──────────────────────────────────
 let raster      = [];
 let zellen      = [];
 let stuecke     = [null, null, null];
@@ -352,6 +323,16 @@ const gridEl   = document.getElementById('grid');
 const goScreen = document.getElementById('gameOverScreen');
 const ghost    = document.getElementById('ghost');
 
+// ── SCHWIERIGKEIT ─────────────────────────────────
+function aktuelleFormen() {
+  if (punkte < 30)  return FORMEN_LEICHT;
+  if (punkte < 100) return [...FORMEN_LEICHT, ...FORMEN_MITTEL];
+  if (punkte < 300) return [...FORMEN_MITTEL, ...FORMEN_SCHWER];
+  // Ab 300 Punkten: nur schwere und mittlere Stücke
+  return [...FORMEN_MITTEL, ...FORMEN_MITTEL, ...FORMEN_SCHWER];
+}
+
+// ── INIT ──────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   PZ.updateNavbar();
   highscore = parseInt(localStorage.getItem('bb_hs') || '0', 10);
@@ -371,6 +352,7 @@ function spielStart() {
   neuePiecesGenerieren();
 }
 
+// ── RASTER ────────────────────────────────────────
 function rasterRendern() {
   gridEl.innerHTML = '';
   zellen = Array.from({ length: RASTER_SIZE }, () => Array(RASTER_SIZE).fill(null));
@@ -387,8 +369,8 @@ function rasterRendern() {
 function zellFarbeSetzen(el, block) {
   if (block) {
     el.classList.add('filled');
-    el.style.background = `linear-gradient(160deg, ${hellFarbe(block.farbe)} 0%, ${block.farbe} 55%, ${dunkelFarbe(block.farbe)} 100%)`;
-    el.style.boxShadow  = `inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(0,0,0,0.18), 0 2px 4px rgba(0,0,0,0.15)`;
+    el.style.background = block.farbe;
+    el.style.boxShadow  = `inset 0 3px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.2)`;
   } else {
     el.classList.remove('filled');
     el.style.background = 'rgba(255,255,255,.82)';
@@ -396,15 +378,34 @@ function zellFarbeSetzen(el, block) {
   }
 }
 
-function zufaelligesStueck() {
-  const f = FORMEN[Math.floor(Math.random() * FORMEN.length)];
-  return { zellen: f.z, farbe: f.f };
+// ── PIECES GENERIEREN ─────────────────────────────
+// Gibt ein zufälliges Stück zurück das auf das Raster passt
+function zufaelligesStueckPassend(maxVersuche = 80) {
+  const formen = aktuelleFormen();
+  for (let i = 0; i < maxVersuche; i++) {
+    const f = formen[Math.floor(Math.random() * formen.length)];
+    const s = { zellen: f.z, farbe: f.f };
+    if (kannPassen(s)) return s;
+  }
+  // Fallback: kleinstes passendes Stück finden
+  const klein = [...FORMEN_LEICHT].sort((a, b) => a.z.length - b.z.length);
+  for (const f of klein) {
+    const s = { zellen: f.z, farbe: f.f };
+    if (kannPassen(s)) return s;
+  }
+  return null; // Brett voll → Game Over
 }
 
 function neuePiecesGenerieren() {
-  for (let i = 0; i < 3; i++) stuecke[i] = zufaelligesStueck();
+  for (let i = 0; i < 3; i++) {
+    stuecke[i] = zufaelligesStueckPassend();
+  }
+  // Wenn kein Stück passt → Game Over
+  if (stuecke.every(s => s === null)) {
+    setTimeout(() => spielEnde(), 300);
+    return;
+  }
   trayRendern();
-  passFormPruefen();
 }
 
 function trayRendern() {
@@ -418,7 +419,7 @@ function trayRendern() {
     const rows = Math.max(...s.zellen.map(([r]) => r)) + 1;
     const cols = Math.max(...s.zellen.map(([, c]) => c)) + 1;
     const mg = document.createElement('div');
-    mg.className = 'mini-grid';
+    mg.className = 'mini-piece';
     mg.style.gridTemplateColumns = `repeat(${cols}, 16px)`;
     mg.style.gridTemplateRows    = `repeat(${rows}, 16px)`;
 
@@ -428,8 +429,19 @@ function trayRendern() {
         const mc = document.createElement('div');
         mc.className = 'mini-cell';
         if (occupied.has(`${r},${c}`)) {
-          mc.style.background = `linear-gradient(160deg, ${hellFarbe(s.farbe)} 0%, ${s.farbe} 55%, ${dunkelFarbe(s.farbe)} 100%)`;
-          mc.style.boxShadow  = `inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(0,0,0,.18)`;
+          mc.style.background = s.farbe;
+          // Abgerundete Außenecken
+          const oben   = !occupied.has(`${r-1},${c}`);
+          const unten  = !occupied.has(`${r+1},${c}`);
+          const links  = !occupied.has(`${r},${c-1}`);
+          const rechts = !occupied.has(`${r},${c+1}`);
+          mc.style.borderRadius = [
+            oben && links  ? '5px' : '1px',
+            oben && rechts ? '5px' : '1px',
+            unten && rechts? '5px' : '1px',
+            unten && links ? '5px' : '1px',
+          ].join(' ');
+          mc.style.boxShadow = 'inset 0 2px 0 rgba(255,255,255,.38), inset 0 -2px 0 rgba(0,0,0,.18)';
         } else {
           mc.style.background = 'transparent';
         }
@@ -441,6 +453,7 @@ function trayRendern() {
   }
 }
 
+// ── KANN PASSEN? ──────────────────────────────────
 function kannPassen(s) {
   for (let r0 = 0; r0 < RASTER_SIZE; r0++) {
     for (let c0 = 0; c0 < RASTER_SIZE; c0++) {
@@ -453,6 +466,11 @@ function kannPassen(s) {
   return false;
 }
 
+// Prüft ob noch eine Zelle frei ist (absolutes Minimum)
+function hatFreieZelle() {
+  return raster.some(row => row.some(b => b === null));
+}
+
 function passFormPruefen() {
   const verbleibend = stuecke.filter(s => s !== null);
   if (verbleibend.length === 0) return;
@@ -460,23 +478,41 @@ function passFormPruefen() {
   let nochMoeglich = false;
   for (let i = 0; i < 3; i++) {
     if (!stuecke[i]) continue;
-    const slot = document.getElementById(`slot${i}`);
     if (kannPassen(stuecke[i])) {
-      slot.classList.remove('cant-fit');
       nochMoeglich = true;
+      document.getElementById(`slot${i}`).classList.remove('cant-fit');
     } else {
-      slot.classList.add('cant-fit');
+      document.getElementById(`slot${i}`).classList.add('cant-fit');
     }
   }
-  if (!nochMoeglich) setTimeout(() => spielEnde(), 400);
+
+  if (!nochMoeglich) {
+    if (!hatFreieZelle()) {
+      // Brett wirklich voll → Game Over
+      setTimeout(() => spielEnde(), 400);
+    } else {
+      // Freier Platz vorhanden → neue Stücke geben (kein Game Over)
+      setTimeout(() => {
+        for (let i = 0; i < 3; i++) {
+          if (stuecke[i] && !kannPassen(stuecke[i])) {
+            stuecke[i] = zufaelligesStueckPassend();
+          }
+        }
+        trayRendern();
+        passFormPruefen();
+      }, 350);
+    }
+  }
 }
 
+// ── ZELLGRÖSSE ────────────────────────────────────
 function effZellGroesse() {
   const r0 = zellen[0][0].getBoundingClientRect();
   const r1 = zellen[0][1].getBoundingClientRect();
   return r1.left - r0.left;
 }
 
+// ── DRAG & DROP ───────────────────────────────────
 let dragIdx    = -1;
 let dragStueck = null;
 let dragCS     = 0;
@@ -499,9 +535,9 @@ function dragStart(e, idx) {
   ghost.style.display = 'grid';
   ghost.style.gridTemplateColumns = `repeat(${cols}, ${dragCS}px)`;
   ghost.style.gridTemplateRows    = `repeat(${rows}, ${dragCS}px)`;
-  ghost.style.gap    = '4px';
-  ghost.style.width  = `${cols * dragCS + (cols - 1) * 4}px`;
-  ghost.style.height = `${rows * dragCS + (rows - 1) * 4}px`;
+  ghost.style.gap    = '3px';
+  ghost.style.width  = `${cols * dragCS + (cols - 1) * 3}px`;
+  ghost.style.height = `${rows * dragCS + (rows - 1) * 3}px`;
 
   const occupied = new Set(s.zellen.map(([r, c]) => `${r},${c}`));
   for (let r = 0; r < rows; r++) {
@@ -511,8 +547,8 @@ function dragStart(e, idx) {
       gc.style.width  = `${dragCS}px`;
       gc.style.height = `${dragCS}px`;
       if (occupied.has(`${r},${c}`)) {
-        gc.style.background = `linear-gradient(160deg, ${hellFarbe(s.farbe)} 0%, ${s.farbe} 55%, ${dunkelFarbe(s.farbe)} 100%)`;
-        gc.style.boxShadow  = `inset 0 2px 0 rgba(255,255,255,.4), inset 0 -2px 0 rgba(0,0,0,.18)`;
+        gc.style.background = s.farbe;
+        gc.style.boxShadow  = `inset 0 3px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.2)`;
       } else {
         gc.style.background = 'transparent';
       }
@@ -530,8 +566,8 @@ function ghostPositionieren(cx, cy) {
   const s    = dragStueck;
   const rows = Math.max(...s.zellen.map(([r]) => r)) + 1;
   const cols = Math.max(...s.zellen.map(([, c]) => c)) + 1;
-  const w    = cols * dragCS + (cols - 1) * 4;
-  const h    = rows * dragCS + (rows - 1) * 4;
+  const w    = cols * dragCS + (cols - 1) * 3;
+  const h    = rows * dragCS + (rows - 1) * 3;
   ghost.style.left = `${cx - w / 2}px`;
   ghost.style.top  = `${cy - h - dragCS * 1.5}px`;
 }
@@ -553,9 +589,9 @@ function rasterPosBerechnen(cx, cy) {
   const s    = dragStueck;
   const rows = Math.max(...s.zellen.map(([r]) => r)) + 1;
   const cols = Math.max(...s.zellen.map(([, c]) => c)) + 1;
-  const w    = cols * cs + (cols - 1) * 4;
+  const w    = cols * cs + (cols - 1) * 3;
   const pieceLeft = cx - w / 2;
-  const pieceTop  = cy - (rows * cs + (rows - 1) * 4) - cs * 1.5;
+  const pieceTop  = cy - (rows * cs + (rows - 1) * 3) - cs * 1.5;
   const c0 = Math.round((pieceLeft - ref.left) / cs);
   const r0 = Math.round((pieceTop  - ref.top)  / cs);
   return { r0, c0 };
@@ -579,8 +615,8 @@ function dragMove(e) {
     const el = zellen[r][c];
     if (gueltig) {
       el.classList.add('preview-ok');
-      el.style.background = `linear-gradient(160deg, ${hellFarbe(s.farbe)} 0%, ${s.farbe} 55%, ${dunkelFarbe(s.farbe)} 100%)`;
-      el.style.boxShadow  = 'none';
+      el.style.background = s.farbe;
+      el.style.boxShadow  = `inset 0 3px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.2)`;
     } else {
       el.classList.add('preview-bad');
       el.style.background = 'rgba(220,60,60,.4)';
@@ -623,6 +659,7 @@ function dragAbort() {
   dragStueck = null;
 }
 
+// ── STEIN SETZEN ──────────────────────────────────
 async function steinSetzen(idx, r0, c0) {
   if (istAnimiert) return;
   const s = stuecke[idx];
@@ -650,10 +687,10 @@ async function steinSetzen(idx, r0, c0) {
   punkteRendern();
 }
 
+// ── LINIEN LÖSCHEN ────────────────────────────────
 async function linienLoeschen(platzR, platzC) {
   const volleReihen  = [];
   const volleSpalten = [];
-
   for (let r = 0; r < RASTER_SIZE; r++) {
     if (raster[r].every(b => b !== null)) volleReihen.push(r);
   }
@@ -684,7 +721,7 @@ async function linienLoeschen(platzR, platzC) {
 
   const gesamtLinien = volleReihen.length + volleSpalten.length;
   let liniePunkte    = betroffen.size * 2;
-  if (gesamtLinien >= 4)      liniePunkte += gesamtLinien * 40;
+  if      (gesamtLinien >= 4) liniePunkte += gesamtLinien * 40;
   else if (gesamtLinien >= 2) liniePunkte += gesamtLinien * 20;
 
   punkte += liniePunkte;
@@ -694,6 +731,7 @@ async function linienLoeschen(platzR, platzC) {
   istAnimiert = false;
 }
 
+// ── PUNKTE ────────────────────────────────────────
 function punkteRendern() {
   document.getElementById('scoreDisp').textContent = punkte;
   if (punkte > highscore) {
@@ -715,6 +753,7 @@ function scorePopup(n, r, c, linie = false) {
   popup.addEventListener('animationend', () => popup.remove());
 }
 
+// ── GAME OVER ─────────────────────────────────────
 async function spielEnde() {
   istGameOver = true;
   goScreen.classList.add('show');
@@ -731,10 +770,7 @@ async function spielEnde() {
     if (user) {
       await PZ.saveGameData('block-blast', punkte, 1, {});
       const { data } = await PZ.supabase
-        .from('spieler_profile')
-        .select('benutzername')
-        .eq('id', user.id)
-        .single();
+        .from('spieler_profile').select('benutzername').eq('id', user.id).single();
       if (data) nutzername = data.benutzername;
     }
   } catch (_) {}
