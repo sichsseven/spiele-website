@@ -206,6 +206,11 @@ const PZ = {
 
   // ── Navbar Integration ───────────────────────────────────
 
+  // Gibt '../../' zurück wenn wir uns in games/SPIELNAME/ befinden, sonst ''
+  _basePath() {
+    return window.location.pathname.includes('/games/') ? '../../' : '';
+  },
+
   /**
    * Navbar-Auth-Bereich aktualisieren.
    * Erwartet ein Element mit id="navAuth" in der Seite.
@@ -235,7 +240,8 @@ const PZ = {
       }
     } else {
       this.isAdmin = false;
-      el.innerHTML = `<a href="login.html" class="nav-login-btn">Anmelden</a>`;
+      const back = encodeURIComponent(window.location.href);
+      el.innerHTML = `<a href="${this._basePath()}login.html?back=${back}" class="nav-login-btn">Anmelden</a>`;
     }
   },
 
@@ -288,7 +294,7 @@ const PZ = {
 
   async _logoutFlow() {
     await this.logout();
-    window.location.href = 'index.html';
+    window.location.href = this._basePath() + 'index.html';
   },
 
   _esc(str) {
