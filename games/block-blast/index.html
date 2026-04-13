@@ -10,8 +10,7 @@
 
 body {
   font-family: 'Nunito', sans-serif;
-  background: #f0f7ff;
-  color: #1a1a2e;
+  background: linear-gradient(160deg, #5b80a8 0%, #7a9bbf 50%, #6b8faa 100%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -22,31 +21,30 @@ body {
 /* ── HEADER ── */
 header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 1.25rem; height: 54px;
-  background: #fff;
-  border-bottom: 1px solid #dceeff;
+  padding: 0 1.25rem; height: 52px;
+  background: rgba(0,0,0,.18);
   flex-shrink: 0;
-  box-shadow: 0 1px 4px rgba(0,0,0,.05);
 }
 .logo {
   display: flex; align-items: center; gap: .5rem;
-  text-decoration: none; color: #1a1a2e; font-weight: 800; font-size: 1.1rem;
+  text-decoration: none; color: #fff; font-weight: 800; font-size: 1.05rem;
 }
 .logo-mark {
-  width: 32px; height: 32px;
-  background: #3a86ff; border-radius: 8px;
+  width: 30px; height: 30px;
+  background: rgba(255,255,255,.25); border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1rem;
+  font-size: .95rem;
 }
 .nav-login-btn {
-  padding: .4rem .9rem; background: #3a86ff; color: #fff;
+  padding: .38rem .9rem; background: rgba(255,255,255,.22); color: #fff;
   border-radius: 8px; text-decoration: none; font-weight: 700; font-size: .85rem;
+  border: 1px solid rgba(255,255,255,.3);
 }
-.nav-user { display: flex; align-items: center; gap: .6rem; font-size: .9rem; }
-.nav-username { font-weight: 700; color: #1a1a2e; }
+.nav-user { display: flex; align-items: center; gap: .6rem; font-size: .88rem; }
+.nav-username { font-weight: 700; color: #fff; }
 .nav-logout-btn {
-  padding: .3rem .7rem; background: #fee; color: #c0392b;
-  border: 1px solid #fcc; border-radius: 6px;
+  padding: .3rem .7rem; background: rgba(255,80,80,.25); color: #ffcccc;
+  border: 1px solid rgba(255,100,100,.35); border-radius: 6px;
   font-family: 'Nunito', sans-serif; font-weight: 700; font-size: .82rem; cursor: pointer;
 }
 
@@ -54,52 +52,41 @@ header {
 .game-wrap {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  padding: 1rem .5rem 1.5rem;
-  gap: 1rem;
+  padding: .75rem .75rem 1.25rem;
+  gap: .85rem;
 }
 
 /* ── SCORE BAR ── */
 .score-bar {
-  display: flex; align-items: stretch; justify-content: center;
-  gap: .75rem; width: 100%; max-width: 380px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 2.5rem; width: 100%;
 }
-.score-item {
-  flex: 1; text-align: center;
-  background: #fff; border-radius: 12px;
-  border: 1px solid #dceeff;
-  padding: .6rem .5rem .5rem;
-  box-shadow: 0 2px 8px rgba(58,134,255,.07);
-}
-.score-label {
-  font-size: .6rem; font-weight: 800; letter-spacing: .1em;
-  text-transform: uppercase; color: #9ab0cc; margin-bottom: 2px;
-}
+.score-item { text-align: center; }
+.score-icon { font-size: 1.1rem; line-height: 1; margin-bottom: 1px; }
 .score-val {
-  font-size: 1.55rem; font-weight: 900; color: #1a1a2e;
+  font-size: 1.75rem; font-weight: 900; color: #fff;
   letter-spacing: -.03em; line-height: 1;
+  text-shadow: 0 2px 8px rgba(0,0,0,.25);
 }
-.score-val.highlight { color: #e67e22; }
 
 /* ── GRID ── */
 .grid-container {
-  position: relative;
-  background: #fff;
+  background: rgba(255,255,255,.15);
   border-radius: 16px;
-  padding: 8px;
-  box-shadow: 0 4px 20px rgba(58,134,255,.1), 0 0 0 1px #dceeff;
+  padding: 7px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.2);
 }
 #grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
-  gap: 3px;
-  width: min(360px, calc(100vw - 2rem));
-  height: min(360px, calc(100vw - 2rem));
+  gap: 4px;
+  width: min(340px, calc(100vw - 2.5rem));
+  height: min(340px, calc(100vw - 2.5rem));
 }
 .cell {
-  background: #eef3fb;
+  background: rgba(255,255,255,.82);
   border-radius: 5px;
-  transition: background .08s;
 }
 .cell.filled { border-radius: 6px; }
 .cell.preview-ok {
@@ -107,48 +94,45 @@ header {
   border-radius: 6px;
 }
 .cell.preview-bad {
-  background: rgba(220,50,50,.25) !important;
+  background: rgba(220,60,60,.4) !important;
   border-radius: 6px;
 }
 .cell.flash {
   animation: cellFlash .3s ease-out forwards;
 }
 @keyframes cellFlash {
-  0%   { filter: brightness(2.2) saturate(1.5); }
+  0%   { filter: brightness(2.5) saturate(2); }
   100% { filter: brightness(1) saturate(1); }
 }
 
 /* ── PIECE TRAY ── */
 .tray {
   display: flex; align-items: flex-end; justify-content: center;
-  gap: .75rem;
-  width: 100%; max-width: 380px;
-  min-height: 110px;
+  gap: 1.25rem;
+  width: 100%; max-width: 340px;
+  min-height: 100px;
 }
 .tray-slot {
   flex: 1; display: flex; align-items: center; justify-content: center;
-  min-height: 100px;
-  background: #fff;
-  border-radius: 14px;
-  border: 1px solid #dceeff;
-  box-shadow: 0 2px 10px rgba(58,134,255,.07);
+  min-height: 90px;
   cursor: grab;
   touch-action: none;
   position: relative;
-  transition: opacity .2s, box-shadow .2s;
+  transition: opacity .2s, transform .15s;
 }
-.tray-slot:active { cursor: grabbing; box-shadow: 0 6px 20px rgba(58,134,255,.18); }
+.tray-slot:active { cursor: grabbing; transform: scale(.95); }
 .tray-slot.used { opacity: 0; pointer-events: none; }
 .tray-slot.cant-fit { opacity: .3; cursor: not-allowed; }
 
 .mini-grid {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,.25));
 }
 .mini-cell {
-  width: 15px; height: 15px;
-  border-radius: 3px;
+  width: 16px; height: 16px;
+  border-radius: 4px;
 }
 
 /* ── DRAG GHOST ── */
@@ -157,45 +141,44 @@ header {
   pointer-events: none;
   z-index: 999;
   display: none;
-  gap: 3px;
-  opacity: .85;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,.2));
+  gap: 4px;
+  opacity: .88;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,.3));
 }
 #ghost .ghost-cell { border-radius: 6px; }
 
 /* ── SCORE POPUP ── */
 .score-popup {
   position: fixed;
-  font-size: 1.1rem; font-weight: 900;
-  color: #e67e22;
+  font-size: 1.15rem; font-weight: 900;
+  color: #fff;
   pointer-events: none;
   z-index: 998;
-  text-shadow: 0 1px 4px rgba(0,0,0,.15);
-  animation: popupFloat .85s ease-out forwards;
+  text-shadow: 0 2px 6px rgba(0,0,0,.4);
+  animation: popupFloat .9s ease-out forwards;
 }
 @keyframes popupFloat {
   0%   { opacity: 1; transform: translateY(0) translateX(-50%); }
-  100% { opacity: 0; transform: translateY(-52px) translateX(-50%); }
+  100% { opacity: 0; transform: translateY(-55px) translateX(-50%); }
 }
 
 /* ── GAME OVER ── */
 #gameOverScreen {
   display: none;
   position: fixed; inset: 0; z-index: 100;
-  background: rgba(240,247,255,.82);
-  backdrop-filter: blur(6px);
+  background: rgba(70,100,140,.75);
+  backdrop-filter: blur(8px);
   align-items: center; justify-content: center;
   padding: 1rem;
 }
 #gameOverScreen.show { display: flex; }
 .go-card {
   background: #fff;
-  border: 1px solid #dceeff;
   border-radius: 22px;
   padding: 2rem 2rem 1.75rem;
-  width: 100%; max-width: 360px;
+  width: 100%; max-width: 340px;
   text-align: center;
-  box-shadow: 0 16px 48px rgba(58,134,255,.14);
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
   animation: goSlide .35s cubic-bezier(.34,1.2,.64,1);
 }
 @keyframes goSlide {
@@ -203,36 +186,33 @@ header {
   to   { opacity: 1; transform: scale(1)  translateY(0); }
 }
 .go-title {
-  font-size: 1.4rem; font-weight: 900;
-  color: #1a1a2e; margin-bottom: .15rem;
+  font-size: 1.4rem; font-weight: 900; color: #1a1a2e; margin-bottom: .1rem;
 }
 .go-score {
-  font-size: 3rem; font-weight: 900;
+  font-size: 3.2rem; font-weight: 900;
   color: #3a86ff; letter-spacing: -.04em;
-  margin: .5rem 0 .1rem;
+  margin: .4rem 0 .1rem;
 }
-.go-hs { font-size: .82rem; font-weight: 700; color: #9ab0cc; margin-bottom: 1.25rem; }
+.go-hs { font-size: .82rem; font-weight: 700; color: #9ab0cc; margin-bottom: 1.2rem; }
 .go-hs.new-record { color: #22c55e; }
 
 .go-lb {
   background: #f4f9ff; border-radius: 12px;
   border: 1px solid #dceeff;
-  padding: .75rem 1rem; margin-bottom: 1.25rem;
-  text-align: left;
+  padding: .75rem 1rem; margin-bottom: 1.2rem; text-align: left;
 }
 .go-lb-title {
   font-size: .62rem; font-weight: 900; letter-spacing: .1em;
-  text-transform: uppercase; color: #9ab0cc; margin-bottom: .6rem;
+  text-transform: uppercase; color: #9ab0cc; margin-bottom: .55rem;
 }
 .lb-row {
   display: flex; align-items: center; gap: .6rem;
   font-size: .88rem; font-weight: 700;
-  padding: .25rem 0; color: #5a7aaa;
+  padding: .2rem 0; color: #5a7aaa;
 }
 .lb-row.me { color: #3a86ff; }
 .lb-rank { width: 1.4rem; font-size: .75rem; color: #b0ccf0; flex-shrink: 0; }
 .lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-score { font-size: .82rem; }
 .lb-empty { font-size: .8rem; color: #9ab0cc; font-weight: 600; }
 
 .go-btn {
@@ -240,21 +220,16 @@ header {
   background: #3a86ff; color: #fff;
   border: none; border-radius: 12px;
   font-family: 'Nunito', sans-serif;
-  font-weight: 900; font-size: 1rem;
-  cursor: pointer;
+  font-weight: 900; font-size: 1rem; cursor: pointer;
   box-shadow: 0 4px 16px rgba(58,134,255,.3);
   transition: opacity .15s, transform .15s;
 }
 .go-btn:hover { opacity: .9; transform: translateY(-2px); }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 400px) {
-  .mini-cell { width: 12px; height: 12px; }
-  .tray { gap: .5rem; }
-  .score-val { font-size: 1.3rem; }
-}
-@media (min-height: 750px) {
-  .game-wrap { gap: 1.25rem; }
+@media (max-width: 380px) {
+  .mini-cell { width: 13px; height: 13px; }
+  .tray { gap: .75rem; }
 }
 </style>
 </head>
@@ -269,15 +244,16 @@ header {
 </header>
 
 <div class="game-wrap">
+
   <!-- SCORE -->
   <div class="score-bar">
     <div class="score-item">
-      <div class="score-label">Punkte</div>
+      <div class="score-icon">👑</div>
       <div class="score-val" id="scoreDisp">0</div>
     </div>
     <div class="score-item">
-      <div class="score-label">Bestleistung</div>
-      <div class="score-val highlight" id="highscoreDisp">0</div>
+      <div class="score-icon">🏆</div>
+      <div class="score-val" id="highscoreDisp">0</div>
     </div>
   </div>
 
@@ -292,6 +268,7 @@ header {
     <div class="tray-slot" id="slot1"></div>
     <div class="tray-slot" id="slot2"></div>
   </div>
+
 </div>
 
 <!-- DRAG GHOST -->
@@ -317,57 +294,52 @@ header {
 <script>
 'use strict';
 
-// ── KONFIGURATION ─────────────────────────────────
 const RASTER_SIZE = 8;
 
-// Alle 31 Steinformen: z = [[reihe, spalte], ...]
 const FORMEN = [
-  // 1×1
   { z: [[0,0]], f: '#e74c3c' },
-  // 1×2 Dominos
   { z: [[0,0],[0,1]], f: '#e67e22' },
   { z: [[0,0],[1,0]], f: '#e67e22' },
-  // 1×3 Triominos
   { z: [[0,0],[0,1],[0,2]], f: '#f1c40f' },
   { z: [[0,0],[1,0],[2,0]], f: '#f1c40f' },
-  // 2×2 Quadrat
   { z: [[0,0],[0,1],[1,0],[1,1]], f: '#3498db' },
-  // L-Formen (4 Rotationen)
   { z: [[0,0],[1,0],[2,0],[2,1]], f: '#e74c3c' },
   { z: [[0,1],[1,1],[2,0],[2,1]], f: '#9b59b6' },
   { z: [[0,0],[0,1],[0,2],[1,0]], f: '#1abc9c' },
   { z: [[0,0],[0,1],[0,2],[1,2]], f: '#e91e8c' },
   { z: [[0,0],[1,0],[1,1],[1,2]], f: '#f39c12' },
   { z: [[0,2],[1,0],[1,1],[1,2]], f: '#6c5ce7' },
-  // T-Formen (4 Rotationen)
   { z: [[0,0],[0,1],[0,2],[1,1]], f: '#9b59b6' },
   { z: [[0,1],[1,0],[1,1],[2,1]], f: '#e91e8c' },
   { z: [[0,1],[1,0],[1,1],[1,2]], f: '#1abc9c' },
   { z: [[0,0],[1,0],[1,1],[2,0]], f: '#f39c12' },
-  // S/Z-Formen
   { z: [[0,1],[0,2],[1,0],[1,1]], f: '#e67e22' },
   { z: [[0,0],[0,1],[1,1],[1,2]], f: '#e74c3c' },
   { z: [[0,0],[1,0],[1,1],[2,1]], f: '#3498db' },
   { z: [[0,1],[1,0],[1,1],[2,0]], f: '#f1c40f' },
-  // I-4
   { z: [[0,0],[0,1],[0,2],[0,3]], f: '#3498db' },
   { z: [[0,0],[1,0],[2,0],[3,0]], f: '#3498db' },
-  // I-5
   { z: [[0,0],[0,1],[0,2],[0,3],[0,4]], f: '#6c5ce7' },
   { z: [[0,0],[1,0],[2,0],[3,0],[4,0]], f: '#6c5ce7' },
-  // 3×3 Quadrat
   { z: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]], f: '#e67e22' },
-  // 2×3 & 3×2
   { z: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]], f: '#1abc9c' },
   { z: [[0,0],[0,1],[1,0],[1,1],[2,0],[2,1]], f: '#f39c12' },
-  // Ecken
   { z: [[0,0],[0,1],[1,0]], f: '#e91e8c' },
   { z: [[0,0],[0,1],[1,1]], f: '#9b59b6' },
   { z: [[0,0],[1,0],[1,1]], f: '#e74c3c' },
   { z: [[0,1],[1,0],[1,1]], f: '#f1c40f' },
 ];
 
-// ── SPIELZUSTAND ─────────────────────────────────
+// Hellere Variante für inset-highlight
+function hellFarbe(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.min(255,r+60)},${Math.min(255,g+60)},${Math.min(255,b+60)})`;
+}
+function dunkelFarbe(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.max(0,r-40)},${Math.max(0,g-40)},${Math.max(0,b-40)})`;
+}
+
 let raster      = [];
 let zellen      = [];
 let stuecke     = [null, null, null];
@@ -376,12 +348,10 @@ let highscore   = 0;
 let istAnimiert = false;
 let istGameOver = false;
 
-// ── DOM ──────────────────────────────────────────
 const gridEl   = document.getElementById('grid');
 const goScreen = document.getElementById('gameOverScreen');
 const ghost    = document.getElementById('ghost');
 
-// ── INIT ─────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   PZ.updateNavbar();
   highscore = parseInt(localStorage.getItem('bb_hs') || '0', 10);
@@ -395,14 +365,12 @@ function spielStart() {
   punkte = 0;
   istGameOver = false;
   istAnimiert = false;
-
   goScreen.classList.remove('show');
   punkteRendern();
   rasterRendern();
   neuePiecesGenerieren();
 }
 
-// ── RASTER ───────────────────────────────────────
 function rasterRendern() {
   gridEl.innerHTML = '';
   zellen = Array.from({ length: RASTER_SIZE }, () => Array(RASTER_SIZE).fill(null));
@@ -419,16 +387,15 @@ function rasterRendern() {
 function zellFarbeSetzen(el, block) {
   if (block) {
     el.classList.add('filled');
-    el.style.background = block.farbe;
-    el.style.boxShadow  = `inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.12)`;
+    el.style.background = `linear-gradient(160deg, ${hellFarbe(block.farbe)} 0%, ${block.farbe} 55%, ${dunkelFarbe(block.farbe)} 100%)`;
+    el.style.boxShadow  = `inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(0,0,0,0.18), 0 2px 4px rgba(0,0,0,0.15)`;
   } else {
     el.classList.remove('filled');
-    el.style.background = '#eef3fb';
+    el.style.background = 'rgba(255,255,255,.82)';
     el.style.boxShadow  = 'none';
   }
 }
 
-// ── PIECES ───────────────────────────────────────
 function zufaelligesStueck() {
   const f = FORMEN[Math.floor(Math.random() * FORMEN.length)];
   return { zellen: f.z, farbe: f.f };
@@ -452,8 +419,8 @@ function trayRendern() {
     const cols = Math.max(...s.zellen.map(([, c]) => c)) + 1;
     const mg = document.createElement('div');
     mg.className = 'mini-grid';
-    mg.style.gridTemplateColumns = `repeat(${cols}, 15px)`;
-    mg.style.gridTemplateRows    = `repeat(${rows}, 15px)`;
+    mg.style.gridTemplateColumns = `repeat(${cols}, 16px)`;
+    mg.style.gridTemplateRows    = `repeat(${rows}, 16px)`;
 
     const occupied = new Set(s.zellen.map(([r, c]) => `${r},${c}`));
     for (let r = 0; r < rows; r++) {
@@ -461,8 +428,8 @@ function trayRendern() {
         const mc = document.createElement('div');
         mc.className = 'mini-cell';
         if (occupied.has(`${r},${c}`)) {
-          mc.style.background = s.farbe;
-          mc.style.boxShadow  = `inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.12)`;
+          mc.style.background = `linear-gradient(160deg, ${hellFarbe(s.farbe)} 0%, ${s.farbe} 55%, ${dunkelFarbe(s.farbe)} 100%)`;
+          mc.style.boxShadow  = `inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(0,0,0,.18)`;
         } else {
           mc.style.background = 'transparent';
         }
@@ -474,7 +441,6 @@ function trayRendern() {
   }
 }
 
-// ── KANN PASSEN? ─────────────────────────────────
 function kannPassen(s) {
   for (let r0 = 0; r0 < RASTER_SIZE; r0++) {
     for (let c0 = 0; c0 < RASTER_SIZE; c0++) {
@@ -488,10 +454,7 @@ function kannPassen(s) {
 }
 
 function passFormPruefen() {
-  // Prüfe alle verbleibenden (nicht-null) Stücke
   const verbleibend = stuecke.filter(s => s !== null);
-
-  // Wenn keine verbleiben (sollte nicht passieren), nichts tun
   if (verbleibend.length === 0) return;
 
   let nochMoeglich = false;
@@ -505,23 +468,18 @@ function passFormPruefen() {
       slot.classList.add('cant-fit');
     }
   }
-
-  if (!nochMoeglich) {
-    setTimeout(() => spielEnde(), 400);
-  }
+  if (!nochMoeglich) setTimeout(() => spielEnde(), 400);
 }
 
-// ── ZELLGRÖSSE ───────────────────────────────────
 function effZellGroesse() {
   const r0 = zellen[0][0].getBoundingClientRect();
   const r1 = zellen[0][1].getBoundingClientRect();
   return r1.left - r0.left;
 }
 
-// ── DRAG & DROP ───────────────────────────────────
-let dragIdx   = -1;
+let dragIdx    = -1;
 let dragStueck = null;
-let dragCS    = 0;
+let dragCS     = 0;
 
 function dragStart(e, idx) {
   if (istAnimiert || istGameOver) return;
@@ -541,9 +499,9 @@ function dragStart(e, idx) {
   ghost.style.display = 'grid';
   ghost.style.gridTemplateColumns = `repeat(${cols}, ${dragCS}px)`;
   ghost.style.gridTemplateRows    = `repeat(${rows}, ${dragCS}px)`;
-  ghost.style.gap   = '3px';
-  ghost.style.width  = `${cols * dragCS + (cols - 1) * 3}px`;
-  ghost.style.height = `${rows * dragCS + (rows - 1) * 3}px`;
+  ghost.style.gap    = '4px';
+  ghost.style.width  = `${cols * dragCS + (cols - 1) * 4}px`;
+  ghost.style.height = `${rows * dragCS + (rows - 1) * 4}px`;
 
   const occupied = new Set(s.zellen.map(([r, c]) => `${r},${c}`));
   for (let r = 0; r < rows; r++) {
@@ -553,8 +511,8 @@ function dragStart(e, idx) {
       gc.style.width  = `${dragCS}px`;
       gc.style.height = `${dragCS}px`;
       if (occupied.has(`${r},${c}`)) {
-        gc.style.background = s.farbe;
-        gc.style.boxShadow  = `inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.12)`;
+        gc.style.background = `linear-gradient(160deg, ${hellFarbe(s.farbe)} 0%, ${s.farbe} 55%, ${dunkelFarbe(s.farbe)} 100%)`;
+        gc.style.boxShadow  = `inset 0 2px 0 rgba(255,255,255,.4), inset 0 -2px 0 rgba(0,0,0,.18)`;
       } else {
         gc.style.background = 'transparent';
       }
@@ -563,7 +521,6 @@ function dragStart(e, idx) {
   }
 
   ghostPositionieren(e.clientX, e.clientY);
-
   document.addEventListener('pointermove', dragMove);
   document.addEventListener('pointerup',   dragEnd);
   document.addEventListener('pointercancel', dragAbort);
@@ -573,8 +530,8 @@ function ghostPositionieren(cx, cy) {
   const s    = dragStueck;
   const rows = Math.max(...s.zellen.map(([r]) => r)) + 1;
   const cols = Math.max(...s.zellen.map(([, c]) => c)) + 1;
-  const w    = cols * dragCS + (cols - 1) * 3;
-  const h    = rows * dragCS + (rows - 1) * 3;
+  const w    = cols * dragCS + (cols - 1) * 4;
+  const h    = rows * dragCS + (rows - 1) * 4;
   ghost.style.left = `${cx - w / 2}px`;
   ghost.style.top  = `${cy - h - dragCS * 1.5}px`;
 }
@@ -596,11 +553,9 @@ function rasterPosBerechnen(cx, cy) {
   const s    = dragStueck;
   const rows = Math.max(...s.zellen.map(([r]) => r)) + 1;
   const cols = Math.max(...s.zellen.map(([, c]) => c)) + 1;
-  const w    = cols * cs + (cols - 1) * 3;
-
+  const w    = cols * cs + (cols - 1) * 4;
   const pieceLeft = cx - w / 2;
-  const pieceTop  = cy - (rows * cs + (rows - 1) * 3) - cs * 1.5;
-
+  const pieceTop  = cy - (rows * cs + (rows - 1) * 4) - cs * 1.5;
   const c0 = Math.round((pieceLeft - ref.left) / cs);
   const r0 = Math.round((pieceTop  - ref.top)  / cs);
   return { r0, c0 };
@@ -613,7 +568,6 @@ function dragMove(e) {
 
   const { r0, c0 } = rasterPosBerechnen(e.clientX, e.clientY);
   const s = dragStueck;
-
   const gueltig = s.zellen.every(([dr, dc]) => {
     const r = r0 + dr, c = c0 + dc;
     return r >= 0 && r < RASTER_SIZE && c >= 0 && c < RASTER_SIZE && !raster[r][c];
@@ -625,10 +579,12 @@ function dragMove(e) {
     const el = zellen[r][c];
     if (gueltig) {
       el.classList.add('preview-ok');
-      el.style.background = s.farbe;
+      el.style.background = `linear-gradient(160deg, ${hellFarbe(s.farbe)} 0%, ${s.farbe} 55%, ${dunkelFarbe(s.farbe)} 100%)`;
       el.style.boxShadow  = 'none';
     } else {
       el.classList.add('preview-bad');
+      el.style.background = 'rgba(220,60,60,.4)';
+      el.style.boxShadow  = 'none';
     }
     vorschauZellen.push([r, c]);
   });
@@ -645,7 +601,6 @@ async function dragEnd(e) {
 
   const { r0, c0 } = rasterPosBerechnen(e.clientX, e.clientY);
   const s = dragStueck;
-
   const gueltig = s.zellen.every(([dr, dc]) => {
     const r = r0 + dr, c = c0 + dc;
     return r >= 0 && r < RASTER_SIZE && c >= 0 && c < RASTER_SIZE && !raster[r][c];
@@ -668,7 +623,6 @@ function dragAbort() {
   dragStueck = null;
 }
 
-// ── STEIN SETZEN ─────────────────────────────────
 async function steinSetzen(idx, r0, c0) {
   if (istAnimiert) return;
   const s = stuecke[idx];
@@ -696,7 +650,6 @@ async function steinSetzen(idx, r0, c0) {
   punkteRendern();
 }
 
-// ── LINIEN LÖSCHEN ────────────────────────────────
 async function linienLoeschen(platzR, platzC) {
   const volleReihen  = [];
   const volleSpalten = [];
@@ -712,12 +665,8 @@ async function linienLoeschen(platzR, platzC) {
   istAnimiert = true;
 
   const betroffen = new Set();
-  volleReihen.forEach(r => {
-    for (let c = 0; c < RASTER_SIZE; c++) betroffen.add(`${r},${c}`);
-  });
-  volleSpalten.forEach(c => {
-    for (let r = 0; r < RASTER_SIZE; r++) betroffen.add(`${r},${c}`);
-  });
+  volleReihen.forEach(r => { for (let c = 0; c < RASTER_SIZE; c++) betroffen.add(`${r},${c}`); });
+  volleSpalten.forEach(c => { for (let r = 0; r < RASTER_SIZE; r++) betroffen.add(`${r},${c}`); });
 
   betroffen.forEach(key => {
     const [r, c] = key.split(',').map(Number);
@@ -745,7 +694,6 @@ async function linienLoeschen(platzR, platzC) {
   istAnimiert = false;
 }
 
-// ── PUNKTE ───────────────────────────────────────
 function punkteRendern() {
   document.getElementById('scoreDisp').textContent = punkte;
   if (punkte > highscore) {
@@ -756,18 +704,17 @@ function punkteRendern() {
 }
 
 function scorePopup(n, r, c, linie = false) {
-  const ref = zellen[Math.min(r, RASTER_SIZE - 1)][Math.min(c, RASTER_SIZE - 1)].getBoundingClientRect();
+  const ref = zellen[Math.min(r, RASTER_SIZE-1)][Math.min(c, RASTER_SIZE-1)].getBoundingClientRect();
   const popup = document.createElement('div');
   popup.className = 'score-popup';
   popup.textContent = `+${n}`;
   popup.style.left = `${ref.left + ref.width / 2}px`;
   popup.style.top  = `${ref.top + window.scrollY}px`;
-  if (linie) popup.style.color = '#22c55e';
+  if (linie) popup.style.color = '#FECA57';
   document.body.appendChild(popup);
   popup.addEventListener('animationend', () => popup.remove());
 }
 
-// ── GAME OVER ─────────────────────────────────────
 async function spielEnde() {
   istGameOver = true;
   goScreen.classList.add('show');
@@ -800,7 +747,7 @@ async function spielEnde() {
     } else {
       lbEl.innerHTML = lb.map((e, i) => {
         const istIch = nutzername && e.benutzername === nutzername;
-        const medal  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+        const medal  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
         return `<div class="lb-row${istIch ? ' me' : ''}">
           <span class="lb-rank">${medal}</span>
           <span class="lb-name">${e.benutzername || 'Unbekannt'}</span>
