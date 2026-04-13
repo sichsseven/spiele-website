@@ -106,3 +106,8 @@ input.name-inp::placeholder{color:var(--text3);text-transform:none;font-weight:5
 .theme-name{font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;color:var(--text);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em}
 .theme-price{font-size:0.75rem;font-weight:700}
 .theme-price.owned{color:#3ecf8e}.theme-price.cost{color:#f5c518}
+
+/* Login-Hint */
+#login-hint{background:#2a1e00;border:2px solid #f5a623;border-radius:12px;padding:.65rem 1rem;text-align:center;font-size:.82rem;color:#d4a040;margin:.4rem 0 .8rem;width:min(320px,86vw);}
+#login-hint strong{display:block;font-size:.87rem;margin-bottom:.2rem;color:#f5a623;}
+#login-hint a{display:inline-block;margin-top:.35rem;background:#f5a623;color:#1a0a00;font-weight:700;text-decoration:none;padding:.3rem .8rem;border-radius:8px;font-size:.82rem;}

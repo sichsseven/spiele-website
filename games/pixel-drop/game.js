@@ -486,7 +486,7 @@ function verbindungsPruefen() {
                 : farbZaehler === 2 ? 1.5
                 : farbZaehler === 3 ? 2.0
                 : 3.0;
-    score += Math.round(totalPixel * 10 * multi);
+    score += Math.round((totalPixel / (BLOCK_SCALE * BLOCK_SCALE)) * 10 * multi);
     if (score > highscore) highscore = score;
     hudAktualisieren();
     return true;
@@ -675,12 +675,17 @@ function hudAktualisieren() {
   document.getElementById('hud-score').textContent = score;
 
   // Fortschrittsleiste
-  const naechster = MEILENSTEINE.find(m => m > score) || MEILENSTEINE[MEILENSTEINE.length - 1];
-  const vorheriger = [...MEILENSTEINE].reverse().find(m => m <= score) || 0;
-  const pct = naechster === vorheriger ? 100
-    : Math.min(100, ((score - vorheriger) / (naechster - vorheriger)) * 100);
-  document.getElementById('fortschritt-bar').style.width = pct + '%';
-  document.getElementById('fortschritt-label').textContent = `${score} / ${naechster}`;
+  const naechster = MEILENSTEINE.find(m => m > score);
+  if (naechster === undefined) {
+    // Alle Meilensteine erreicht
+    document.getElementById('fortschritt-bar').style.width = '100%';
+    document.getElementById('fortschritt-label').textContent = `${score} — MAX`;
+  } else {
+    const vorheriger = [...MEILENSTEINE].reverse().find(m => m <= score) || 0;
+    const pct = Math.min(100, ((score - vorheriger) / (naechster - vorheriger)) * 100);
+    document.getElementById('fortschritt-bar').style.width = pct + '%';
+    document.getElementById('fortschritt-label').textContent = `${score} / ${naechster}`;
+  }
 }
 
 // ── Rangliste ─────────────────────────────────────────────────────────────────

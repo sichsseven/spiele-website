@@ -356,11 +356,29 @@ h1.spiel-titel {
 
 /* Login-Hinweis */
 .login-hinweis {
+  background: #fff8e6;
+  border: 2px solid #f5a623;
+  border-radius: 12px;
+  padding: .65rem 1rem;
   text-align: center;
-  font-size: .82rem;
-  color: var(--text-muted);
+  font-size: .83rem;
+  color: #5a4000;
+  margin: .5rem 0 .7rem;
 }
-.login-hinweis a { color: var(--primary); font-weight: 700; text-decoration: none; }
+.login-hinweis strong { display: block; font-size: .88rem; margin-bottom: .2rem; color: #b07000; }
+.login-hinweis a {
+  display: inline-block;
+  margin-top: .35rem;
+  background: #f5a623;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  padding: .3rem .8rem;
+  border-radius: 8px;
+  font-size: .83rem;
+  transition: background .15s;
+}
+.login-hinweis a:hover { background: #d4880a; }
 
 /* Nächstes-Wort-Button */
 #naechstes-btn {

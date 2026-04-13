@@ -2136,7 +2136,7 @@ async function ranglisteRendern() {
     const medal = rang === 1 ? '🥇' : rang === 2 ? '🥈' : rang === 3 ? '🥉' : rang;
     html += `<tr class="${klasse}${eigenKlasse}">
       <td>${medal}</td>
-      <td>${e.username || 'Anonym'}</td>
+      <td>${e.benutzername || 'Anonym'}</td>
       <td>${hauptwert}</td>
       <td>${nebenwert}</td>
     </tr>`;

@@ -27,11 +27,14 @@ async function initPlayer(){
     var username=await PZ.currentUsername();
     if(username)playerName=username;
     var data=await PZ.loadScore('pixel-jump');
-    if(data&&data.extra_daten){
-      pd.coins   =data.extra_daten.coins   ||0;
-      pd.owned   =data.extra_daten.owned   ||[0];
-      pd.sel     =data.extra_daten.sel     ||0;
-      pd.upgrades=data.extra_daten.upgrades||{};
+    if(data){
+      bestScore=data.punkte||0; // Highscore merken für lokalen Vergleich
+      if(data.extra_daten){
+        pd.coins   =data.extra_daten.coins   ||0;
+        pd.owned   =data.extra_daten.owned   ||[0];
+        pd.sel     =data.extra_daten.sel     ||0;
+        pd.upgrades=data.extra_daten.upgrades||{};
+      }
       if(username)pd.name=username;
     }else if(username){
       pd.name=username;
@@ -149,6 +152,7 @@ function drawChar(c2,ci,x,y,sz,flip){
 // ── GAME STATE ────────────────────────────────────────────────────────────────
 var running=false,raf=null;
 var pd=loadPD(),playerName='Spieler';
+var bestScore=0; // bester Highscore aus Supabase – für Banner-Vergleich
 var player,plats,coins_a,parts_a,enemies,items;
 var score,sesCo,camY,tick,diff,lives;
 var multActive=false,multTimer=0,multDur=900; // 15s @ 60fps
@@ -799,7 +803,12 @@ function endGame(){
   // Supabase speichern + Rang ermitteln
   if(typeof PZ!=='undefined'){
     if(!adminModus)PZ.saveGameData('pixel-jump',score,1,{coins:pd.coins,owned:pd.owned||[0],sel:pd.sel||0,upgrades:pd.upgrades||{}})
-      .then(function(res){if(res&&res.isNewRecord)document.getElementById('nbst').classList.remove('h');})
+      .then(function(res){
+        if(res&&res.isNewRecord&&score>bestScore){
+          bestScore=score; // lokalen Vergleichswert aktualisieren
+          document.getElementById('nbst').classList.remove('h');
+        }
+      })
       .catch(function(){});
     PZ.getLeaderboard('pixel-jump').then(function(lb){
       var rank=0;
