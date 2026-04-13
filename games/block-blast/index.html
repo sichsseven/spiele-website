@@ -466,11 +466,6 @@ function kannPassen(s) {
   return false;
 }
 
-// Prüft ob noch eine Zelle frei ist (absolutes Minimum)
-function hatFreieZelle() {
-  return raster.some(row => row.some(b => b === null));
-}
-
 function passFormPruefen() {
   const verbleibend = stuecke.filter(s => s !== null);
   if (verbleibend.length === 0) return;
@@ -487,21 +482,7 @@ function passFormPruefen() {
   }
 
   if (!nochMoeglich) {
-    if (!hatFreieZelle()) {
-      // Brett wirklich voll → Game Over
-      setTimeout(() => spielEnde(), 400);
-    } else {
-      // Freier Platz vorhanden → neue Stücke geben (kein Game Over)
-      setTimeout(() => {
-        for (let i = 0; i < 3; i++) {
-          if (stuecke[i] && !kannPassen(stuecke[i])) {
-            stuecke[i] = zufaelligesStueckPassend();
-          }
-        }
-        trayRendern();
-        passFormPruefen();
-      }, 350);
-    }
+    setTimeout(() => spielEnde(), 400);
   }
 }
 
