@@ -159,30 +159,30 @@ html, body {
 }
 .result-row span:last-child { font-weight: 900; color: var(--accent); }
 .login-hint {
-  background: #fff8e6;
-  border: 2px solid #f5a623;
+  background: #eff6ff;
+  border: 2px solid var(--accent);
   border-radius: 12px;
   padding: .7rem 1.1rem;
   text-align: center;
   font-size: .85rem;
-  color: #5a4000;
-  margin: .5rem 0 .8rem;
+  color: #1e3a5f;
+  margin: .4rem 0 .7rem;
   width: min(300px, 86vw);
 }
-.login-hint strong { display: block; font-size: .9rem; margin-bottom: .25rem; color: #b07000; }
+.login-hint strong { display: block; font-size: .9rem; margin-bottom: .25rem; color: #1d4ed8; }
 .login-hint a {
   display: inline-block;
   margin-top: .4rem;
-  background: #f5a623;
+  background: var(--accent);
   color: #fff;
   font-weight: 700;
   text-decoration: none;
   padding: .35rem .9rem;
   border-radius: 8px;
   font-size: .85rem;
-  transition: background .15s;
+  transition: opacity .15s;
 }
-.login-hint a:hover { background: #d4880a; }
+.login-hint a:hover { opacity: .85; }
 .go-btns { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; width: min(300px, 86vw); }
 .go-btns .btn { flex: 1; min-width: 120px; }
 

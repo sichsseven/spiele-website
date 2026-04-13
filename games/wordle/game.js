@@ -112,6 +112,55 @@ const WOERTER = [...new Set([
   'SALAT','MARKT','LIEBE','PLATZ','SPIEL','KÜCHE',
 ])];
 
+// ── Erlaubte Ratewörter (deutlich größer als Zielwortliste) ───────────────────
+// Enthält alle Zielwörter + häufige Konjugations-/Pluralformen und Alltagsvokabular
+const GUELTIGE_WOERTER = new Set([
+  ...WOERTER,
+  // Häufige Plurale
+  'HUNDE','WERTE','TIERE','BÄUME','KERNE','FESTE','MEERE','RÄUME',
+  'WEINE','TEILE','BERGE','TÄLER','PFADE','HÄFEN','PAARE','BEINE',
+  'HÄUTE','NASEN','BEUTE','KEULE','DIEBE','GÄNGE','LEUTE','ELCHE',
+  'STILE','FÄLLE','GIFTE','HÄHNE','LÜFTE','GRÄBE','PFERDE','RECKE',
+  'NELKE','NONNE','LARVE','NARBE','FALTE','PETZE','OCHSE',
+  // Substantive (Nominativ Singular fehlend)
+  'PFERD','STEIN','DEICH','AHORN','FROST','GEMÜT','GERÄT','GRUFT',
+  'GRIPS','CHAOS','GASSE','FLAUM','REICH','FLINK','FLOTT','TRANK',
+  'KNETE','JUNGE','OSTEN','WESTE','GEGEN','WEGEN','MÖGEN','TRÄGE',
+  'BRUCH','DEGEN','DOLCH','DRANG','ENKEL','GRILL','HAUCH','JACHT',
+  'KLAGE','KREBS','KUGEL','LAHME','KÖNIG','KOPIE','KRACH','NEFFE',
+  'NEIGE','PETZE','PRIMA','PATIN','RECKE','SCHUH','STILL','TRAUM',
+  'CHIPS','WOCHE',
+  // Verbformen (Infinitiv + Konjugation)
+  'GEHEN','SEHEN','GEBEN','LEBEN','NEHME','NIMMT','STEHE','STEHT',
+  'GEHST','KOMME','KOMMT','LAUFE','LÄUFT','FÜHRE','FÜHRT','FÜHLE',
+  'FÜHLT','DENKE','DENKT','LERNE','LERNT','WOHNE','WOHNT','LIEBT',
+  'KAUFE','KAUFT','DREHT','DREHE','ZÄHLE','ZÄHLT','ZEIGT','FAHRE',
+  'HATTE','HÄTTE','WURDE','FÄHRT','TRAGE','TRÄGT','SIEHT','HELFT',
+  'HILFT','WÄHLE','WÄHLT','FANGE','HÄNGT','FREUT','FRAGT','FRAGE',
+  'RÜCKT','SORGT','TANZT','TRAUT','LEHRT','NEHMT','BACKT','HEILT',
+  'ATMET','ATMEN','EHREN','EILEN','FICHT','FLIEH','MAHNT','BAUTE',
+  'LEBTE','REIST','LACHT','WEINT','LIEST','LIEGT','RINGT','BETET',
+  'RENNT','RENNE','WERDE','SOLLE','KÖNNE','MÜSSE','DÜRFE','DÜRFT',
+  'HALTE','KEHRE','LIEGE','GLAUB','RENNE','BINDE','LÖSEN','SCHAUT',
+  'SCHRIE','BOHRT','DIENT','ENDET','ERDET','FEHLT','FLIMT','FUNKT',
+  'GLOTZT','GREIFT','HÄNGT','IRRT','JAULT','KLAGT','KNIRSCHT',
+  'LAUERT','MAULT','NAHT','ÖFFNET','PASST','QUILLT','RECKT','SAHNT',
+  'SCHONT','TANKT','ÜBELT','VERJAGT','WARNT','ZIEHT',
+  // Adjektive (flektiert)
+  'SCHÖN','KLEIN','GROSS','BREIT','STARK','WEICH','FRECH','HARTE',
+  'KALTE','WARME','TIEFE','HOHEN','HOHER','EIGEN','BUNTE','ROTEN',
+  'BLAUE','WILDE','VOLLE','LAUTE','LEERE','FROHE','FREIE','NAHEN',
+  'NAHER','GUTEN','NEUES','ALTEN','NEUEN','KURZE','WEISE','LAHME',
+  'ZARTE','LEERE','STILLE','DUMPF','BLANK','FRISCH','SCHARF','SANFT',
+  'FLINK','FLOTT','TRÄGE','SCHEU','TAPFER','WEISE','FROMM',
+  // Adverbien / Pronomen / Partikeln
+  'IMMER','JETZT','SCHON','GERNE','DANKE','DURCH','UNTER','UNSER',
+  'DAMIT','DAVON','DABEI','DARUM','DEREN','DAHER','DAFÜR','GENUG',
+  'LINKS','JEDEN','JEDER','JEDES','MEINE','DEINE','SEINE','ALLES',
+  'ETWAS','DIESE','HEUTE','OFFEN','BEIDE','WENIG','VIELE','KEINE',
+  'LANGE','UNTEN','OSTEN','EIGEN','ERSTE','ZWEIG',
+]);
+
 // ── Spielzustand ─────────────────────────────────────────────────────────────
 let zielwort    = '';   // aktuelles Zielwort (Großbuchstaben)
 let versuche    = [];   // abgeschlossene Versuche als Strings
@@ -290,8 +339,8 @@ async function bestaetigen() {
     return;
   }
 
-  // Nur Wörter aus der Wortliste erlauben
-  if (!WOERTER.includes(eingabe)) {
+  // Nur bekannte deutsche Wörter erlauben (größere Validierungsliste)
+  if (!GUELTIGE_WOERTER.has(eingabe)) {
     meldungAnzeigen('Kein bekanntes deutsches Wort');
     reiheSchütteln(versuche.length);
     return;

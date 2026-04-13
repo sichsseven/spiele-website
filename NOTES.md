@@ -1,5 +1,15 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Heutiger Stand (2026-04-13)
+
+### Bug-Fixes & Login-Hint Redesign ✅
+- **Pixel Factory Rangliste**: `e.username` → `e.benutzername` (zeigt jetzt echte Namen statt 'Anonym')
+- **Pixel Drop Scoring**: Formel `totalPixel * 10` → `(totalPixel / BLOCK_SCALE²) * 10` (1 Block = 49 Sub-Pixel zählten je als 10 Punkte → viel zu schnell)
+- **Pixel Drop Progress-Bar**: Wenn Score > letzter Meilenstein, zeigt die Leiste jetzt "MAX" statt einzufrieren
+- **Pixel Jump Highscore-Banner**: `bestScore`-Variable beim Start aus Supabase laden, Banner nur wenn `score > bestScore` (kein False-Positive mehr beim ersten Spiel oder bei niedrigerem Score)
+- **Login-Hint Redesign** (alle 6 Spiele): Aus kleinem Textlink → gelbe Warn-Box mit Headline und Button „Anmelden / Registrieren"
+  - Space Blaster, Pixel Drop, Pixel Jump, Minesweeper, Wordle, Memory Match
+
 ## Heutiger Stand (2026-04-12)
 
 ### Neon Runner & Arkanoid X entfernt ✅

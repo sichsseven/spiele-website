@@ -100,7 +100,7 @@ function spielerErstellen() {
     w: 40, h: 40,
     speed: 5,
     shootTimer: 0,
-    shootRate: 18,
+    shootRate: 14,
     shotLevel: 1,
   };
 }
@@ -448,7 +448,7 @@ function titelMuenzenZeigen() {
 // ── Wellen-Konfiguration ───────────────────────────────────────────────────────
 function welleKonfiguration(w) {
   const anzahl = Math.min(8 + (w - 1) * 3, 40);
-  const speed  = 0.5 + w * 0.12;
+  const speed  = 0.8 + w * 0.16;
   const hp     = w >= 10 ? 3 : w >= 6 ? 2 : 1;
   const punkte = hp * 10;
   return { anzahl, speed, hp, punkte, istBoss: w % 10 === 0 };
