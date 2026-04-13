@@ -235,6 +235,9 @@ main {
 #spielfeld {
   display: grid;
   /* grid-template-columns wird per JS gesetzt */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* ── Zellen ─────────────────────────────────── */
@@ -248,7 +251,10 @@ main {
   font-weight: 900;
   cursor: pointer;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition: filter .1s;
 }
 
