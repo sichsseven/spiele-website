@@ -2,38 +2,32 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Block Blast – PIXELZONE</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="bb-page">
 
-<header>
+<header class="site-header">
   <a href="../../index.html" class="logo">
     <div class="logo-mark">🕹</div>
     <span>PIXELZONE</span>
   </a>
-  <div class="header-actions">
-    <button type="button" class="btn-neustart" id="btnNeustart" title="Neustart">Neustart</button>
-    <div id="navAuth"><a href="../../login.html" class="nav-login-btn">Anmelden</a></div>
-  </div>
+  <div id="navAuth"><a href="../../login.html" class="nav-login-btn">Anmelden</a></div>
 </header>
 
 <main class="game-wrap">
-  <section class="score-bar" aria-label="Punktestand">
-    <div class="score-item">
-      <span class="score-label">Punkte</span>
-      <div class="score-val" id="scoreDisp">0</div>
+  <section class="bb-scoreboard" aria-label="Punkte">
+    <div class="bb-hs">
+      <span class="bb-crown" aria-hidden="true">👑</span>
+      <span class="bb-hs-val" id="highscoreDisp">0</span>
     </div>
-    <div class="score-item combo-wrap">
-      <span class="score-label">Combo</span>
-      <div class="score-val combo-val" id="comboDisp">×1</div>
+    <div class="bb-center">
+      <div class="bb-score-big" id="scoreDisp">0</div>
+      <div class="bb-combo" id="comboDisp">×1</div>
     </div>
-    <div class="score-item">
-      <span class="score-label">Best</span>
-      <div class="score-val" id="highscoreDisp">0</div>
-    </div>
+    <button type="button" class="bb-restart" id="btnNeustart" title="Neustart" aria-label="Neustart">↻</button>
   </section>
 
   <section class="board-wrap" aria-label="Spielfeld">
@@ -47,7 +41,7 @@
   </section>
 
   <aside class="debug-panel versteckt" id="debugPanel" aria-live="polite">
-    <div class="debug-title">Debug (D zum Umschalten)</div>
+    <div class="debug-title">Debug (D)</div>
     <pre id="debugText" class="debug-pre"></pre>
   </aside>
 </main>

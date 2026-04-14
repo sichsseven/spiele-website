@@ -18,9 +18,16 @@
 
 const RASTER = 8;
 
+/* Kräftige, gesättigte Farben (Referenz Block Blast) */
 const PALETTE = [
-  '#5b8def', '#5ec9c8', '#e8956b', '#9b7ed9', '#6bc96b',
-  '#e86b9c', '#d9b35e', '#7a9eb8',
+  '#f4b41a', // Goldgelb
+  '#2f6ef0', // Royalblau
+  '#8b4fd9', // Violett
+  '#ff7a2e', // Orange
+  '#2ec96a', // Smaragdgrün
+  '#ff4d8d', // Pink
+  '#00c4c4', // Cyan
+  '#e8c030', // Honig
 ];
 
 // --- Formen: Zellen [dr,dc] relativ, (0,0) ist immer die obere linke Ecke des Bounding-Box ---
@@ -310,6 +317,8 @@ let board = new Board();
 let stuecke = [null, null, null];
 let punkte = 0;
 let highscore = 0;
+/** Bestwert aus Speicher zu Partiebeginn – für „Neue Bestleistung“ ohne Tippfehler bei Gleichstand */
+let bestwertZuPartiebeginn = 0;
 let comboStufe = 1;
 let istAnimiert = false;
 let istGameOver = false;
@@ -358,29 +367,105 @@ function pixelZuRaster(px, py) {
   return { r, c };
 }
 
+function hexZuRgb(hex) {
+  const h = hex.replace('#', '');
+  return {
+    r: parseInt(h.slice(0, 2), 16),
+    g: parseInt(h.slice(2, 4), 16),
+    b: parseInt(h.slice(4, 6), 16),
+  };
+}
+
+/** 3D-Bevel wie Referenz: hell oben/links, dunkel unten/rechts – kein Drop-Shadow */
+function bevelZelle(c, x, y, size, fillHex, alpha = 1) {
+  const { r, g, b } = hexZuRgb(fillHex);
+  const rad = Math.min(5, size * 0.14);
+  c.save();
+  c.globalAlpha = alpha;
+  c.fillStyle = fillHex;
+  rundesRechteck(c, x, y, size, size, rad);
+  c.fill();
+  const rH = Math.min(255, r + 42);
+  const gH = Math.min(255, g + 42);
+  const bH = Math.min(255, b + 42);
+  const rS = Math.max(0, r - 48);
+  const gS = Math.max(0, g - 48);
+  const bS = Math.max(0, b - 48);
+  c.beginPath();
+  c.moveTo(x + rad, y + 1.5);
+  c.lineTo(x + size - rad, y + 1.5);
+  c.lineTo(x + size * 0.42, y + size * 0.38);
+  c.lineTo(x + size * 0.08, y + size * 0.3);
+  c.closePath();
+  c.fillStyle = `rgba(${rH},${gH},${bH},0.55)`;
+  c.fill();
+  c.beginPath();
+  c.moveTo(x + size - 1.5, y + size - rad);
+  c.lineTo(x + size - 1.5, y + rad);
+  c.lineTo(x + size * 0.55, y + size * 0.42);
+  c.lineTo(x + size * 0.88, y + size * 0.58);
+  c.closePath();
+  c.fillStyle = `rgba(${rS},${gS},${bS},0.45)`;
+  c.fill();
+  c.beginPath();
+  c.moveTo(x + 1.5, y + size - rad);
+  c.lineTo(x + rad, y + size - 1.5);
+  c.lineTo(x + size * 0.28, y + size * 0.65);
+  c.lineTo(x + size * 0.12, y + size * 0.45);
+  c.closePath();
+  c.fillStyle = `rgba(${rS},${gS},${bS},0.38)`;
+  c.fill();
+  c.restore();
+}
+
 function boardZeichnen() {
-  const w = canvas.width / (window.devicePixelRatio || 1);
-  const h = canvas.height / (window.devicePixelRatio || 1);
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.width / dpr;
+  const h = canvas.height / dpr;
   ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#1e2233';
+  ctx.fillRect(0, 0, w, h);
 
   for (let r = 0; r < RASTER; r += 1) {
     for (let c = 0; c < RASTER; c += 1) {
       const { x, y } = rasterZuPixel(r, c);
       const z = board.zellen[r][c];
-      ctx.fillStyle = z ? z.farbe : '#2a2d3a';
-      if (!z) ctx.fillStyle = '#2a2d3a';
-      rundesRechteck(ctx, x, y, zellenPixel, zellenPixel, 5);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      if (z) {
-        ctx.save();
-        ctx.globalAlpha = 0.4;
-        ctx.fillStyle = 'rgba(255,255,255,0.45)';
-        ctx.fillRect(x + 2, y + 2, zellenPixel * 0.65, zellenPixel * 0.22);
-        ctx.restore();
+      if (!z) {
+        ctx.fillStyle = '#2a2e42';
+        rundesRechteck(ctx, x, y, zellenPixel, zellenPixel, 4);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      } else {
+        bevelZelle(ctx, x, y, zellenPixel, z.farbe, 1);
       }
+    }
+  }
+
+  /* Feine Gitterlinien + kleine Punkte an den Kreuzungen (in den Lücken zwischen Zellen) */
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.22)';
+  ctx.lineWidth = 0.6;
+  for (let i = 0; i <= RASTER; i += 1) {
+    const px = rasterOffsetX + i * (zellenPixel + GAP) - GAP / 2;
+    ctx.beginPath();
+    ctx.moveTo(px, rasterOffsetY);
+    ctx.lineTo(px, rasterOffsetY + RASTER * (zellenPixel + GAP) - GAP);
+    ctx.stroke();
+    const py = rasterOffsetY + i * (zellenPixel + GAP) - GAP / 2;
+    ctx.beginPath();
+    ctx.moveTo(rasterOffsetX, py);
+    ctx.lineTo(rasterOffsetX + RASTER * (zellenPixel + GAP) - GAP, py);
+    ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+  for (let i = 0; i <= RASTER; i += 1) {
+    for (let j = 0; j <= RASTER; j += 1) {
+      const px = rasterOffsetX + j * (zellenPixel + GAP) - GAP / 2;
+      const py = rasterOffsetY + i * (zellenPixel + GAP) - GAP / 2;
+      ctx.beginPath();
+      ctx.arc(px, py, 1.1, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
 
@@ -420,17 +505,15 @@ let debugPlatzierungen = [];
 
 function zeichneVorschau() {
   if (!dragStueck) return;
-  const farbe = vorschauGueltig ? dragStueck.farbe : 'rgba(220, 80, 80, 0.55)';
+  const alpha = vorschauGueltig ? 0.52 : 0.42;
+  const farbe = vorschauGueltig ? dragStueck.farbe : '#ff6b6b';
   ctx.save();
-  ctx.globalAlpha = vorschauGueltig ? 0.55 : 0.45;
   for (const [dr, dc] of dragStueck.zellen) {
     const r = vorschauR0 + dr;
     const c = vorschauC0 + dc;
     if (r < 0 || r >= RASTER || c < 0 || c >= RASTER) continue;
     const { x, y } = rasterZuPixel(r, c);
-    ctx.fillStyle = farbe;
-    rundesRechteck(ctx, x, y, zellenPixel, zellenPixel, 6);
-    ctx.fill();
+    bevelZelle(ctx, x, y, zellenPixel, farbe, alpha);
   }
   ctx.restore();
 }
@@ -459,6 +542,13 @@ function effZellGroesseTray() {
 let dragIdx = -1;
 let dragPointerId = null;
 let dragCS = 15;
+/** Gleiche Referenz wie bei addEventListener(..., { capture: true }) */
+let dragMoveBound = null;
+let dragEndBound = null;
+let dragCancelBound = null;
+
+const dragOpts = { passive: false, capture: true };
+const dragCancelOpts = { capture: true };
 
 function dragStart(e, idx) {
   if (istAnimiert || istGameOver) return;
@@ -466,9 +556,6 @@ function dragStart(e, idx) {
   if (slot.classList.contains('cant-fit') || slot.classList.contains('used')) return;
   e.preventDefault();
   dragPointerId = e.pointerId;
-  try {
-    slot.setPointerCapture(e.pointerId);
-  } catch (_) { /* ältere Browser */ }
   dragIdx = idx;
   const s = stuecke[idx];
   dragStueck = s;
@@ -507,14 +594,37 @@ function dragStart(e, idx) {
       if (occ.has(`${r},${c}`)) {
         gc.style.background = s.farbe;
         gc.style.boxShadow = 'inset 0 3px 0 rgba(255,255,255,.32), inset 0 -2px 0 rgba(0,0,0,.22)';
+        gc.style.borderRadius = '3px';
       } else gc.style.background = 'transparent';
       ghost.appendChild(gc);
     }
   }
   ghostPositionieren(e.clientX, e.clientY);
-  document.addEventListener('pointermove', dragMove);
-  document.addEventListener('pointerup', dragEnd);
-  document.addEventListener('pointercancel', dragAbort);
+
+  dragAbmelden();
+  dragMoveBound = (ev) => {
+    ev.preventDefault();
+    dragMove(ev);
+  };
+  dragEndBound = (ev) => {
+    ev.preventDefault();
+    dragEnd(ev);
+  };
+  dragCancelBound = () => {
+    dragAbort();
+  };
+  document.addEventListener('pointermove', dragMoveBound, dragOpts);
+  document.addEventListener('pointerup', dragEndBound, dragOpts);
+  document.addEventListener('pointercancel', dragCancelBound, dragCancelOpts);
+}
+
+function dragAbmelden() {
+  if (dragMoveBound) document.removeEventListener('pointermove', dragMoveBound, dragOpts);
+  if (dragEndBound) document.removeEventListener('pointerup', dragEndBound, dragOpts);
+  if (dragCancelBound) document.removeEventListener('pointercancel', dragCancelBound, dragCancelOpts);
+  dragMoveBound = null;
+  dragEndBound = null;
+  dragCancelBound = null;
 }
 
 function ghostPositionieren(cx, cy) {
@@ -574,14 +684,8 @@ function dragMove(e) {
 }
 
 function dragAbort() {
-  document.removeEventListener('pointermove', dragMove);
-  document.removeEventListener('pointerup', dragEnd);
-  document.removeEventListener('pointercancel', dragAbort);
+  dragAbmelden();
   ghost.style.display = 'none';
-  const prevSlot = dragIdx >= 0 ? document.getElementById(`slot${dragIdx}`) : null;
-  if (prevSlot && dragPointerId != null) {
-    try { prevSlot.releasePointerCapture(dragPointerId); } catch (_) { /* noop */ }
-  }
   dragPointerId = null;
   dragIdx = -1;
   vorschauAus();
@@ -591,22 +695,17 @@ function dragAbort() {
 
 async function dragEnd(e) {
   if (dragIdx < 0) return;
-  document.removeEventListener('pointermove', dragMove);
-  document.removeEventListener('pointerup', dragEnd);
-  document.removeEventListener('pointercancel', dragAbort);
+  dragAbmelden();
   ghost.style.display = 'none';
   const idx = dragIdx;
-  const slotEl = document.getElementById(`slot${idx}`);
-  const pid = dragPointerId != null ? dragPointerId : e.pointerId;
-  try {
-    if (slotEl && pid != null) slotEl.releasePointerCapture(pid);
-  } catch (_) { /* noop */ }
   dragPointerId = null;
   const s = stuecke[idx];
   dragIdx = -1;
   vorschauAus();
   debugPlatzierungen = [];
-  const { r0, c0 } = rasterPosAusPointer(e.clientX, e.clientY);
+  const cx = e.clientX;
+  const cy = e.clientY;
+  const { r0, c0 } = rasterPosAusPointer(cx, cy);
   if (!s || !board.kannSetzen(s.zellen, r0, c0)) return;
   await steinSetzen(idx, r0, c0);
 }
@@ -699,16 +798,17 @@ function trayRendern() {
     }
     const mg = document.createElement('div');
     mg.className = 'mini-piece';
-    mg.style.gridTemplateColumns = `repeat(${s.bc}, 15px)`;
-    mg.style.gridTemplateRows = `repeat(${s.br}, 15px)`;
+    mg.style.display = 'grid';
+    mg.style.gap = '2px';
+    mg.style.gridTemplateColumns = `repeat(${s.bc}, 11px)`;
+    mg.style.gridTemplateRows = `repeat(${s.br}, 11px)`;
     const occ = new Set(s.zellen.map(([r, c]) => `${r},${c}`));
     for (let r = 0; r < s.br; r += 1) {
       for (let c = 0; c < s.bc; c += 1) {
         const mc = document.createElement('div');
-        mc.className = 'mini-cell';
+        mc.className = occ.has(`${r},${c}`) ? 'mini-cell filled' : 'mini-cell';
         if (occ.has(`${r},${c}`)) {
           mc.style.background = s.farbe;
-          mc.style.boxShadow = 'inset 0 2px 0 rgba(255,255,255,.28), inset 0 -2px 0 rgba(0,0,0,.22)';
         } else mc.style.background = 'transparent';
         mg.appendChild(mc);
       }
@@ -835,13 +935,14 @@ function debugPanelAktualisieren() {
 }
 
 function spielStart() {
+  bestwertZuPartiebeginn = highscore;
   board = new Board();
   stuecke = [null, null, null];
   punkte = 0;
   comboStufe = 1;
   istGameOver = false;
   istAnimiert = false;
-  document.getElementById('gameOverScreen').classList.remove('show');
+  document.getElementById('gameOverScreen').classList.remove('sichtbar');
   comboRendern();
   punkteRendern();
   canvasGroesseAnpassen();
@@ -850,9 +951,9 @@ function spielStart() {
 
 async function spielEnde() {
   istGameOver = true;
-  document.getElementById('gameOverScreen').classList.add('show');
+  document.getElementById('gameOverScreen').classList.add('sichtbar');
   document.getElementById('goScore').textContent = punkte;
-  const isNeu = punkte > 0 && punkte >= highscore;
+  const isNeu = punkte > 0 && punkte > bestwertZuPartiebeginn;
   const hsEl = document.getElementById('goHs');
   hsEl.textContent = isNeu ? 'Neue Bestleistung!' : `Bestleistung: ${highscore}`;
   hsEl.className = `go-hs${isNeu ? ' new-record' : ''}`;
@@ -879,7 +980,7 @@ async function spielEnde() {
       lbEl.innerHTML = lb.map((e, i) => {
         const istIch = nutzername && e.benutzername === nutzername;
         const medal = i === 0 ? '1.' : i === 1 ? '2.' : i === 2 ? '3.' : `${i + 1}.`;
-        return `<div class="lb-row${istIch ? ' me' : ''}">
+        return `<div class="go-lb-row lb-row${istIch ? ' me' : ''}">
           <span class="lb-rank">${medal}</span>
           <span class="lb-name">${e.benutzername || 'Unbekannt'}</span>
           <span class="lb-score">${e.punkte ?? 0}</span>
@@ -895,10 +996,10 @@ async function spielEnde() {
 function trayPointerDown(e) {
   if (istAnimiert || istGameOver) return;
   const slot = e.target.closest('.tray-slot');
-  if (!slot || slot.classList.contains('used')) return;
+  if (!slot || slot.classList.contains('used') || slot.classList.contains('cant-fit')) return;
   const i = Number(slot.dataset.slot);
   if (!Number.isInteger(i) || i < 0 || i > 2) return;
-  if (!stuecke[i] || slot.classList.contains('cant-fit')) return;
+  if (!stuecke[i]) return;
   dragStart(e, i);
 }
 
