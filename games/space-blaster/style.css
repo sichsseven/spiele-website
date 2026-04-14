@@ -348,3 +348,14 @@ html, body {
   #hud { padding: .25rem .5rem; height: 40px; }
   .hud-val { font-size: .78rem; }
 }
+
+@media (min-width: 768px) {
+  .title-btns { width: min(340px, 46vw); }
+  #pw-timers { padding: .35rem .9rem; gap: .45rem; }
+}
+
+@media (min-width: 1024px) {
+  #screen-shop { align-items: center; }
+  .shop-grid { width: min(520px, 56vw); }
+  .shop-section-title { width: min(520px, 56vw); }
+}

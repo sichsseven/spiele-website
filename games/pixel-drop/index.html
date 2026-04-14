@@ -8,9 +8,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<main>
 
 <!-- ── TITLE SCREEN ─────────────────────────── -->
-<div class="screen" id="screen-title">
+<section class="screen" id="screen-title">
   <a href="../../index.html" class="back-btn">← PIXELZONE</a>
   <div class="title-logo">PIXEL<br>DROP</div>
   <div class="title-sub">Block-Physik-Puzzle</div>
@@ -18,10 +19,10 @@
     <button class="btn btn-primary" id="btn-play">▶ Spielen</button>
     <button class="btn btn-secondary" id="btn-lb-title">🏆 Rangliste</button>
   </div>
-</div>
+</section>
 
 <!-- ── GAME SCREEN ──────────────────────────── -->
-<div class="screen hidden" id="screen-game">
+<section class="screen hidden" id="screen-game">
   <div id="hud">
     <div class="hud-left">
       <span class="hud-crown">👑</span>
@@ -51,10 +52,10 @@
 
   <!-- Level-Up Toast -->
   <div id="level-up-toast" class="hidden">Level 2 erreicht! ⭐</div>
-</div>
+</section>
 
 <!-- ── GAME OVER ─────────────────────────────── -->
-<div class="screen hidden" id="screen-gameover">
+<section class="screen hidden" id="screen-gameover">
   <div class="go-title">GAME OVER</div>
   <div class="result-box">
     <div class="result-row"><span>Punkte</span><span id="res-score">0</span></div>
@@ -69,14 +70,15 @@
     <button class="btn btn-primary" id="btn-retry">🔄 Nochmal</button>
     <button class="btn btn-secondary" id="btn-lb-go">🏆 Rangliste</button>
   </div>
-</div>
+</section>
 
 <!-- ── RANGLISTE ─────────────────────────────── -->
-<div class="screen hidden" id="screen-lb">
+<section class="screen hidden" id="screen-lb">
   <button class="back-btn" id="btn-lb-back">← Zurück</button>
   <div class="lb-title">🏆 RANGLISTE</div>
   <div id="lb-content"></div>
-</div>
+</section>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../../auth.js"></script>

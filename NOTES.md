@@ -1,6 +1,14 @@
 # NOTES.md — Fortschrittsprotokoll
 
-## Heutiger Stand (2026-04-14)
+## Heutiger Stand (2026-04-14) — Pixel Factory Voll-Optimierung
+
+### Pixel Factory – Talentbaum, Quantum, Pipeline, Migration ✅
+- **Zielmetriken**: Kommentarblock `BALANCING – Zielmetriken` in `game.js` (früh/mittel/spät).
+- **Talentbaum v2**: Vier Pfade (`pf_k_*`, `pf_p_*`, `pf_q_*`, `pf_u_*`) + `pf_root`; weichere Stufen-Boni.
+- **Quantum/Prestige**: Additive `qp_global_add` / `qp_klick_add` mit Softcap in `spielModifikatoren()`; Meilensteine ohne ×1000-Sprünge; Prestige-Schwelle `4200×1,44^n` + Talent + Lifetime-Glättung; QP aus Lifetime + aktuellen Pixeln + Talent.
+- **Pipeline**: `spielModifikatoren()` zentral für PPS/PPK-Quantum-Boni, goldene Pixel, Ehrgeiz (über `pf_u_t4`).
+- **Save-Migration**: `schemaVersion: 2`, `LEGACY_*`-Maps für alte Talent- und Quantum-Upgrade-IDs, Ausführung in `spielstandLaden()`.
+- **Technik**: `node --check` auf `games/pixel-factory/game.js` OK.
 
 ### Ranglisten-Bugs, Space Blaster, Balancing, EXP-System ✅
 
@@ -57,7 +65,7 @@
 - `games/space-blaster/game.js` — Punkte, Ecken-Schaden, Pause-Logik
 - `games/space-blaster/index.html` — Pause-Button + Pausemenü HTML
 - `games/space-blaster/style.css` — Pause-Button + Pausemenü CSS
-- `games/pixel-factory/game.js` — Balancing: Prestige-Schwelle, QP-Berechnung, QP-Preise
+- `games/pixel-factory/game.js` — Voll-Optimierung (Talent v2, Quantum additiv, Migration, Pipeline) + früheres Balancing
 
 ## Heutiger Stand (2026-04-13)
 

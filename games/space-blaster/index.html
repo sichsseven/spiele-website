@@ -8,9 +8,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<main>
 
 <!-- ── TITLE SCREEN ─────────────────────────── -->
-<div class="screen" id="screen-title">
+<section class="screen" id="screen-title">
   <a href="../../index.html" class="back-btn">← PIXELZONE</a>
   <div class="title-logo">SPACE<br>BLASTER</div>
   <div class="title-sub">PIXELZONE ARCADE</div>
@@ -20,10 +21,10 @@
     <button class="btn btn-secondary" id="btn-lb">🏆 Rangliste</button>
     <button class="btn btn-secondary" id="btn-shop-title">🛒 Shop</button>
   </div>
-</div>
+</section>
 
 <!-- ── GAME SCREEN ──────────────────────────── -->
-<div class="screen hidden" id="screen-game">
+<section class="screen hidden" id="screen-game">
   <div id="hud">
     <div class="hud-item"><span class="hud-label">Punkte</span><span class="hud-val" id="hud-score">0</span></div>
     <div class="hud-item"><span class="hud-label">Welle</span><span class="hud-val" id="hud-wave">1</span></div>
@@ -42,10 +43,10 @@
       <button class="btn btn-secondary" onclick="spielStarten()">↺ Neustart</button>
     </div>
   </div>
-</div>
+</section>
 
 <!-- ── GAME OVER ─────────────────────────────── -->
-<div class="screen hidden" id="screen-gameover">
+<section class="screen hidden" id="screen-gameover">
   <div class="go-title">GAME OVER</div>
   <div class="go-wave" id="go-wave">Welle 1 erreicht</div>
   <div class="result-box">
@@ -63,10 +64,10 @@
     <button class="btn btn-secondary" id="btn-shop-go">🛒 Shop</button>
     <button class="btn btn-secondary" id="btn-lb-go">🏆 Rangliste</button>
   </div>
-</div>
+</section>
 
 <!-- ── SHOP ──────────────────────────────────── -->
-<div class="screen hidden" id="screen-shop">
+<section class="screen hidden" id="screen-shop">
   <div class="shop-header">
     <button class="back-btn-inline" id="btn-shop-back" aria-label="Zurück">←</button>
     <div class="shop-title">SHOP</div>
@@ -76,14 +77,15 @@
   <div class="shop-grid" id="shop-pw-duration"></div>
   <div class="shop-section-title">Maximale Leben erhöhen</div>
   <div class="shop-grid" id="shop-max-lives"></div>
-</div>
+</section>
 
 <!-- ── RANGLISTE ─────────────────────────────── -->
-<div class="screen hidden" id="screen-lb">
+<section class="screen hidden" id="screen-lb">
   <button class="back-btn" id="btn-lb-back">← Zurück</button>
   <div class="lb-title">🏆 RANGLISTE</div>
   <div id="lb-content"></div>
-</div>
+</section>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../../auth.js"></script>

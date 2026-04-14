@@ -1089,6 +1089,21 @@ body {
   #skinGrid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
 }
 
+/* iPad/Tablet-first Erweiterungen */
+@media (min-width: 768px) {
+  .spiel-layout {
+    grid-template-columns: 220px 1fr 320px;
+  }
+  #pixelHaufen { width: 280px; height: 280px; }
+}
+
+@media (min-width: 1024px) {
+  .spiel-layout {
+    grid-template-columns: 260px 1fr 380px;
+  }
+  #pixelHaufen { width: 300px; height: 300px; }
+}
+
 /* ── HINTERGRUND-ANIMATIONEN ─────────────────────────── */
 .spiel-mitte { position: relative; }
 

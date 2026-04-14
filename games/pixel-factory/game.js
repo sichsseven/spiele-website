@@ -4,6 +4,13 @@
 // ║  PIXEL FACTORY – Spielkonstanten                        ║
 // ╚══════════════════════════════════════════════════════════╝
 
+// === BALANCING – Zielmetriken (Richtwerte für Kurven) ===
+// Früh:   erste sinnvolle Gebäude-Käufe < 2 min; erstes Prestige ca. 15–45 min aktiv.
+// Mittel: Prestige-Abstände spürbar, aber ohne Stillstand; QP wirkt wie Fortschritt.
+// Spät:   weiches Endgame über additive Quantum-Boni + Softcaps, kein ×1000-Sprung-Shop.
+
+const SPIEL_SCHEMA_VERSION = 2;
+
 // === GEBÄUDE ===
 // basisPPS verdoppelt sich bei jedem Gebäude-Typ (Typ 1=1, Typ 2=2, Typ 3=4, ...)
 // Pro gekauftem Stück: basisPPS × anzahl (linear)
@@ -27,10 +34,16 @@ const GEBAEUDE = [
 
 // Preis eines Gebäudes bei aktueller Anzahl
 function gebaeudePreis(g, anzahl) {
-  let preis = g.basisPreis * Math.pow(1.15, anzahl);
+  const fortschrittPixel = Math.log10((zustand.lifetimePixel || 0) + 10) / 14;
+  const fortschrittPrestige = (zustand.prestige || 0) / 120;
+  const fortschritt = Math.max(0, Math.min(1, fortschrittPixel + fortschrittPrestige));
+
+  // Früher leicht günstiger, im Endgame spürbar teurer.
+  const wachstum = 1.12 + fortschritt * 0.06; // 1.12 .. 1.18
+  let preis = g.basisPreis * Math.pow(wachstum, anzahl);
   // Talent: Gebäude-Rabatt
-  const rabatt = talentLevel('tal_prod_rabatt');
-  if (rabatt > 0) preis *= Math.pow(1 - 0.08, rabatt);
+  const rabatt = talentLevel('pf_p_t2');
+  if (rabatt > 0) preis *= Math.pow(1 - 0.06, rabatt);
   return Math.ceil(preis);
 }
 
@@ -141,73 +154,64 @@ const SYNERGIE_UPGRADES = [
 const UPGRADES = [...KLICK_UPGRADES, ...PPS_UPGRADES, ...GEBAEUDE_UPGRADES, ...OFFLINE_UPGRADES, ...SYNERGIE_UPGRADES];
 
 // === PRESTIGE-UPGRADES (mit Quantum-Pixel kaufbar) ===
-// Kein 'bedingung'-Feld – sie sind immer sichtbar (nur QP-Preis entscheidet)
+// Additive Boni (qp_global_add / qp_klick_add) werden in der Modifikator-Pipeline mit Softcap summiert.
+// Kein 'bedingung'-Feld – sichtbarkeit nur über QP-Preis / minPrestige.
 const PRESTIGE_UPGRADES = [
-  // Globale Multiplikatoren (10 Stück) – Preise ~2× erhöht für bessere Balance
-  { id: 'qp_global_1',  name: 'Quanten-Fabrik I',    beschreibung: 'Alle Produktion ×1,5',   preisQP: 2,    typ: 'qp_global_mult', wert: 1.5  },
-  { id: 'qp_global_2',  name: 'Quanten-Fabrik II',   beschreibung: 'Alle Produktion ×2',     preisQP: 6,    typ: 'qp_global_mult', wert: 2    },
-  { id: 'qp_global_3',  name: 'Quanten-Fabrik III',  beschreibung: 'Alle Produktion ×3',     preisQP: 15,   typ: 'qp_global_mult', wert: 3    },
-  { id: 'qp_global_4',  name: 'Quanten-Fabrik IV',   beschreibung: 'Alle Produktion ×5',     preisQP: 40,   typ: 'qp_global_mult', wert: 5    },
-  { id: 'qp_global_5',  name: 'Quanten-Fabrik V',    beschreibung: 'Alle Produktion ×10',    preisQP: 100,  typ: 'qp_global_mult', wert: 10   },
-  { id: 'qp_global_6',  name: 'Quanten-Fabrik VI',   beschreibung: 'Alle Produktion ×25',    preisQP: 200,  typ: 'qp_global_mult', wert: 25   },
-  { id: 'qp_global_7',  name: 'Quanten-Fabrik VII',  beschreibung: 'Alle Produktion ×50',    preisQP: 400,  typ: 'qp_global_mult', wert: 50   },
-  { id: 'qp_global_8',  name: 'Quanten-Fabrik VIII', beschreibung: 'Alle Produktion ×100',   preisQP: 1000, typ: 'qp_global_mult', wert: 100  },
-  { id: 'qp_global_9',  name: 'Quanten-Fabrik IX',   beschreibung: 'Alle Produktion ×250',   preisQP: 2000, typ: 'qp_global_mult', wert: 250  },
-  { id: 'qp_global_10', name: 'Quanten-Fabrik X',    beschreibung: 'Alle Produktion ×1000',  preisQP: 5000, typ: 'qp_global_mult', wert: 1000 },
-  // Klick-Multiplikatoren (5 Stück) – Preise ~2× erhöht
-  { id: 'qp_klick_1', name: 'Quanten-Klick I',   beschreibung: 'Klick-Leistung ×2',   preisQP: 4,   typ: 'qp_klick_mult', wert: 2   },
-  { id: 'qp_klick_2', name: 'Quanten-Klick II',  beschreibung: 'Klick-Leistung ×5',   preisQP: 20,  typ: 'qp_klick_mult', wert: 5   },
-  { id: 'qp_klick_3', name: 'Quanten-Klick III', beschreibung: 'Klick-Leistung ×20',  preisQP: 80,  typ: 'qp_klick_mult', wert: 20  },
-  { id: 'qp_klick_4', name: 'Quanten-Klick IV',  beschreibung: 'Klick-Leistung ×100', preisQP: 300, typ: 'qp_klick_mult', wert: 100 },
-  { id: 'qp_klick_5', name: 'Quanten-Klick V',   beschreibung: 'Klick-Leistung ×500', preisQP: 1000,typ: 'qp_klick_mult', wert: 500 },
-  // Goldene Pixel (3 Stück)
-  { id: 'qp_golden_1', name: 'Goldene Augen I',   beschreibung: 'Goldene Pixel erscheinen 2× häufiger', preisQP: 5,  typ: 'qp_golden_freq',  wert: 2 },
-  { id: 'qp_golden_2', name: 'Goldene Augen II',  beschreibung: 'Goldene Pixel geben 3× mehr Bonus',    preisQP: 15, typ: 'qp_golden_bonus', wert: 3 },
-  { id: 'qp_golden_3', name: 'Goldene Augen III', beschreibung: 'Goldene Pixel erscheinen 5× häufiger', preisQP: 50, typ: 'qp_golden_freq',  wert: 5 },
-  // Besondere (2 Stück)
-  { id: 'qp_pps_base', name: 'Quanten-Effizienz', beschreibung: 'PpS ×5 als globaler Bonus',          preisQP: 30, typ: 'qp_global_mult',  wert: 5   },
-  { id: 'qp_start',    name: 'Quantum-Start',      beschreibung: 'Starte nach Prestige mit 100 Pixel', preisQP: 25, typ: 'qp_start_bonus',  wert: 100 },
-  // ✦ Meilenstein-Upgrades (jede 10. Prestige-Stufe)
-  { id: 'ms_10', name: '✦ Meilenstein: Dekade I',    beschreibung: 'Alle Produktion ×8 (dauerhaft)',  preisQP: 8,   typ: 'qp_global_mult', wert: 8,   minPrestige: 10, meilenstein: true },
-  { id: 'ms_20', name: '✦ Meilenstein: Dekade II',   beschreibung: 'Alle Produktion ×20 (dauerhaft)', preisQP: 25,  typ: 'qp_global_mult', wert: 20,  minPrestige: 20, meilenstein: true },
-  { id: 'ms_30', name: '✦ Meilenstein: Dekade III',  beschreibung: 'Klick-Leistung ×500 (dauerhaft)', preisQP: 75,  typ: 'qp_klick_mult',  wert: 500, minPrestige: 30, meilenstein: true },
-  { id: 'ms_40', name: '✦ Meilenstein: Dekade IV',   beschreibung: 'Alle Produktion ×75 (dauerhaft)', preisQP: 200, typ: 'qp_global_mult', wert: 75,  minPrestige: 40, meilenstein: true },
-  { id: 'ms_50', name: '✦ Meilenstein: Dekade V',    beschreibung: 'Alle Produktion ×300 (dauerhaft)',preisQP: 500, typ: 'qp_global_mult', wert: 300, minPrestige: 50, meilenstein: true },
+  // Globale Produktion: kleine additive Schritte (gestapelt, im Code gedeckelt)
+  { id: 'qp_p_1',  name: 'Quanten-Fabrik α',   beschreibung: '+10 % Gesamt-Produktion (additiv)',     preisQP: 3,    typ: 'qp_global_add', wert: 0.10 },
+  { id: 'qp_p_2',  name: 'Quanten-Fabrik β',   beschreibung: '+9 % Gesamt-Produktion (additiv)',      preisQP: 8,    typ: 'qp_global_add', wert: 0.09 },
+  { id: 'qp_p_3',  name: 'Quanten-Fabrik γ',   beschreibung: '+8 % Gesamt-Produktion (additiv)',      preisQP: 18,   typ: 'qp_global_add', wert: 0.08 },
+  { id: 'qp_p_4',  name: 'Quanten-Fabrik δ',   beschreibung: '+8 % Gesamt-Produktion (additiv)',      preisQP: 35,   typ: 'qp_global_add', wert: 0.08 },
+  { id: 'qp_p_5',  name: 'Quanten-Fabrik ε',   beschreibung: '+7 % Gesamt-Produktion (additiv)',      preisQP: 65,   typ: 'qp_global_add', wert: 0.07 },
+  { id: 'qp_p_6',  name: 'Quanten-Fabrik ζ',   beschreibung: '+7 % Gesamt-Produktion (additiv)',      preisQP: 120,  typ: 'qp_global_add', wert: 0.07 },
+  { id: 'qp_p_7',  name: 'Quanten-Fabrik η',   beschreibung: '+6 % Gesamt-Produktion (additiv)',      preisQP: 220,  typ: 'qp_global_add', wert: 0.06 },
+  { id: 'qp_p_8',  name: 'Quanten-Fabrik θ',   beschreibung: '+6 % Gesamt-Produktion (additiv)',      preisQP: 400,  typ: 'qp_global_add', wert: 0.06 },
+  { id: 'qp_p_9',  name: 'Quanten-Fabrik ι',   beschreibung: '+5 % Gesamt-Produktion (additiv)',      preisQP: 700,  typ: 'qp_global_add', wert: 0.05 },
+  { id: 'qp_p_10', name: 'Quanten-Fabrik κ',   beschreibung: '+5 % Gesamt-Produktion (additiv)',      preisQP: 1200, typ: 'qp_global_add', wert: 0.05 },
+  // Klick: additive Boni auf Klick-„Layer“ (nach Basisklick, mit Softcap)
+  { id: 'qp_k_1', name: 'Quanten-Klick α', beschreibung: '+12 % Klick-Leistung (additiv)', preisQP: 6,   typ: 'qp_klick_add', wert: 0.12 },
+  { id: 'qp_k_2', name: 'Quanten-Klick β', beschreibung: '+11 % Klick-Leistung (additiv)', preisQP: 18,  typ: 'qp_klick_add', wert: 0.11 },
+  { id: 'qp_k_3', name: 'Quanten-Klick γ', beschreibung: '+10 % Klick-Leistung (additiv)', preisQP: 45,  typ: 'qp_klick_add', wert: 0.10 },
+  { id: 'qp_k_4', name: 'Quanten-Klick δ', beschreibung: '+9 % Klick-Leistung (additiv)',  preisQP: 100, typ: 'qp_klick_add', wert: 0.09 },
+  { id: 'qp_k_5', name: 'Quanten-Klick ε', beschreibung: '+8 % Klick-Leistung (additiv)',  preisQP: 220, typ: 'qp_klick_add', wert: 0.08 },
+  // Goldene Pixel
+  { id: 'qp_golden_1', name: 'Goldene Augen I',   beschreibung: 'Goldene Pixel erscheinen öfter',   preisQP: 8,  typ: 'qp_golden_freq',  wert: 1.4 },
+  { id: 'qp_golden_2', name: 'Goldene Augen II',  beschreibung: 'Goldene Pixel geben mehr Bonus',   preisQP: 22, typ: 'qp_golden_bonus', wert: 1.35 },
+  { id: 'qp_golden_3', name: 'Goldene Augen III', beschreibung: 'Goldene Pixel noch häufiger',      preisQP: 55, typ: 'qp_golden_freq',  wert: 1.45 },
+  // Start nach Prestige (einmalig wirksam beim Reset)
+  { id: 'qp_start', name: 'Quantum-Start', beschreibung: '+35 Start-Pixel nach jedem Prestige', preisQP: 28, typ: 'qp_start_bonus', wert: 35 },
+  // ✦ Meilensteine – moderate additive Sprünge (keine ×1000)
+  { id: 'ms_10', name: '✦ Meilenstein I',   beschreibung: '+18 % Produktion (additiv)', preisQP: 12,  typ: 'qp_global_add', wert: 0.18, minPrestige: 10, meilenstein: true },
+  { id: 'ms_20', name: '✦ Meilenstein II',  beschreibung: '+15 % Produktion (additiv)', preisQP: 35,  typ: 'qp_global_add', wert: 0.15, minPrestige: 20, meilenstein: true },
+  { id: 'ms_30', name: '✦ Meilenstein III', beschreibung: '+14 % Klick (additiv)',      preisQP: 90,  typ: 'qp_klick_add',  wert: 0.14, minPrestige: 30, meilenstein: true },
+  { id: 'ms_40', name: '✦ Meilenstein IV',  beschreibung: '+14 % Produktion (additiv)', preisQP: 220, typ: 'qp_global_add', wert: 0.14, minPrestige: 40, meilenstein: true },
+  { id: 'ms_50', name: '✦ Meilenstein V',   beschreibung: '+12 % Produktion (additiv)', preisQP: 480, typ: 'qp_global_add', wert: 0.12, minPrestige: 50, meilenstein: true },
 ];
 
 // === TALENTE ===
-// Baumstruktur: col/row = Position im Talent-Baum, requires = Voraussetzung (ID)
-// tal_root wird automatisch beim ersten Prestige freigeschaltet (kostet keinen Punkt)
+// Vier Pfade (Klick / Produktion / Quantum / Utility), linear je Spalte; pf_root beim ersten Prestige aktiv.
 const TALENTE = [
-  // WURZEL (automatisch freigeschaltet beim ersten Prestige)
-  { id: 'tal_root',          name: 'Fabrik-Lehrling',    beschr: 'Fundament aller Talente',                         maxLevel: 1, wert: 0,    typ: 'root',        col: 6,    row: 0, requires: null },
+  { id: 'pf_root', name: 'Fabrik-Lehrling', beschr: 'Freischaltung des Talentbaums', maxLevel: 1, wert: 0, typ: 'root', col: 6, row: 0, requires: null },
 
-  // EBENE 1 – Kategorie-Wurzeln (alle brauchen tal_root)
-  { id: 'tal_klick_speed',   name: 'Schnelle Finger',    beschr: '+25% Klick-Produktion pro Stufe',                 maxLevel: 5, wert: 0.25, typ: 'ppk_mult_add', col: 1.5,  row: 1, requires: 'tal_root' },
-  { id: 'tal_prod_eff',      name: 'Fabrik-Effizienz',   beschr: '+10% PPS global pro Stufe',                       maxLevel: 5, wert: 0.10, typ: 'pps_mult_add', col: 4.0,  row: 1, requires: 'tal_root' },
-  { id: 'tal_pre_qp',        name: 'QP-Bonus',           beschr: '+1 QP pro Prestige pro Stufe',                    maxLevel: 5, wert: 1,    typ: 'qp_bonus',     col: 6.0,  row: 1, requires: 'tal_root' },
-  { id: 'tal_start_pixel',   name: 'Pixel-Magnet',       beschr: '+200 Startpixel nach Prestige/Stufe',             maxLevel: 5, wert: 200,  typ: 'start_pixel',  col: 8.5,  row: 1, requires: 'tal_root' },
-  { id: 'tal_sp_pps_klick',  name: 'Synergieeffekt',     beschr: '+1% PPK basierend auf PPS/Stufe',                 maxLevel: 5, wert: 0.01, typ: 'pps_zu_ppk',  col: 11.5, row: 1, requires: 'tal_root' },
+  { id: 'pf_k_t1', name: 'Schnelle Finger', beschr: '+5 % Klick-Leistung pro Stufe (additiv)', maxLevel: 5, wert: 0.05, typ: 'ppk_mult_add', col: 1.5, row: 1, requires: 'pf_root' },
+  { id: 'pf_k_t2', name: 'Kritischer Fokus', beschr: '+3 % Krit-Chance pro Stufe', maxLevel: 5, wert: 0.03, typ: 'krit_chance', col: 1.5, row: 2, requires: 'pf_k_t1' },
+  { id: 'pf_k_t3', name: 'Kombomeister', beschr: 'Kombo bricht langsamer ab pro Stufe', maxLevel: 3, wert: 0.22, typ: 'kombo_dauer', col: 1.5, row: 3, requires: 'pf_k_t2' },
+  { id: 'pf_k_t4', name: 'Klick-Synergie', beschr: '+0,8 % der PPS als Extra-Klick/Stufe', maxLevel: 5, wert: 0.008, typ: 'klick_pps', col: 1.5, row: 4, requires: 'pf_k_t3' },
 
-  // EBENE 2 – Zweige
-  { id: 'tal_klick_krit',    name: 'Kritischer Treffer', beschr: '+5% Chance auf Krit-Klick pro Stufe',             maxLevel: 5, wert: 0.05, typ: 'krit_chance',  col: 1.0,  row: 2, requires: 'tal_klick_speed' },
-  { id: 'tal_klick_pps',     name: 'Klick-Synergie',     beschr: 'Klicks geben +1% der PPS/Stufe extra',           maxLevel: 3, wert: 0.01, typ: 'klick_pps',    col: 2.0,  row: 2, requires: 'tal_klick_speed' },
-  { id: 'tal_prod_rabatt',   name: 'Gebäude-Rabatt',     beschr: 'Gebäude 8% günstiger pro Stufe',                  maxLevel: 3, wert: 0.08, typ: 'gebaeude_rab', col: 3.5,  row: 2, requires: 'tal_prod_eff' },
-  { id: 'tal_prod_gold',     name: 'Goldener Sinn',      beschr: 'Goldene Pixel 2× häufiger/Stufe',                 maxLevel: 3, wert: 2,    typ: 'golden_freq',  col: 4.5,  row: 2, requires: 'tal_prod_eff' },
-  { id: 'tal_pre_mult',      name: 'Prestige-Kraft',     beschr: 'Prestige-Multiplikator ×1,3/Stufe',               maxLevel: 3, wert: 1.30, typ: 'pre_mult',     col: 5.5,  row: 2, requires: 'tal_pre_qp' },
-  { id: 'tal_pre_schwelle',  name: 'Frühes Prestige',    beschr: 'Prestige-Schwelle −10% pro Stufe',                maxLevel: 3, wert: 0.10, typ: 'pre_schwelle', col: 6.5,  row: 2, requires: 'tal_pre_qp' },
-  { id: 'tal_start_geb',     name: 'Schnellstart',       beschr: '+2 Einfache Maschinen zu Beginn/Stufe',           maxLevel: 3, wert: 2,    typ: 'start_geb',    col: 8.0,  row: 2, requires: 'tal_start_pixel' },
-  { id: 'tal_start_upg',     name: 'Vorbereitung',       beschr: 'Erstes Klick-Upgrade gratis',                     maxLevel: 1, wert: 1,    typ: 'start_upg',    col: 9.0,  row: 2, requires: 'tal_start_pixel' },
-  { id: 'tal_sp_golden',     name: 'Goldgier',           beschr: 'Goldene Pixel +50% Bonus/Stufe',                  maxLevel: 3, wert: 0.50, typ: 'golden_bonus', col: 11.0, row: 2, requires: 'tal_sp_pps_klick' },
-  { id: 'tal_sp_err',        name: 'Ehrgeiz',            beschr: '+0,5% PPS pro Errungenschaft',                    maxLevel: 1, wert: 0.005,typ: 'err_bonus',    col: 12.0, row: 2, requires: 'tal_sp_pps_klick' },
+  { id: 'pf_p_t1', name: 'Fabrik-Effizienz', beschr: '+6 % PPS pro Stufe (additiv)', maxLevel: 5, wert: 0.06, typ: 'pps_mult_add', col: 4, row: 1, requires: 'pf_root' },
+  { id: 'pf_p_t2', name: 'Einkauf-Rabatt', beschr: 'Gebäude 6 % günstiger pro Stufe (multiplikativ)', maxLevel: 3, wert: 0.06, typ: 'gebaeude_rab', col: 4, row: 2, requires: 'pf_p_t1' },
+  { id: 'pf_p_t3', name: 'Generalfabrik', beschr: '+4 % effektive Gebäude-PPS pro Stufe', maxLevel: 3, wert: 0.04, typ: 'alle_geb_mult', col: 4, row: 3, requires: 'pf_p_t2' },
+  { id: 'pf_p_t4', name: 'Nachtschicht', beschr: '+80 % maximale Offline-Zeit pro Stufe', maxLevel: 2, wert: 0.8, typ: 'offline_mult', col: 4, row: 4, requires: 'pf_p_t3' },
 
-  // EBENE 3 – Blätter
-  { id: 'tal_klick_kombo',   name: 'Kombomeister',       beschr: 'Kombo verfällt 30% langsamer/Stufe',              maxLevel: 3, wert: 0.30, typ: 'kombo_dauer',  col: 0.5,  row: 3, requires: 'tal_klick_krit' },
-  { id: 'tal_klick_krit_mult',name:'Krit. Multiplikator',beschr: 'Krit-Klick gibt ×0,5 mehr/Stufe (Standard ×3)',  maxLevel: 4, wert: 0.5,  typ: 'krit_mult',    col: 1.5,  row: 3, requires: 'tal_klick_krit' },
-  { id: 'tal_sp_alle_geb',   name: 'Generalfabrik',      beschr: 'Alle Gebäude ×1,1 effektiver/Stufe',              maxLevel: 3, wert: 1.10, typ: 'alle_geb_mult',col: 3.5,  row: 3, requires: 'tal_prod_rabatt' },
-  { id: 'tal_prod_offline',  name: 'Nachtschicht',       beschr: 'Offline-Zeit ×2 pro Stufe',                       maxLevel: 2, wert: 2,    typ: 'offline_mult', col: 4.5,  row: 3, requires: 'tal_prod_gold' },
-  { id: 'tal_pre_upgrade',   name: 'Upgrade-Kenner',     beschr: 'Upgrades 10% günstiger pro Stufe',                maxLevel: 2, wert: 0.10, typ: 'upgrade_rab',  col: 6.5,  row: 3, requires: 'tal_pre_schwelle' },
-  { id: 'tal_start_kombo',   name: 'Kombo-Start',        beschr: 'Starte mit ×2-Kombo aktiv',                       maxLevel: 1, wert: 1,    typ: 'start_kombo',  col: 9.0,  row: 3, requires: 'tal_start_upg' },
+  { id: 'pf_q_t1', name: 'QP-Einlösung', beschr: '+0,35 QP pro Prestige pro Stufe (gerundet)', maxLevel: 5, wert: 0.35, typ: 'qp_bonus', col: 7, row: 1, requires: 'pf_root' },
+  { id: 'pf_q_t2', name: 'Prestige-Kraft', beschr: '+4 % Prestige-Multi pro Stufe (additiv)', maxLevel: 3, wert: 0.04, typ: 'pre_mult', col: 7, row: 2, requires: 'pf_q_t1' },
+  { id: 'pf_q_t3', name: 'Quanten-Schwelle', beschr: '−6 % Prestige-Schwelle pro Stufe', maxLevel: 3, wert: 0.06, typ: 'pre_schwelle', col: 7, row: 3, requires: 'pf_q_t2' },
+  { id: 'pf_q_t4', name: 'Upgrade-Händler', beschr: 'Normale Upgrades 7 % günstiger pro Stufe', maxLevel: 2, wert: 0.07, typ: 'upgrade_rab', col: 7, row: 4, requires: 'pf_q_t3' },
+
+  { id: 'pf_u_t1', name: 'Pixel-Magnet', beschr: '+120 Startpixel nach Prestige pro Stufe', maxLevel: 5, wert: 120, typ: 'start_pixel', col: 10, row: 1, requires: 'pf_root' },
+  { id: 'pf_u_t2', name: 'Schnellstart', beschr: '+1 Einfache Maschine pro Stufe nach Prestige', maxLevel: 3, wert: 1, typ: 'start_geb', col: 10, row: 2, requires: 'pf_u_t1' },
+  { id: 'pf_u_t3', name: 'Vorbereitung', beschr: 'Nach Prestige: ×2-Kombo + erstes Klick-Upgrade gratis', maxLevel: 1, wert: 1, typ: 'start_upg', col: 10, row: 3, requires: 'pf_u_t2' },
+  { id: 'pf_u_t4', name: 'Glänzend & ehrgeizig', beschr: 'Goldene Pixel häufiger, mehr Bonus, +0,3 % PPS pro Ehrung', maxLevel: 3, wert: 1, typ: 'utility_gold_err', col: 10, row: 4, requires: 'pf_u_t3' },
 ];
 
 // === SKINS ===
@@ -551,6 +555,7 @@ function standardZustand() {
     _komboReached3: false,
     talentPunkte: 0,
     talente: {},
+    schemaVersion: SPIEL_SCHEMA_VERSION,
   };
 }
 
@@ -608,29 +613,73 @@ function fmt(n) {
   return wert.toFixed(nachkomma).replace('.', ',') + EINHEITEN[exp];
 }
 
+// Sanfte Kappung: hohe Werte wachsen weiter, aber kontrollierter.
+function softcapWert(wert, schwelle, staerke = 0.8) {
+  if (wert <= schwelle) return wert;
+  return schwelle + Math.pow(wert - schwelle, staerke);
+}
+
 // ╔══════════════════════════════════════════════════════════╗
 // ║  BERECHNUNGEN                                           ║
 // ╚══════════════════════════════════════════════════════════╝
 
+/** Zentrale Modifikator-Pipeline: Prestige-Upgrades (additiv) + Talent-Boni. */
+function spielModifikatoren() {
+  let qpGlobalAdd = 0;
+  let qpKlickAdd = 0;
+  for (const upId of zustand.prestigeUpgrades || []) {
+    const up = PRESTIGE_UPGRADES.find(u => u.id === upId);
+    if (!up) continue;
+    if (up.typ === 'qp_global_add') qpGlobalAdd += up.wert;
+    if (up.typ === 'qp_klick_add') qpKlickAdd += up.wert;
+  }
+  const globalProdMult = 1 + softcapWert(qpGlobalAdd, 1.35, 0.78);
+  const globalKlickMult = 1 + softcapWert(qpKlickAdd, 1.2, 0.78);
+
+  const p1 = talentLevel('pf_p_t1');
+  const p3 = talentLevel('pf_p_t3');
+  const talentPpsMult = (1 + p1 * 0.06) * (1 + p3 * 0.04);
+
+  const k1 = talentLevel('pf_k_t1');
+  const talentPpkMult = 1 + k1 * 0.05;
+
+  const u4 = talentLevel('pf_u_t4');
+  const errCount = (zustand.errungenschaften || []).length;
+  const errPpsMult = 1 + errCount * 0.003 * u4;
+
+  const goldenFreqTal = Math.pow(1.15, u4);
+  const goldenBonusTal = 1 + 0.1 * u4;
+
+  return {
+    globalProdMult,
+    globalKlickMult,
+    talentPpsMult,
+    talentPpkMult,
+    errPpsMult,
+    goldenFreqTal,
+    goldenBonusTal,
+  };
+}
+
 function berechnePrestigeMultiplikator() {
   const p = zustand.prestige;
   if (p === 0) return 1;
-  let mult = 1 + p * 0.05;
-  if (p >= 25) mult *= Math.pow(p, 0.5);
-  // Talent: Prestige-Kraft (×1,3 pro Stufe)
-  const preMult = talentLevel('tal_pre_mult');
-  if (preMult > 0) mult *= Math.pow(1.30, preMult);
+  let mult = 1 + p * 0.045;
+  if (p >= 28) mult *= Math.pow(p, 0.38);
+  const q2 = talentLevel('pf_q_t2');
+  if (q2 > 0) mult *= (1 + q2 * 0.04);
+  mult = softcapWert(mult, 38, 0.72);
   return mult;
 }
 
 function berechnePPS() {
   let pps = 0;
+  const mod = spielModifikatoren();
 
   for (const g of GEBAEUDE) {
     const anzahl = zustand.gebaeude[g.id] || 0;
     if (anzahl === 0) continue;
 
-    // Jeder Gebäude-Typ ist doppelt so stark wie der vorherige; Anzahl zählt linear
     let basePPS = g.basisPPS * anzahl;
     let mult = 1;
 
@@ -650,42 +699,23 @@ function berechnePPS() {
     pps += basePPS * mult;
   }
 
-  // Globale additive PPS-Upgrades
   for (const upId of zustand.upgrades) {
     const up = UPGRADES.find(u => u.id === upId);
     if (up?.typ === 'pps_add') pps += up.wert;
   }
 
-  // Globale multiplikative PPS-Upgrades (aus normalen Upgrades)
   for (const upId of zustand.upgrades) {
     const up = UPGRADES.find(u => u.id === upId);
     if (up?.typ === 'pps_mult') pps *= up.wert;
   }
 
-  for (const upId of zustand.prestigeUpgrades) {
-    const up = PRESTIGE_UPGRADES.find(u => u.id === upId);
-    if (up?.typ === 'qp_global_mult') pps *= up.wert;
-  }
-
+  pps *= mod.globalProdMult;
   pps *= berechnePrestigeMultiplikator();
+  pps *= mod.talentPpsMult;
+  pps *= mod.errPpsMult;
 
-  // Talent-Boni
-  const prodEff = talentLevel('tal_prod_eff');
-  if (prodEff > 0) pps *= (1 + prodEff * 0.10);
-
-  const alleGebMult = talentLevel('tal_sp_alle_geb');
-  if (alleGebMult > 0) {
-    // Bereits in Gebäude-Schleife eingerechnet? Nein – hier global nochmal
-    // Wir addieren hier stattdessen als separaten PPS-Bonus
-    pps *= Math.pow(1.10, alleGebMult);
-  }
-
-  const errBonus = talentLevel('tal_sp_err');
-  if (errBonus > 0) {
-    const anzahlErr = (zustand.errungenschaften || []).length;
-    pps *= (1 + anzahlErr * 0.005);
-  }
-
+  pps = softcapWert(pps, 2e6, 0.82);
+  pps = softcapWert(pps, 2e8, 0.65);
   return pps;
 }
 
@@ -700,24 +730,21 @@ function berechnePPK() {
     if (up.typ === 'klick_mult') mult *= up.wert;
   }
 
-  for (const upId of zustand.prestigeUpgrades) {
-    const up = PRESTIGE_UPGRADES.find(u => u.id === upId);
-    if (up?.typ === 'qp_klick_mult') mult *= up.wert;
-  }
-
+  const mod = spielModifikatoren();
   let ppk = (1 + additiv) * mult * berechnePrestigeMultiplikator();
+  ppk *= mod.globalKlickMult;
+  ppk *= mod.talentPpkMult;
 
-  // Talent: Schnelle Finger (+25% PPK pro Stufe)
-  const klickSpeed = talentLevel('tal_klick_speed');
-  if (klickSpeed > 0) ppk *= (1 + klickSpeed * 0.25);
-
-  // Basis-Synergie: Klicken gibt immer 5% der Passivproduktion pro Klick.
-  // → Bei 5 Klicks/s = +25% Einkommen; Klicken bleibt auf allen Stufen relevant.
   ppk += berechneteStats.pps * 0.05;
 
-  // Talent: PPS-zu-PPK Synergie (+1% der PPS als PPK pro Stufe, stapelt sich)
-  const ppsToPpk = talentLevel('tal_sp_pps_klick');
-  if (ppsToPpk > 0) ppk += berechneteStats.pps * ppsToPpk * 0.01;
+  const k4 = talentLevel('pf_k_t4');
+  if (k4 > 0) ppk += berechneteStats.pps * k4 * 0.008;
+
+  if (zustand.lifetimePixel < 5000) ppk *= 1.28;
+  else if (zustand.lifetimePixel < 50000) ppk *= 1.12;
+
+  ppk = softcapWert(ppk, 5e5, 0.82);
+  ppk = softcapWert(ppk, 5e7, 0.68);
 
   return ppk;
 }
@@ -728,20 +755,19 @@ function maxOfflineStunden() {
     const up = UPGRADES.find(u => u.id === upId);
     if (up?.typ === 'offline_stunden') stunden = Math.max(stunden, up.stunden);
   }
-  if (zustand.prestige >= 10) stunden *= 2;
-  // Talent: Nachtschicht (×2 pro Stufe)
-  const offlineMult = talentLevel('tal_prod_offline');
-  if (offlineMult > 0) stunden *= Math.pow(2, offlineMult);
+  if (zustand.prestige >= 10) stunden *= 1.35;
+  const offlineTalent = talentLevel('pf_p_t4');
+  if (offlineTalent > 0) stunden *= (1 + offlineTalent * 0.8);
   return stunden;
 }
 
 function berechneQPGewinn() {
-  // Abgeschwächte Skalierung: 5× mehr Pixel nötig für gleiche QP-Ausbeute
-  const basisQP = Math.max(1, Math.floor(Math.sqrt(zustand.lifetimePixel / 5e8)) + 1);
-  const prestigeBonus = Math.floor(zustand.prestige / 5);
-  // Talent: QP-Bonus (+1 pro Prestige pro Stufe)
-  const talentBonus = talentLevel('tal_pre_qp');
-  return basisQP + prestigeBonus + talentBonus;
+  const lp = zustand.lifetimePixel || 0;
+  const basis = Math.pow(lp / 4e8, 0.42) + 1;
+  const runBonus = Math.sqrt(Math.max(0, zustand.pixel) / 1e7) * 0.12;
+  const talentQ = talentLevel('pf_q_t1') * 0.35;
+  const prestigeBonus = zustand.prestige * 0.1;
+  return Math.max(1, Math.floor(basis + runBonus + talentQ + prestigeBonus));
 }
 
 function statsNeuBerechnen() {
@@ -757,7 +783,7 @@ function talentWert(id) {
 }
 
 function talentKaufen(tal) {
-  if (tal.id === 'tal_root') return; // auto-freigeschaltet
+  if (tal.id === 'pf_root') return; // auto-freigeschaltet
   const aktuell = talentLevel(tal.id);
   if (aktuell >= tal.maxLevel) return;
   if ((zustand.talentPunkte || 0) < 1) return;
@@ -831,7 +857,7 @@ function talentModalRendern() {
   let nodesHTML = '';
   for (const tal of TALENTE) {
     const lvl      = talentLevel(tal.id);
-    const isRoot   = tal.id === 'tal_root';
+    const isRoot   = tal.id === 'pf_root';
     const prereqOk = !tal.requires || talentLevel(tal.requires) >= 1;
     const maxed    = lvl >= tal.maxLevel;
     const kaufbar  = !isRoot && prereqOk && punkte >= 1 && !maxed;
@@ -915,7 +941,7 @@ function gameLoop(timestamp) {
   // Pro-Sekunde-Aufgaben
   if (Math.floor(timestamp / 1000) !== Math.floor((timestamp - delta) / 1000)) {
     // Kombo-Decay: wenn > 2s kein Klick, Kombo zurücksetzen (Talent verlängert Zeit)
-    const komboTimeout = KOMBO_TIMEOUT_MS * (1 + talentLevel('tal_klick_kombo') * 0.30);
+    const komboTimeout = KOMBO_TIMEOUT_MS * (1 + talentLevel('pf_k_t3') * 0.22);
     if (komboLetzterKlick > 0 && Date.now() - komboLetzterKlick > komboTimeout) {
       komboTimer = 0;
     }
@@ -951,7 +977,7 @@ function hintergrundTick() {
   const delta = Math.min(now - (zustand.letzterBesuch || now), 2000);
   zustand.letzterBesuch = now;
 
-  const offlineMult = (zustand.prestige >= 10 ? 2 : 1) * Math.pow(2, talentLevel('tal_prod_offline'));
+  const offlineMult = (zustand.prestige >= 10 ? 1.35 : 1) * (1 + talentLevel('pf_p_t4') * 0.8);
   const produktion = berechneteStats.pps * (delta / 1000) * offlineMult;
   zustand.pixel += produktion;
   zustand.lifetimePixel += produktion;
@@ -1112,7 +1138,7 @@ function partikelErzeugen(x, y, text) {
 function klickHandler(event) {
   // Kombo aktualisieren
   const jetzt = Date.now();
-  if (komboLetzterKlick > 0 && jetzt - komboLetzterKlick <= KOMBO_TIMEOUT_MS * (1 + talentLevel('tal_klick_kombo') * 0.30)) {
+  if (komboLetzterKlick > 0 && jetzt - komboLetzterKlick <= KOMBO_TIMEOUT_MS * (1 + talentLevel('pf_k_t3') * 0.22)) {
     komboTimer += (jetzt - komboLetzterKlick) / 1000;
   } else {
     komboTimer = 0;
@@ -1126,9 +1152,9 @@ function klickHandler(event) {
 
   let ppk = berechneteStats.ppk * aktiveBoosts.ppkMultiplikator * mult;
   // Talent: Kritischer Treffer (+5% Chance auf Krit-Klick pro Stufe)
-  const kritChance = talentLevel('tal_klick_krit') * 0.05;
+  const kritChance = talentLevel('pf_k_t2') * 0.03;
   if (kritChance > 0 && Math.random() < kritChance) {
-    const kritMult = 3 + talentLevel('tal_klick_krit_mult') * 0.5; // ×3 bis ×5
+    const kritMult = 3 + talentLevel('pf_k_t2') * 0.35;
     ppk *= kritMult;
     partikelErzeugen(
       event.clientX || 0,
@@ -1136,9 +1162,6 @@ function klickHandler(event) {
       '💥 KRIT!'
     );
   }
-  // Talent: Klick-Synergie (+1% der PPS pro Stufe)
-  const klickPps = talentLevel('tal_klick_pps');
-  if (klickPps > 0) ppk += berechneteStats.pps * klickPps * 0.01;
   zustand.pixel += ppk;
   zustand.lifetimePixel += ppk;
   zustand.gesamtKlicks++;
@@ -1169,7 +1192,7 @@ function komboBalkenRendern() {
 
   const mult = komboMultiplikator();
 
-  if (komboTimer <= 0 || (Date.now() - komboLetzterKlick > KOMBO_TIMEOUT_MS * (1 + talentLevel('tal_klick_kombo') * 0.30))) {
+  if (komboTimer <= 0 || (Date.now() - komboLetzterKlick > KOMBO_TIMEOUT_MS * (1 + talentLevel('pf_k_t3') * 0.22))) {
     fill.style.width = '0%';
     fill.className = 'kombo-fill';
     label.textContent = 'Kombo';
@@ -1351,12 +1374,12 @@ function shopUpgradesRendern() {
   verfuegbar.sort((a, b) => a.preis - b.preis);
 
   // Upgrade-Rabatt (Talent: Upgrade-Kenner)
-  const upgradeRab = talentLevel('tal_pre_upgrade');
+  const upgradeRab = talentLevel('pf_q_t4');
   const klickTypen = ['klick_add', 'klick_mult'];
   for (const up of verfuegbar) {
     const istKlick = klickTypen.includes(up.typ);
     let angezeigterPreis = up.preis;
-    if (upgradeRab > 0) angezeigterPreis = Math.ceil(up.preis * Math.pow(1 - 0.10, upgradeRab));
+    if (upgradeRab > 0) angezeigterPreis = Math.ceil(up.preis * Math.pow(1 - 0.07, upgradeRab));
     const kannKaufen = zustand.pixel >= angezeigterPreis;
     const el = document.createElement('div');
     const kategorieKlasse = istKlick ? 'ppk-upgrade' : 'pps-upgrade';
@@ -1374,8 +1397,8 @@ function upgradeKaufen(up) {
   if (zustand.upgrades.includes(up.id)) return;
   let preis = up.preis;
   // Talent: Upgrade-Kenner (−10% pro Stufe)
-  const upgradeRab = talentLevel('tal_pre_upgrade');
-  if (upgradeRab > 0) preis = Math.ceil(preis * Math.pow(1 - 0.10, upgradeRab));
+  const upgradeRab = talentLevel('pf_q_t4');
+  if (upgradeRab > 0) preis = Math.ceil(preis * Math.pow(1 - 0.07, upgradeRab));
   if (zustand.pixel < preis) return;
   zustand.pixel -= preis;
   zustand.upgrades.push(up.id);
@@ -1438,7 +1461,6 @@ function prestigeUpgradeKaufen(up) {
   if (zustand.quantumPixel < up.preisQP) return;
   zustand.quantumPixel -= up.preisQP;
   zustand.prestigeUpgrades.push(up.id);
-  if (up.typ === 'qp_start_bonus') zustand.pixel += up.wert;
   statsNeuBerechnen();
   shopRendern();
 }
@@ -1448,12 +1470,12 @@ function prestigeUpgradeKaufen(up) {
 // ╚══════════════════════════════════════════════════════════╝
 
 function berechnePrestizeSchwelle() {
-  // 5× höhere Schwelle damit Prestige nicht zu früh kommt
-  let schwelle = zustand.prestige === 0 ? 5000 : 5000 * Math.pow(10, zustand.prestige);
-  // Talent: Frühes Prestige (−10% pro Stufe)
-  const schwell = talentLevel('tal_pre_schwelle');
-  if (schwell > 0) schwelle *= Math.pow(1 - 0.10, schwell);
-  return schwelle;
+  let schwelle = 4200 * Math.pow(1.44, zustand.prestige);
+  const q3 = talentLevel('pf_q_t3');
+  if (q3 > 0) schwelle *= Math.pow(1 - 0.06, q3);
+  const lp = zustand.lifetimePixel || 0;
+  schwelle *= 1 / (1 + Math.log10(lp + 10) / 32);
+  return Math.max(400, schwelle);
 }
 
 function prestigeDurchfuehren() {
@@ -1481,26 +1503,19 @@ function prestigeAusfuehren(qpGewinn) {
   zustand.talentPunkte = (zustand.talentPunkte || 0) + 1;
   // Wurzel-Talent automatisch freischalten (kein Punkt)
   if (!zustand.talente) zustand.talente = {};
-  if (!zustand.talente['tal_root']) zustand.talente['tal_root'] = 1;
+  if (!zustand.talente['pf_root']) zustand.talente['pf_root'] = 1;
 
-  // Talent: Pixel-Magnet (+200 Startpixel pro Stufe)
-  const pixelMagnet = talentLevel('tal_start_pixel');
-  if (pixelMagnet > 0) zustand.pixel += pixelMagnet * 200;
+  const pixelMagnet = talentLevel('pf_u_t1');
+  if (pixelMagnet > 0) zustand.pixel += pixelMagnet * 120;
 
-  // Talent: Schnellstart (+2 Maschinen pro Stufe)
-  const schnellstart = talentLevel('tal_start_geb');
+  const schnellstart = talentLevel('pf_u_t2');
   if (schnellstart > 0) {
-    zustand.gebaeude['maschine'] = schnellstart * 2;
+    zustand.gebaeude['maschine'] = schnellstart * 1;
   }
 
-  // Talent: Kombo-Start (×2-Kombo aktiv)
-  if (talentLevel('tal_start_kombo') > 0) {
+  if (talentLevel('pf_u_t3') > 0) {
     komboTimer = 6;
     komboLetzterKlick = Date.now();
-  }
-
-  // Talent: Vorbereitung (erstes Klick-Upgrade gratis)
-  if (talentLevel('tal_start_upg') > 0) {
     const erstesKlickUpg = KLICK_UPGRADES[0];
     if (erstesKlickUpg && !zustand.upgrades.includes(erstesKlickUpg.id)) {
       zustand.upgrades.push(erstesKlickUpg.id);
@@ -1895,10 +1910,9 @@ function goldenIntervallMs() {
     const up = PRESTIGE_UPGRADES.find(u => u.id === upId);
     if (up?.typ === 'qp_golden_freq') ms /= up.wert;
   }
-  if (zustand.prestige >= 5) ms *= 0.8;
-  // Talent: Goldener Sinn (2× häufiger pro Stufe)
-  const goldFreq = talentLevel('tal_prod_gold');
-  if (goldFreq > 0) ms /= Math.pow(2, goldFreq);
+  if (zustand.prestige >= 5) ms *= 0.85;
+  const mod = spielModifikatoren();
+  ms /= mod.goldenFreqTal;
   return Math.max(ms, 30000);
 }
 
@@ -1938,9 +1952,8 @@ function goldenPixelKlicken(el) {
     const up = PRESTIGE_UPGRADES.find(u => u.id === upId);
     if (up?.typ === 'qp_golden_bonus') bonus *= up.wert;
   }
-  // Talent: Goldgier (+50% pro Stufe)
-  const goldBonus = talentLevel('tal_sp_golden');
-  if (goldBonus > 0) bonus *= (1 + goldBonus * 0.50);
+  const mod = spielModifikatoren();
+  bonus *= mod.goldenBonusTal;
 
   zustand.pixel += bonus;
   zustand.lifetimePixel += bonus;
@@ -2061,6 +2074,72 @@ async function spielstandSpeichern(mitToast = true) {
   if (mitToast) toastZeigen('💾 Gespeichert!');
 }
 
+/** Alte Quantum-Shop-IDs → neue additive Upgrades (Schema v2). */
+const LEGACY_PRESTIGE_UPGRADE_MAP = {
+  qp_global_1: 'qp_p_1', qp_global_2: 'qp_p_2', qp_global_3: 'qp_p_3', qp_global_4: 'qp_p_4',
+  qp_global_5: 'qp_p_5', qp_global_6: 'qp_p_6', qp_global_7: 'qp_p_7', qp_global_8: 'qp_p_8',
+  qp_global_9: 'qp_p_9', qp_global_10: 'qp_p_10',
+  qp_klick_1: 'qp_k_1', qp_klick_2: 'qp_k_2', qp_klick_3: 'qp_k_3', qp_klick_4: 'qp_k_4', qp_klick_5: 'qp_k_5',
+  qp_pps_base: 'qp_p_6',
+  qp_start: 'qp_start',
+  qp_golden_1: 'qp_golden_1', qp_golden_2: 'qp_golden_2', qp_golden_3: 'qp_golden_3',
+};
+
+function migrierePrestigeUpgradesListe(arr) {
+  const ids = new Set();
+  for (const id of arr || []) {
+    const neu = LEGACY_PRESTIGE_UPGRADE_MAP[id] || id;
+    if (PRESTIGE_UPGRADES.some(u => u.id === neu)) ids.add(neu);
+  }
+  return [...ids];
+}
+
+/** Alte Talent-IDs → neuer Talentbaum (Schema v2). */
+const LEGACY_TALENT_MAP = {
+  tal_root: 'pf_root',
+  tal_klick_speed: 'pf_k_t1',
+  tal_klick_krit: 'pf_k_t2',
+  tal_klick_kombo: 'pf_k_t3',
+  tal_klick_pps: 'pf_k_t4',
+  tal_klick_krit_mult: 'pf_k_t2',
+  tal_prod_eff: 'pf_p_t1',
+  tal_prod_rabatt: 'pf_p_t2',
+  tal_prod_gold: 'pf_u_t4',
+  tal_pre_qp: 'pf_q_t1',
+  tal_pre_mult: 'pf_q_t2',
+  tal_pre_schwelle: 'pf_q_t3',
+  tal_start_pixel: 'pf_u_t1',
+  tal_start_geb: 'pf_u_t2',
+  tal_start_upg: 'pf_u_t3',
+  tal_sp_pps_klick: 'pf_k_t4',
+  tal_sp_golden: 'pf_u_t4',
+  tal_sp_err: 'pf_u_t4',
+  tal_sp_alle_geb: 'pf_p_t3',
+  tal_prod_offline: 'pf_p_t4',
+  tal_pre_upgrade: 'pf_q_t4',
+  tal_start_kombo: 'pf_k_t3',
+};
+
+function migriereTalenteV1ZuV2(alt) {
+  const neu = {};
+  for (const [tid, lvl] of Object.entries(alt || {})) {
+    const newId = LEGACY_TALENT_MAP[tid] || (TALENTE.some(t => t.id === tid) ? tid : null);
+    if (!newId) continue;
+    const def = TALENTE.find(t => t.id === newId);
+    if (!def) continue;
+    neu[newId] = Math.min(def.maxLevel, Math.max(neu[newId] || 0, lvl));
+  }
+  return neu;
+}
+
+function spielstandMigrationAusfuehren() {
+  const v = zustand.schemaVersion || 1;
+  if (v >= SPIEL_SCHEMA_VERSION) return;
+  zustand.prestigeUpgrades = migrierePrestigeUpgradesListe(zustand.prestigeUpgrades);
+  zustand.talente = migriereTalenteV1ZuV2(zustand.talente || {});
+  zustand.schemaVersion = SPIEL_SCHEMA_VERSION;
+}
+
 async function spielstandLaden() {
   const daten = await PZ.loadScore('pixel-factory');
   if (!daten || !daten.extra_daten) return false;
@@ -2068,6 +2147,8 @@ async function spielstandLaden() {
   // Gespeicherten Zustand mit Standard zusammenführen (neue Felder ergänzen)
   const standard = standardZustand();
   zustand = { ...standard, ...daten.extra_daten, _speedrunStart: Date.now() };
+
+  spielstandMigrationAusfuehren();
 
   // Offline-Bonus berechnen
   const jetzt = Date.now();
@@ -2242,7 +2323,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     zustand.prestige = 5;
     zustand.talentPunkte = 20;
     if (!zustand.talente) zustand.talente = {};
-    zustand.talente['tal_root'] = 1;
+    zustand.talente['pf_root'] = 1;
   } else {
     const geladen = await spielstandLaden();
     if (!geladen) zustand = standardZustand();

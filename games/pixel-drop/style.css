@@ -299,6 +299,16 @@ html, body {
   #c { bottom: 26px; }
 }
 
+@media (min-width: 768px) {
+  .title-btns { width: min(320px, 50vw); }
+  .fortschritt-wrap { width: min(320px, 40vw); }
+}
+
+@media (min-width: 1024px) {
+  .title-logo { font-size: clamp(3rem, 6vw, 5.2rem); }
+  .go-btns { width: min(360px, 52vw); }
+}
+
 @media (max-width: 400px) {
   .title-logo { font-size: 2.2rem; }
 }
