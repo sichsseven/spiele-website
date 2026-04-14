@@ -1,5 +1,5 @@
-# Filter für Lösungswörter: Eigennamen, Marken, Länder/Städte (5 Buchst., A–Z)
-# Vulgäres für Schul-Kontext
+# Wörter die weder als Lösung noch als gültige Eingabe gelten (5 Buchst., A–Z)
+# Eigennamen, Marken, Orte, diskriminierende / vulgäre Begriffe
 AARON
 ADAMS
 ADOLF
@@ -26,7 +26,6 @@ ARUBA
 ASSAD
 ATHEN
 ATARI
-AUDIO
 AUREL
 AZNAR
 BAMBI
@@ -44,7 +43,6 @@ BERTI
 BETTY
 BEUYS
 BILLY
-BINGO
 BLAIR
 BORIS
 BRIAN
@@ -57,10 +55,6 @@ CHINA
 CHRIS
 CLARA
 CLINT
-COACH
-COMIC
-COSTA
-CREDO
 DAVID
 DIANA
 DIEGO
@@ -194,6 +188,7 @@ MYRON
 NANCY
 NAOMI
 NASA
+NEGER
 NEHRU
 NELLY
 NEPAL
@@ -243,10 +238,8 @@ ROGER
 ROLLO
 ROMEO
 RONJA
-ROYAL
 RUBIN
 RUDOL
-RUGBY
 SANTA
 SARAH
 SARIN
@@ -255,7 +248,6 @@ SCOTT
 SEOUL
 SHIRT
 SIMON
-SMART
 SMITH
 SOFIA
 SONJA
@@ -263,9 +255,7 @@ SONNY
 STEVE
 SUSHI
 SUSIE
-SWING
 TAMIL
-TANGO
 TANJA
 TESSA
 TEXAS
@@ -287,7 +277,6 @@ TWIST
 TYLER
 TYSON
 ULMER
-UNION
 URBAN
 VENUS
 VERDI
@@ -315,7 +304,6 @@ IRINA
 JACOB
 JUDEN
 KLAUS
-NEGER
 PEDRO
 SIMON
 TEDDY
@@ -325,3 +313,7 @@ HUREN
 IDIOT
 NUTTE
 PENIS
+SPAST
+SPACK
+KACKE
+# Ende Basisliste — Zusatznamen siehe build-wordlists.mjs (NAMEN_ZUSATZ)

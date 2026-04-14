@@ -179,9 +179,16 @@ async function bestaetigen() {
     return;
   }
 
-  // Nur bekannte deutsche Wörter erlauben (größere Validierungsliste)
+  // Gesperrte Begriffe (Eigennamen, Schimpfwörter, …)
+  if (VERBOTENE_WOERTER.has(eingabe)) {
+    meldungAnzeigen('Dieses Wort ist nicht erlaubt');
+    reiheSchütteln(versuche.length);
+    return;
+  }
+
+  // Nur Wörter aus der gefilterten Liste (ohne Verbotsliste)
   if (!GUELTIGE_WOERTER.has(eingabe)) {
-    meldungAnzeigen('Kein bekanntes deutsches Wort');
+    meldungAnzeigen('Kein gültiges Wort');
     reiheSchütteln(versuche.length);
     return;
   }
