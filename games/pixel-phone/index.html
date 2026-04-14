@@ -22,11 +22,27 @@
       --canvas-h: 400px;
     }
     * { box-sizing: border-box; }
-    body {
+    body.pp-page {
       margin: 0; min-height: 100vh; font-family: 'Nunito', sans-serif;
       background: linear-gradient(165deg, #eef3ff 0%, #fff5f8 50%, #f0fff8 100%);
       color: var(--pp-text);
+      -webkit-tap-highlight-color: transparent;
     }
+    /* Kein versehentliches Markieren auf iPad/iPhone (Eingabefelder bleiben markierbar) */
+    body.pp-page header, body.pp-page main, body.pp-page .panel,
+    body.pp-page .btn, body.pp-page .player-pill, body.pp-page .tools,
+    body.pp-page .canvas-wrap, body.pp-page #pp-canvas, body.pp-page .game-top,
+    body.pp-page .pp-breadcrumb, body.pp-page .pp-draw-prompt, body.pp-page .timer {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body.pp-page textarea,
+    body.pp-page input[type="text"] {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    body.pp-page .btn { touch-action: manipulation; }
     header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 12px 18px; background: rgba(255,255,255,.85); backdrop-filter: blur(8px);
@@ -35,7 +51,22 @@
     .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; font-weight: 900; }
     main { max-width: 920px; margin: 0 auto; padding: 20px 16px 48px; }
     h1 { font-size: 1.65rem; margin: 0 0 8px; font-weight: 900; color: #334155; }
-    .sub { color: var(--pp-muted); font-size: .95rem; margin-bottom: 22px; line-height: 1.5; }
+    .pp-breadcrumb {
+      font-size: .82rem; font-weight: 700; color: #94a3b8; margin-bottom: 18px;
+    }
+    .pp-breadcrumb a { color: #64748b; text-decoration: none; }
+    .pp-breadcrumb a:hover { color: var(--pp-primary); }
+    .pp-breadcrumb span { margin: 0 .35rem; }
+    /* Aufgabe zum Zeichnen: gut lesbar */
+    .pp-draw-prompt {
+      font-size: 1.28rem; font-weight: 900; line-height: 1.45; color: var(--pp-text);
+      margin: 0 0 14px; padding: 16px 18px;
+      background: linear-gradient(135deg, #f0f4ff, #fff5f8);
+      border-radius: 14px; border: 2px solid #dbe4ff;
+    }
+    @media (min-width: 640px) {
+      .pp-draw-prompt { font-size: 1.5rem; padding: 18px 20px; }
+    }
     .panel {
       background: var(--pp-card); border-radius: var(--pp-radius); padding: 22px;
       box-shadow: var(--pp-shadow); border: 1.5px solid #e8eeff;
@@ -88,6 +119,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,.12); cursor: pointer;
     }
     .color-dot.on { outline: 3px solid var(--pp-primary); }
+    body.pp-page .color-dot { touch-action: manipulation; }
     .reveal-stage { text-align: center; padding: 24px 12px; }
     .reveal-stage img { max-width: 100%; border-radius: 16px; border: 3px solid #dbe4ff; }
     .reveal-text { font-size: 1.35rem; font-weight: 800; margin: 16px 0; line-height: 1.4; }
@@ -97,7 +129,7 @@
     }
   </style>
 </head>
-<body>
+<body class="pp-page">
 
 <header>
   <a href="../../index.html" class="logo"><span>🕹</span><span>PIXELZONE</span></a>
@@ -106,7 +138,9 @@
 
 <main id="pp-main">
   <h1>📞 Pixel Phone</h1>
-  <p class="sub">Stille Post mit Zeichnen &amp; Schreiben — wie Gartic Phone. 2–12 Spieler, Echtzeit über Supabase.</p>
+  <nav class="pp-breadcrumb" aria-label="Navigation">
+    <a href="../../index.html">PIXELZONE</a><span>›</span><a href="info.html">Infos &amp; Spielregeln</a>
+  </nav>
 
   <section id="pp-gate" class="panel hidden">
     <p>Bitte melde dich an, um Pixel Phone zu spielen.</p>
@@ -161,7 +195,7 @@
       <textarea id="pp-text-input" maxlength="500" placeholder="Was siehst du? Schreibe einen kurzen Satz …"></textarea>
     </div>
     <div id="pp-draw-ui" class="hidden">
-      <p class="hint" id="pp-draw-prompt"></p>
+      <p class="pp-draw-prompt" id="pp-draw-prompt"></p>
       <div class="canvas-wrap">
         <canvas id="pp-canvas" width="560" height="400"></canvas>
       </div>
@@ -535,6 +569,8 @@ async function syncFromRoom() {
   if (!room) return;
   lastRoomSnap = room;
   if (room.status === 'lobby') {
+    clearTimers();
+    PP.playRoundKey = null;
     show('pp-play', false);
     show('pp-reveal', false);
     show('pp-lobby', true);
@@ -556,9 +592,6 @@ async function syncFromRoom() {
     show('pp-reveal', true);
     await renderReveal(room);
     return;
-  }
-  if (room.status === 'closed') {
-    location.reload();
   }
 }
 
@@ -875,7 +908,18 @@ $('pp-reveal-next').addEventListener('click', async () => {
 });
 
 $('pp-reveal-done').addEventListener('click', async () => {
-  await PP.db.from('pixel_phone_rooms').update({ status: 'closed' }).eq('id', PP.roomId);
+  if (PP.userId !== PP.hostId) return;
+  await PP.db.from('pixel_phone_ready').delete().eq('room_id', PP.roomId);
+  await PP.db.from('pixel_phone_submissions').delete().eq('room_id', PP.roomId);
+  await PP.db.from('pixel_phone_rooms').update({
+    status: 'lobby',
+    current_round: 0,
+    round_kind: null,
+    deadline_at: null,
+    reveal_owner_idx: 0,
+    reveal_step: 0,
+    player_count: 0,
+  }).eq('id', PP.roomId).eq('host_user_id', PP.userId);
 });
 
 function subscribeRoom() {
