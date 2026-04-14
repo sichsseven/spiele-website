@@ -1,2 +1,6 @@
 .superpowers/
 docs/superpowers/
+
+# Wordle: große Quellen für build-wordlists.mjs (optional lokal)
+games/wordle/_de_*_frami.dic
+games/wordle/_de_50k.txt

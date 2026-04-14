@@ -1,165 +1,6 @@
 'use strict';
 
-// ── Wörterliste ──────────────────────────────────────────────────────────────
-// 500+ deutsche 5-Buchstaben-Wörter (Großbuchstaben, keine Eigennamen)
-const WOERTER = [...new Set([
-  'ABEND','ABGAS','ABTEI','ABWEG','ABZUG','ACHSE','ADLER','ADERN',
-  'ALLEE','ALPEN','ALTER','AMPEL','AMSEL','ANGEL','ANGST','ANKER',
-  'APFEL','ARCHE','ASCHE','ATLAS','ATOLL','AUGEN','AUTOS',
-  'BÄCHE','BAHRE','BANDE','BÄNKE','BARKE','BAUCH','BAUER','BEERE',
-  'BEIGE','BELLE','BESEN','BEULE','BIRKE','BIRNE','BITTE','BLASE',
-  'BLATT','BLECH','BLICK','BLOCK','BLÖDE','BLÜTE','BLUME','BOMBE',
-  'BOOTE','BOGEN','BOHNE','BORKE','BRAND','BRAUT','BRIEF','BRISE',
-  'BROTE','BRÜHE','BRUST','BUCHE','BÜROS','BUSEN','BÜSTE',
-  'DAMPF','DAUER','DAUNE','DECKE','DELTA',
-  'DEPOT','DICKE','DIELE','DRAHT','DRECK','DROGE','DUNST',
-  'EBENE','EICHE','EIFER','EIMER','EILIG','ELEND',
-  'ENGEL','ERBSE','ERDÖL','ERNTE','ESCHE',
-  'FABEL','FADEN','FÄHRE','FAHRT','FALKE','FALLE','FARBE','FARNE',
-  'FAUST','FEIGE','FEIER','FEILE','FEIND','FERNE','FERSE','FEUER',
-  'FILET','FINTE','FISCH','FLECK','FLÖTE',
-  'FLORA','FLÜGE','FLUSS','FOLGE','FOLIE','FONDS','FORUM','FREMD',
-  'FRIST','FRÜHE','FUCHS','FUGEN','FUNKE','FUHRE','FUNDE','FUSEL',
-  'GABEL','GÄHNE','GALLE','GARDE','GARBE','GATTE','GECKO',
-  'GEIER','GEIGE','GEIST','GELEE','GEMSE','GERTE','GICHT',
-  'GLANZ','GLATT','GLEIS','GLIED','GLÜCK','GNADE','GÖTZE',
-  'GRABE','GRADE','GRATE','GRAUE','GRAUS','GREIF','GREIS',
-  'GRIFF','GROBE','GRUND','GRÜNE','GURKE','GUNST','GÜSSE',
-  'HAARE','HAFEN','HAFER','HAKEN','HALLE','HALME','HÄNDE',
-  'HARFE','HASTE','HAUPT','HECHT','HEIDE','HEFTE','HEILE',
-  'HELLE','HELME','HEMDE','HERDE','HERTZ','HEUER','HILFE',
-  'HIRTE','HÖHLE','HOLDE','HOLME','HONIG','HORDE','HÜGEL',
-  'HUMUS','HÜFTE','HÜTTE',
-  'IDYLL','INDEX','INSEL','IRREN',
-  'JACKE','JAGEN','JAHRE','JUBEL',
-  'KABEL','KÄFER','KÄFIG','KÄLTE','KAMEL','KANAL','KAMPF',
-  'KAPPE','KARTE','KARST','KATZE','KEILE','KELCH','KELLE',
-  'KIEME','KIEPE','KISTE','KLAUE','KLEBE','KLANG','KLEID',
-  'KLIMA','KLOTZ','KLUGE','KNABE','KNALL','KNOPF','KNÄUL',
-  'KOHLE','KOMET','KRAFT','KRAKE','KRÄHE','KRANZ',
-  'KREIS','KREUZ','KRONE','KRÖTE','KRUME','KÜCHE','KÜKEN',
-  'KUNDE','KUPPE','KUNST','KURVE','KÜSTE',
-  'LADEN','LAGER','LAMPE','LANZE',
-  'LAUBE','LAUCH','LAUER','LAUNE','LATTE','LEDER','LEHNE',
-  'LEHRE','LEINE','LEISE','LICHT','LIEBE','LINDE','LINIE',
-  'LINKE','LINSE','LITER','LISTE','LOCKE','LÜCKE',
-  'LUNGE','LÖWEN',
-  'MACHO','MAGMA','MÄHNE','MAKEL','MARKE','MARKT',
-  'MASKE','MASSE','MATTE','MAUER','MEILE','MEISE','MIENE',
-  'MILBE','MILCH','MILDE','MINZE','MÖBEL','MÖHRE',
-  'MONDE','MÖNCH','MORAL','MOTTE','MOTIV','MÖWEN',
-  'MULDE','MUMIE','MÜNZE','MUSIK','MURKS',
-  'NACHT','NADEL','NATUR','NEBEL','NEBEN',
-  'NERVE','NOTIZ','NOTEN','NUDEL','NÜSSE',
-  'OHREN','OLIVE','OPFER','ORGEL','ORKAN','OTTER',
-  'PAKET','PANNE','PAUSE','PEDAL','PELZE','PERLE',
-  'PIANO','PILZE','PISTE','PLAGE','PLANE',
-  'PLATZ','PLÄNE','PLATT','POKAL','POLKA','POLLE',
-  'PRALL','PREIS','PROBE','PUNKT','PUDER','PUMPE',
-  'QUARZ',
-  'RACHE','RAMPE','RASEN','RASSE','RASUR','RATEN','RAUPE',
-  'RAUTE','REGEN','REIFE','REIHE','RENTE','RESTE','RIESE',
-  'RILLE','RINDE','RINGE','RIPPE','RITZE','ROBBE','ROSEN',
-  'RÖHRE','ROTTE','RUDER','RÜCKE',
-  'SACHE','SÄCKE','SÄFTE','SAGEN','SAHNE','SAITE','SALBE',
-  'SALVE','SALZE','SAMEN','SARGE','SAUNA','SCHAM',
-  'SCHAL','SCHAF','SCHAU','SCHEU','SEGEL','SEELE','SEHER',
-  'SEIDE','SEIFE','SEILE','SEKTE','SENSE',
-  'SICHT','SIEGE','SIRUP','SOCKE','SOLAR','SOHLE',
-  'SONDE','SONNE','SORGE','SPALT','SPATZ','SPEER','SPIEL',
-  'SPORE','SPORT','SPOTT','SPULE','SPÄNE','STAAT',
-  'STAHL','STAMM','STAND','STANK','STAUB','STEIG','STICH',
-  'STIEG','STIFT','STIRN','STOCK','STOFF','STOLZ','STROH',
-  'STROM','STUBE','STUHL','STURM','SUCHE','SUCHT',
-  'SÜDEN','SUMME','SUMPF','SÜSSE',
-  'TAFEL','TANNE','TANKE','TANTE','TAUBE','TEMPO','TIGER',
-  'TINTE','TITAN','TONNE','TORTE','TROST','TRAUM',
-  'TREUE','TRIEB','TRITT','TROTZ','TRÜBE','TÜRME',
-  'TURBO',
-  'ÜBUNG','ULMEN',
-  'VATER','VERSE','VILLA','VIPER','VOGEL',
-  'VORNE',
-  'WAFFE','WAISE','WALZE','WANNE','WÄRME','WARZE','WATTE',
-  'WEIDE','WEILE','WELLE','WENDE','WEITE','WIPPE',
-  'WOLKE','WOLLE','WOCHE',
-  'WUNDE','WÜRDE','WÜRZE','WÜSTE',
-  'ZÄHNE','ZAHME','ZANGE','ZARTE','ZÄUNE','ZECHE','ZEUGE',
-  'ZELLE','ZELTE','ZIEGE','ZINNE','ZITAT','ZÖLLE',
-  'ZUNGE','ZUTAT','ZWEIG',
-  // Weitere Wörter
-  'AALEN','BEBEN','BECKE','DÄMME','DAUBE',
-  'DUNEN','FAHNE','FALZE','FARCE','FLUSE',
-  'FORTE','FUGEN','HALSE',
-  'HÄNGE','HUFEN',
-  'KADER','KAMIN','KANNE','KERBE','KIMME',
-  'KNAUF','KNICK','KOLBE','KOMMA','KRÄHE','LOTSE',
-  'LUNGE','MANKO',
-  'MIETE','MINNE','MÖHRE',
-  'MÜNDE','MURRE','NABEL','PACKE','PEGEL',
-  'PENNE','PFOTE','PILZE','POSSE','PRUNK',
-  'RANKE','RILLE',
-  'RINNE','ROLLE','SAHNE','SALZE',
-  'SEELE','SORTE',
-  'STALL','STAUB','STICH','STROH','STUBE','STUFE','SÜNDE',
-  'TAFEL','TANNE','TEICH','THEKE','TINTE','TÖPFE',
-  'TRAGE','TREFF',
-  'WÄRME','WARTE',
-  'WINDE','WOLKE','ZACKE','ZANKE','ZEILE','ZUCHT',
-  // Bekannte Alltagswörter
-  'PIZZA','DISCO','RADIO','BUCHT','TISCH','PALME','REISE','SPORT','SERIE','BRAVO',
-  'BIENE','MONAT','LASER','ALARM','BONUS','SEITE','RUNDE','SEGEN','STERN','ZEIGE',
-  'MAGEN','MIETE','MOTOR','MUSIK','MÜTZE','NABEL','PREIS','HOTEL','TIGER','TRAUM',
-  'SALAT','MARKT','LIEBE','PLATZ','SPIEL','KÜCHE',
-])];
-
-// ── Erlaubte Ratewörter (deutlich größer als Zielwortliste) ───────────────────
-// Enthält alle Zielwörter + häufige Konjugations-/Pluralformen und Alltagsvokabular
-const GUELTIGE_WOERTER = new Set([
-  ...WOERTER,
-  // Häufige Plurale
-  'HUNDE','WERTE','TIERE','BÄUME','KERNE','FESTE','MEERE','RÄUME',
-  'WEINE','TEILE','BERGE','TÄLER','PFADE','HÄFEN','PAARE','BEINE',
-  'HÄUTE','NASEN','BEUTE','KEULE','DIEBE','GÄNGE','LEUTE','ELCHE',
-  'STILE','FÄLLE','GIFTE','HÄHNE','LÜFTE','GRÄBE','PFERDE','RECKE',
-  'NELKE','NONNE','LARVE','NARBE','FALTE','PETZE','OCHSE',
-  // Substantive (Nominativ Singular fehlend)
-  'PFERD','STEIN','DEICH','AHORN','FROST','GEMÜT','GERÄT','GRUFT',
-  'GRIPS','CHAOS','GASSE','FLAUM','REICH','FLINK','FLOTT','TRANK',
-  'KNETE','JUNGE','OSTEN','WESTE','GEGEN','WEGEN','MÖGEN','TRÄGE',
-  'BRUCH','DEGEN','DOLCH','DRANG','ENKEL','GRILL','HAUCH','JACHT',
-  'KLAGE','KREBS','KUGEL','LAHME','KÖNIG','KOPIE','KRACH','NEFFE',
-  'NEIGE','PETZE','PRIMA','PATIN','RECKE','SCHUH','STILL','TRAUM',
-  'CHIPS','WOCHE',
-  // Verbformen (Infinitiv + Konjugation)
-  'GEHEN','SEHEN','GEBEN','LEBEN','NEHME','NIMMT','STEHE','STEHT',
-  'GEHST','KOMME','KOMMT','LAUFE','LÄUFT','FÜHRE','FÜHRT','FÜHLE',
-  'FÜHLT','DENKE','DENKT','LERNE','LERNT','WOHNE','WOHNT','LIEBT',
-  'KAUFE','KAUFT','DREHT','DREHE','ZÄHLE','ZÄHLT','ZEIGT','FAHRE',
-  'HATTE','HÄTTE','WURDE','FÄHRT','TRAGE','TRÄGT','SIEHT','HELFT',
-  'HILFT','WÄHLE','WÄHLT','FANGE','HÄNGT','FREUT','FRAGT','FRAGE',
-  'RÜCKT','SORGT','TANZT','TRAUT','LEHRT','NEHMT','BACKT','HEILT',
-  'ATMET','ATMEN','EHREN','EILEN','FICHT','FLIEH','MAHNT','BAUTE',
-  'LEBTE','REIST','LACHT','WEINT','LIEST','LIEGT','RINGT','BETET',
-  'RENNT','RENNE','WERDE','SOLLE','KÖNNE','MÜSSE','DÜRFE','DÜRFT',
-  'HALTE','KEHRE','LIEGE','GLAUB','RENNE','BINDE','LÖSEN','SCHAUT',
-  'SCHRIE','BOHRT','DIENT','ENDET','ERDET','FEHLT','FLIMT','FUNKT',
-  'GLOTZT','GREIFT','HÄNGT','IRRT','JAULT','KLAGT','KNIRSCHT',
-  'LAUERT','MAULT','NAHT','ÖFFNET','PASST','QUILLT','RECKT','SAHNT',
-  'SCHONT','TANKT','ÜBELT','VERJAGT','WARNT','ZIEHT',
-  // Adjektive (flektiert)
-  'SCHÖN','KLEIN','GROSS','BREIT','STARK','WEICH','FRECH','HARTE',
-  'KALTE','WARME','TIEFE','HOHEN','HOHER','EIGEN','BUNTE','ROTEN',
-  'BLAUE','WILDE','VOLLE','LAUTE','LEERE','FROHE','FREIE','NAHEN',
-  'NAHER','GUTEN','NEUES','ALTEN','NEUEN','KURZE','WEISE','LAHME',
-  'ZARTE','LEERE','STILLE','DUMPF','BLANK','FRISCH','SCHARF','SANFT',
-  'FLINK','FLOTT','TRÄGE','SCHEU','TAPFER','WEISE','FROMM',
-  // Adverbien / Pronomen / Partikeln
-  'IMMER','JETZT','SCHON','GERNE','DANKE','DURCH','UNTER','UNSER',
-  'DAMIT','DAVON','DABEI','DARUM','DEREN','DAHER','DAFÜR','GENUG',
-  'LINKS','JEDEN','JEDER','JEDES','MEINE','DEINE','SEINE','ALLES',
-  'ETWAS','DIESE','HEUTE','OFFEN','BEIDE','WENIG','VIELE','KEINE',
-  'LANGE','UNTEN','OSTEN','EIGEN','ERSTE','ZWEIG',
-]);
+// Lösungs- und Gültigkeitslisten: wordlists.js (generiert aus Hunspell + Korpus)
 
 // ── Spielzustand ─────────────────────────────────────────────────────────────
 let zielwort    = '';   // aktuelles Zielwort (Großbuchstaben)
@@ -194,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ── Neues Spiel ───────────────────────────────────────────────────────────────
 function neuesSpiel() {
-  zielwort    = WOERTER[Math.floor(Math.random() * WOERTER.length)];
+  zielwort    = LOESUNGSWOERTER[Math.floor(Math.random() * LOESUNGSWOERTER.length)];
   versuche    = [];
   eingabe     = '';
   beendet     = false;
@@ -233,7 +74,6 @@ function tastaturRendern() {
     ['Q','W','E','R','T','Z','U','I','O','P'],
     ['A','S','D','F','G','H','J','K','L'],
     ['ENTER','Y','X','C','V','B','N','M','⌫'],
-    ['Ä','Ö','Ü'],
   ];
 
   const tastatur = document.getElementById('tastatur');
@@ -267,7 +107,7 @@ function tastaturHandler(e) {
   const key = e.key.toUpperCase();
   if (key === 'ENTER')     { e.preventDefault(); tasteTippen('ENTER'); return; }
   if (key === 'BACKSPACE') { e.preventDefault(); tasteTippen('⌫');     return; }
-  if (/^[A-ZÄÖÜ]$/.test(key)) tasteTippen(key);
+  if (/^[A-Z]$/.test(key)) tasteTippen(key);
 }
 
 function tasteTippen(key) {
@@ -332,9 +172,9 @@ async function bestaetigen() {
     return;
   }
 
-  // Nur Buchstaben (inkl. Umlaute) erlaubt
-  if (!/^[A-ZÄÖÜ]{5}$/.test(eingabe)) {
-    meldungAnzeigen('Nur Buchstaben erlaubt');
+  // Nur A–Z (keine Umlaute)
+  if (!/^[A-Z]{5}$/.test(eingabe)) {
+    meldungAnzeigen('Nur Buchstaben A–Z erlaubt');
     reiheSchütteln(versuche.length);
     return;
   }
