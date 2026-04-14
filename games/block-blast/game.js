@@ -636,8 +636,12 @@ function ghostPositionieren(cx, cy) {
   ghost.style.top = `${cy - h - dragCS * 1.2}px`;
 }
 
-function rasterPosAusPointer(cx, cy) {
-  const s = stuecke[dragIdx];
+/**
+ * @param {object|null} [teil] – expliziter Stein (z. B. in dragEnd nach dragIdx=-1),
+ *   sonst wird stuecke[dragIdx] verwendet.
+ */
+function rasterPosAusPointer(cx, cy, teil) {
+  const s = teil ?? stuecke[dragIdx];
   if (!s) return { r0: 0, c0: 0 };
   const rect = canvas.getBoundingClientRect();
   const px = cx - rect.left;
@@ -705,7 +709,7 @@ async function dragEnd(e) {
   debugPlatzierungen = [];
   const cx = e.clientX;
   const cy = e.clientY;
-  const { r0, c0 } = rasterPosAusPointer(cx, cy);
+  const { r0, c0 } = rasterPosAusPointer(cx, cy, s);
   if (!s || !board.kannSetzen(s.zellen, r0, c0)) return;
   await steinSetzen(idx, r0, c0);
 }
