@@ -42,6 +42,7 @@ const state = {
   guestPaddleSyncAt: 0,
   hostSyncInFlight: false,
   guestSyncInFlight: false,
+  lastRoomUpdatedAtMs: 0,
   lastTs: 0,
   game: createBaseGameState(),
 };
@@ -342,6 +343,11 @@ async function syncRoomAndLobby(roomSnapshot = null) {
     leaveRoomLocal();
     return;
   }
+  // Stale Realtime-Snapshots ignorieren (kann bei Netzwerk-Jitter auftreten)
+  const snapshotMs = room.updated_at ? new Date(room.updated_at).getTime() : 0;
+  if (snapshotMs && snapshotMs < state.lastRoomUpdatedAtMs) return;
+  if (snapshotMs) state.lastRoomUpdatedAtMs = snapshotMs;
+
   state.currentRoom = room;
   state.isHost = room.host_user_id === state.userId;
   $('room-code-display').textContent = room.code || '------';
@@ -397,15 +403,33 @@ async function startMultiplayerByHost() {
   if (error) $('lobby-hint').textContent = error.message;
 }
 
-function applyRoomToLocal(room) {
+function applyRoomToLocal(room, forceFull = false) {
   if (!room) return;
   const g = state.game;
-  g.leftY = room.host_paddle_y ?? g.leftY;
-  g.rightY = room.guest_paddle_y ?? g.rightY;
-  g.ballX = room.ball_x ?? g.ballX;
-  g.ballY = room.ball_y ?? g.ballY;
-  g.ballVx = room.ball_vx ?? g.ballVx;
-  g.ballVy = room.ball_vy ?? g.ballVy;
+
+  // Eigenes Paddle bleibt lokal autoritativ, damit keine "Rubberband"-Ruckler entstehen
+  if (forceFull || !state.isHost) g.leftY = room.host_paddle_y ?? g.leftY;
+  if (forceFull || state.isHost) g.rightY = room.guest_paddle_y ?? g.rightY;
+
+  // Nur Gast übernimmt Ball- und Score-Snapshots vom Host; Host simuliert lokal
+  if (!state.isHost || forceFull) {
+    const rx = room.ball_x ?? g.ballX;
+    const ry = room.ball_y ?? g.ballY;
+    const dx = rx - g.ballX;
+    const dy = ry - g.ballY;
+    const dist2 = (dx * dx) + (dy * dy);
+    // Bei großem Drift hart korrigieren, sonst weich annähern
+    if (forceFull || dist2 > 6400) {
+      g.ballX = rx;
+      g.ballY = ry;
+    } else {
+      g.ballX += dx * 0.45;
+      g.ballY += dy * 0.45;
+    }
+    g.ballVx = room.ball_vx ?? g.ballVx;
+    g.ballVy = room.ball_vy ?? g.ballVy;
+  }
+
   g.leftScore = room.host_score ?? g.leftScore;
   g.rightScore = room.guest_score ?? g.rightScore;
 }
@@ -416,10 +440,10 @@ function startMultiplayerFromRoom(room) {
   state.finished = false;
   state.winner = null;
   if (!$('screen-game').classList.contains('hidden')) {
-    applyRoomToLocal(room);
+    applyRoomToLocal(room, false);
   } else {
     state.game = createBaseGameState();
-    applyRoomToLocal(room);
+    applyRoomToLocal(room, true);
     showScreen('screen-game');
   }
   $('game-mode-label').textContent = `Multiplayer · ${state.isHost ? 'Host (links)' : 'Gast (rechts)'}`;
