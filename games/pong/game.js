@@ -43,6 +43,7 @@ const state = {
   hostSyncInFlight: false,
   guestSyncInFlight: false,
   lastRoomUpdatedAtMs: 0,
+  lastRemoteBallKey: '',
   lastTs: 0,
   game: createBaseGameState(),
 };
@@ -283,6 +284,10 @@ async function createRoom() {
   state.roomCode = data.code;
   state.isHost = true;
   state.currentRoom = data;
+  state.lastRoomUpdatedAtMs = 0;
+  state.lastRemoteBallKey = '';
+  state.hostSyncInFlight = false;
+  state.guestSyncInFlight = false;
   await subscribeRoom();
   await syncRoomAndLobby();
   showScreen('screen-lobby');
@@ -320,6 +325,10 @@ async function joinRoom() {
   }
   state.roomId = room.id;
   state.roomCode = room.code;
+  state.lastRoomUpdatedAtMs = 0;
+  state.lastRemoteBallKey = '';
+  state.hostSyncInFlight = false;
+  state.guestSyncInFlight = false;
   await subscribeRoom();
   await syncRoomAndLobby();
   showScreen('screen-lobby');
@@ -408,11 +417,25 @@ function applyRoomToLocal(room, forceFull = false) {
   const g = state.game;
 
   // Eigenes Paddle bleibt lokal autoritativ, damit keine "Rubberband"-Ruckler entstehen
-  if (forceFull || !state.isHost) g.leftY = room.host_paddle_y ?? g.leftY;
+  if (forceFull || !state.isHost) {
+    const leftRemote = room.host_paddle_y ?? g.leftY;
+    g.leftY += (leftRemote - g.leftY) * 0.55;
+  }
   if (forceFull || state.isHost) g.rightY = room.guest_paddle_y ?? g.rightY;
 
-  // Nur Gast übernimmt Ball- und Score-Snapshots vom Host; Host simuliert lokal
+  // Nur Gast übernimmt Ball-/Score-Snapshots vom Host; Host simuliert lokal
   if (!state.isHost || forceFull) {
+    const remoteBallKey = `${room.host_score}|${room.guest_score}|${room.ball_x}|${room.ball_y}|${room.ball_vx}|${room.ball_vy}`;
+    const hasFreshBallSnapshot = forceFull || remoteBallKey !== state.lastRemoteBallKey;
+    if (hasFreshBallSnapshot) state.lastRemoteBallKey = remoteBallKey;
+
+    // Eigene Gast-Updates enthalten oft alte Ballwerte; die ignorieren wir hier bewusst.
+    if (!hasFreshBallSnapshot && !forceFull) {
+      g.leftScore = room.host_score ?? g.leftScore;
+      g.rightScore = room.guest_score ?? g.rightScore;
+      return;
+    }
+
     const rx = room.ball_x ?? g.ballX;
     const ry = room.ball_y ?? g.ballY;
     const dx = rx - g.ballX;
@@ -432,6 +455,21 @@ function applyRoomToLocal(room, forceFull = false) {
 
   g.leftScore = room.host_score ?? g.leftScore;
   g.rightScore = room.guest_score ?? g.rightScore;
+}
+
+function predictGuestBall(dt) {
+  if (state.isHost) return;
+  const g = state.game;
+  g.ballX += g.ballVx * dt;
+  g.ballY += g.ballVy * dt;
+
+  if (g.ballY <= 0) {
+    g.ballY = 0;
+    g.ballVy *= -1;
+  } else if (g.ballY + BALL_SIZE >= CANVAS_H) {
+    g.ballY = CANVAS_H - BALL_SIZE;
+    g.ballVy *= -1;
+  }
 }
 
 function startMultiplayerFromRoom(room) {
@@ -541,6 +579,10 @@ function leaveRoomLocal() {
   state.roomCode = null;
   state.currentRoom = null;
   state.isHost = false;
+  state.lastRoomUpdatedAtMs = 0;
+  state.lastRemoteBallKey = '';
+  state.hostSyncInFlight = false;
+  state.guestSyncInFlight = false;
   state.running = false;
   state.finished = false;
   state.mode = null;
@@ -628,6 +670,7 @@ function gameLoop(ts) {
     } else if (state.mode === 'multi') {
       updateMultiplayerPaddle(dt);
       if (state.isHost) simulateBall(dt);
+      else predictGuestBall(dt);
       syncMultiplayerToDb().catch(() => {});
     }
   }
