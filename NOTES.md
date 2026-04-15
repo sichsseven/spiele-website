@@ -688,3 +688,21 @@
 - `style.css`
 - `supabase/migrations/20260415195000_home_news_votes.sql`
 - `NOTES.md`
+
+### Pong Multiplayer – Realtime Fallback stabilisiert (2026-04-15) ✅
+
+#### Was gemacht wurde
+- Analyse: Supabase Realtime war bereits eingebaut, aber bei instabilem WebSocket/Netzwerk gab es keinen robusten Backup-Sync.
+- `games/pong/game.js` erweitert:
+  - Realtime-Subscribe mit Statusbehandlung (`SUBSCRIBED`, `CHANNEL_ERROR`, `TIMED_OUT`).
+  - Polling-Fallback (`ROOM_POLL_MS = 900`), der den Raumzustand regelmaessig nachzieht.
+  - Polling startet beim Erstellen/Beitreten eines Raums und stoppt beim Verlassen.
+- Ergebnis: Multiplayer bleibt auch dann synchronisierbar, wenn Realtime auf einzelnen Geraeten kurz ausfaellt.
+
+#### Verifikation
+- `node --check games/pong/game.js` erfolgreich.
+- `npm run build` erfolgreich.
+
+#### Veränderte Dateien
+- `games/pong/game.js`
+- `NOTES.md`

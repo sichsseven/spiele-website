@@ -6,6 +6,7 @@ const PADDLE_W = 14;
 const PADDLE_H = 96;
 const BALL_SIZE = 14;
 const TARGET_SCORE = 7;
+const ROOM_POLL_MS = 900;
 
 const DIFFICULTIES = {
   easy: { label: 'Einfach', botSpeed: 260, reaction: 0.22, error: 44, maxAngle: 0.85 },
@@ -44,6 +45,7 @@ const state = {
   guestSyncInFlight: false,
   lastRoomUpdatedAtMs: 0,
   lastRemoteBallKey: '',
+  roomPollTimer: null,
   lastTs: 0,
   game: createBaseGameState(),
 };
@@ -289,6 +291,7 @@ async function createRoom() {
   state.hostSyncInFlight = false;
   state.guestSyncInFlight = false;
   await subscribeRoom();
+  startRoomPolling();
   await syncRoomAndLobby();
   showScreen('screen-lobby');
 }
@@ -330,6 +333,7 @@ async function joinRoom() {
   state.hostSyncInFlight = false;
   state.guestSyncInFlight = false;
   await subscribeRoom();
+  startRoomPolling();
   await syncRoomAndLobby();
   showScreen('screen-lobby');
 }
@@ -587,18 +591,55 @@ function leaveRoomLocal() {
   state.finished = false;
   state.mode = null;
   state.game = createBaseGameState();
+  stopRoomPolling();
   showScreen('screen-home');
 }
 
 async function subscribeRoom() {
   if (state.channel) state.channel.unsubscribe();
+  let subscriptionReady = false;
+  let resolveReady;
+  const readyPromise = new Promise((resolve) => {
+    resolveReady = resolve;
+  });
   state.channel = PZ.db.channel(`pong-${state.roomId}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'pong_rooms', filter: `id=eq.${state.roomId}` }, async (payload) => {
       // Realtime-Payload direkt nutzen, um zusätzliche Fetch-Roundtrips zu vermeiden
       const room = payload?.new || null;
       await syncRoomAndLobby(room);
     })
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED' && !subscriptionReady) {
+        subscriptionReady = true;
+        resolveReady();
+        return;
+      }
+      // Fallback-Hinweis: Realtime kann in manchen Netzwerken geblockt sein.
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        const hint = $('lobby-hint');
+        if (hint && state.mode !== 'single') {
+          hint.textContent = 'Realtime instabil – Fallback-Sync aktiv.';
+        }
+      }
+    });
+  // Nicht blockieren: wenn Realtime nicht sofort subscribed, arbeitet Polling-Fallback weiter.
+  await Promise.race([readyPromise, new Promise((resolve) => setTimeout(resolve, 1200))]);
+}
+
+function stopRoomPolling() {
+  if (state.roomPollTimer) {
+    clearInterval(state.roomPollTimer);
+    state.roomPollTimer = null;
+  }
+}
+
+function startRoomPolling() {
+  stopRoomPolling();
+  state.roomPollTimer = setInterval(async () => {
+    if (!state.roomId) return;
+    // Polling nur als Fallback/Absicherung. Realtime bleibt primärer Weg.
+    await syncRoomAndLobby();
+  }, ROOM_POLL_MS);
 }
 
 function updateMultiplayerPaddle(dt) {
