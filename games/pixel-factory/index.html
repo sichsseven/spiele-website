@@ -23,6 +23,7 @@
       <span class="tut-punkt" data-idx="1"></span>
       <span class="tut-punkt" data-idx="2"></span>
       <span class="tut-punkt" data-idx="3"></span>
+      <span class="tut-punkt" data-idx="4"></span>
     </div>
     <div class="tutorial-icon" id="tutorialIcon">🏭</div>
     <div class="tutorial-titel" id="tutorialTitel">Willkommen!</div>
@@ -39,18 +40,18 @@
   <div class="modal prestige-confirm-modal">
     <div class="pc-stern">✦</div>
     <h2>Prestige machen?</h2>
-    <div class="pc-qp" id="pcQP">+5 Quantum-Pixel</div>
+    <div class="pc-qp" id="pcQP">+1 Prestigepunkt</div>
     <div class="pc-liste">
       <div class="pc-reset">🔄 Pixel &amp; Gebäude werden zurückgesetzt</div>
-      <div class="pc-behalten">✓ Quantum-Pixel bleiben</div>
-      <div class="pc-behalten">✓ Prestige-Upgrades bleiben</div>
+      <div class="pc-behalten">✓ Prestige &amp; Prestigepunkte bleiben</div>
+      <div class="pc-behalten">✓ Linienbaum-Upgrades bleiben</div>
       <div class="pc-behalten">✓ Skins bleiben</div>
-      <div class="pc-behalten">✓ Talente &amp; Talentpunkte bleiben</div>
-      <div class="pc-behalten talent-punkt-hint">⭐ +1 Talentpunkt erhalten!</div>
+      <div class="pc-behalten">✓ Mutationen bleiben aktiv</div>
+      <div class="pc-behalten talent-punkt-hint">⭐ +1 Prestigepunkt erhalten!</div>
     </div>
     <div class="pc-buttons">
       <button class="pc-btn-nein" id="prestigeConfirmNein">Abbrechen</button>
-      <button class="pc-btn-ja" id="prestigeConfirmJa">✦ Prestige!</button>
+      <button class="pc-btn-ja" id="prestigeConfirmJa">Zufällige Mutation</button>
     </div>
   </div>
 </div>
@@ -61,7 +62,7 @@
   <div class="prestige-anim-inhalt">
     <div class="pa-stern-ring"></div>
     <div class="pa-titel">✦ PRESTIGE!</div>
-    <div class="pa-qp" id="paQPText">+5 Quantum-Pixel</div>
+    <div class="pa-qp" id="paQPText">+1 Prestigepunkt</div>
     <div class="pa-sub">Stärker als je zuvor!</div>
   </div>
 </div>
@@ -85,7 +86,7 @@
           <div class="stat-k-wert" id="statPPK">1</div>
         </div>
         <div class="stat-karte qp-karte">
-          <div class="stat-k-label">Q-Pixel</div>
+          <div class="stat-k-label">Prestigepunkte</div>
           <div class="stat-k-wert" id="statQP">0</div>
         </div>
         <div class="stat-karte pre-karte">
@@ -140,9 +141,9 @@
 
     <div class="shop-kopf">
       <div class="shop-tabs">
-        <button class="shop-tab aktiv" data-tab="gebaeude">🏗 Gebäude</button>
+        <button class="shop-tab aktiv" data-tab="gebaeude">🛒 Shop</button>
         <button class="shop-tab" data-tab="upgrades">⚡ Upgrades</button>
-        <button class="shop-tab" data-tab="prestige">✦ Quantum</button>
+        <button class="shop-tab" data-tab="prestige">🌿 Linienbaum</button>
       </div>
       <div class="bulk-leiste" id="bulkLeiste">
         <span class="bulk-label">Kaufen:</span>
@@ -219,7 +220,7 @@
       <button id="adm-prestige-btn" class="adm-btn">Setzen</button>
     </div>
     <div class="adm-row">
-      <input id="adm-qp" type="number" placeholder="Quantum-Pixel" class="adm-input">
+      <input id="adm-qp" type="number" placeholder="Prestigepunkte" class="adm-input">
       <button id="adm-qp-btn" class="adm-btn">Setzen</button>
     </div>
     <div class="adm-row">
@@ -240,6 +241,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../../auth.js"></script>
 <script>PZ.pruefeSpielStatus('pixel-factory');</script>
-<script src="game-rework.js"></script>
+<script src="game-rework-v2.js"></script>
 </body>
 </html>

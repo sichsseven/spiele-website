@@ -594,3 +594,33 @@
 - `games/neon-runner/style.css`, `game.js` — extrahiert
 - `supabase/migrations/20260402000001_feedback.sql` — neu (manuell anwenden!)
 - `NOTES.md` — aktualisiert
+
+### Pixel Factory – v2 Stabilitäts-Hotfix (2026-04-15) ✅
+
+#### Was gemacht wurde
+- `game-rework-v2.js`: `structuredClone` durch robusten `deepClone`-Fallback ersetzt (mit JSON-Fallback für ältere Browser).
+- `game-rework-v2.js`: Run-sichere Delayed-Effects eingebaut (`runToken` + `applyDelayedEffectSafe`), damit Event-Nachwirkungen nicht nach Prestige in neue Runs hineinwirken.
+- `game-rework-v2.js`: Prestige-Reset setzt jetzt explizit einen neuen `runToken`, damit alte Timer sauber ignoriert werden.
+- `index.html`: Konsistenz der Texte auf Prestigepunkte/Linienbaum geprüft und vereinheitlicht; Prestige-Hauptbutton als „Zufällige Mutation“ benannt.
+- SSR/Next.js-Warnung gefixt: Google-Font-Link aus `pages/index.js` in neues `pages/_document.js` verschoben (`no-stylesheets-in-head-component`).
+- Zusätzlicher Smoke-Check: Live-Requests auf `games/pixel-factory/index.html`, `game-rework-v2.js`, `style.css` mit HTTP 200 validiert.
+- Verifikation durchgeführt: `node --check games/pixel-factory/game-rework-v2.js`, `ReadLints` für Pixel-Factory- und Pages-Dateien, `npm run build` erfolgreich.
+
+#### Veränderte Dateien
+- `games/pixel-factory/game-rework-v2.js`
+- `pages/index.js`
+- `pages/_document.js`
+- `NOTES.md`
+
+### Pixel Phone + Pixel Factory – UI Redesign (2026-04-15) ✅
+
+#### Was gemacht wurde
+- Wichtig: **nur optische Änderungen**, keine Änderungen an der Spiellogik/Spielmechanik.
+- `games/pixel-phone/index.html`: komplettes visuelles Polish der eingebetteten Styles (neue Farb- und Schatten-Tokens, modernere Panels, Buttons, Canvas-Rahmen, Toolbar-Polish, bessere visuelle Hierarchie).
+- `games/pixel-factory/style.css`: visuelles Redesign für Hauptoberfläche (hellerer Layer-Hintergrund, weichere Karten, modernere Buttons/Tabs, aufgewertete Modals und Tutorial-Overlay).
+- Interaktionsfeedback (Hover/Pressed/States) klarer gemacht, ohne Event-/Game-Logik zu verändern.
+
+#### Veränderte Dateien
+- `games/pixel-phone/index.html`
+- `games/pixel-factory/style.css`
+- `NOTES.md`
