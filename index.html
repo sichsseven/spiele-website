@@ -36,6 +36,58 @@
 
 <main>
 
+  <section class="home-news" aria-label="News und Updates">
+    <div class="home-news-top">
+      <div class="home-news-badge" id="homeNewsBadge">News</div>
+      <button class="home-news-edit-btn hidden" id="homeNewsEditBtn" type="button">Bearbeiten</button>
+    </div>
+    <h2 class="home-news-title" id="homeNewsTitle">PIXELZONE News</h2>
+    <p class="home-news-body" id="homeNewsBody">News werden geladen...</p>
+    <div class="home-news-meta" id="homeNewsMeta"></div>
+
+    <div class="home-news-poll hidden" id="homeNewsPoll">
+      <h3 id="homeNewsPollQuestion"></h3>
+      <ul id="homeNewsPollOptions"></ul>
+    </div>
+
+    <div class="home-news-editor hidden" id="homeNewsEditor">
+      <p class="home-news-editor-info" id="homeNewsEditorInfo"></p>
+      <div class="home-news-editor-grid">
+        <label>
+          Typ
+          <select id="homeNewsKind">
+            <option value="news">News</option>
+            <option value="poll">Abstimmung</option>
+          </select>
+        </label>
+        <label>
+          Titel
+          <input id="homeNewsTitleInput" type="text" maxlength="120">
+        </label>
+      </div>
+      <label>
+        Text
+        <textarea id="homeNewsBodyInput" rows="4" maxlength="2500"></textarea>
+      </label>
+
+      <div class="home-news-poll-fields hidden" id="homeNewsPollFields">
+        <label>
+          Abstimmungsfrage
+          <input id="homeNewsPollQuestionInput" type="text" maxlength="200">
+        </label>
+        <label>
+          Optionen (eine Zeile = eine Option)
+          <textarea id="homeNewsPollOptionsInput" rows="4" maxlength="800"></textarea>
+        </label>
+      </div>
+
+      <div class="home-news-editor-actions">
+        <button class="news-btn secondary" id="homeNewsCancelBtn" type="button">Abbrechen</button>
+        <button class="news-btn" id="homeNewsSaveBtn" type="button">News speichern</button>
+      </div>
+    </div>
+  </section>
+
   <!-- SPIELEÜBERSICHT -->
   <section class="section" id="games">
     <div class="section-head">
@@ -363,6 +415,7 @@
 <!-- Supabase + Auth -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="auth.js"></script>
+<script src="home-news.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => { PZ.updateNavbar(); });
 </script>
