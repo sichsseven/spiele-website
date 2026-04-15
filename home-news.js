@@ -9,6 +9,15 @@
     ));
   }
 
+  /** Sichere Anzeige: HTML escapen, **fett** → <strong>, Zeilenumbrüche erhalten */
+  function formatNewsBodyHtml(raw) {
+    let s = esc(raw);
+    // Fettdruck: **Wort** oder **mehrere Wörter** (kein * innerhalb des fett-Bereichs)
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/\n/g, "<br>");
+    return s;
+  }
+
   function fmtDate(iso) {
     if (!iso) return "";
     const d = new Date(iso);
@@ -79,7 +88,7 @@
 
     badge.textContent = data.kind === "poll" ? "Abstimmung" : "News";
     title.textContent = data.title || "PIXELZONE News";
-    body.textContent = data.body || "";
+    body.innerHTML = formatNewsBodyHtml(data.body || "");
     meta.textContent = data.updated_at ? `Zuletzt aktualisiert: ${fmtDate(data.updated_at)}` : "";
 
     const isPoll = data.kind === "poll";
@@ -189,7 +198,8 @@
           id: NEWS_ROW_ID,
           kind: document.getElementById("homeNewsKind").value,
           title: document.getElementById("homeNewsTitleInput").value.trim().slice(0, 120) || "PIXELZONE News",
-          body: document.getElementById("homeNewsBodyInput").value.trim().slice(0, 2500),
+          // Nur Enden trimmen — Zeilenumbrüche in der Mitte bleiben erhalten
+          body: document.getElementById("homeNewsBodyInput").value.replace(/^\s+|\s+$/g, "").slice(0, 2500),
           poll_question: document.getElementById("homeNewsPollQuestionInput").value.trim().slice(0, 200),
           poll_options: parseOptions(document.getElementById("homeNewsPollOptionsInput").value),
           updated_by: user.id,

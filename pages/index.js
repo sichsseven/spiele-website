@@ -181,6 +181,7 @@ export default function Home({ games, gameCount, year }) {
             <label>
               Text
               <textarea id="homeNewsBodyInput" rows={4} maxLength={2500}></textarea>
+              <span className="home-news-format-hint">Zeilenumbruch mit Enter. Fettdruck: <code>**Wörter**</code></span>
             </label>
 
             <div className="home-news-poll-fields hidden" id="homeNewsPollFields">

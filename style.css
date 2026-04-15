@@ -149,6 +149,10 @@ main { padding-top: 64px; }
   line-height: 1.45;
   margin: 0;
 }
+.home-news-body strong {
+  font-weight: 800;
+  color: var(--text);
+}
 .home-news-meta {
   margin-top: 6px;
   font-size: .74rem;
@@ -267,6 +271,22 @@ main { padding-top: 64px; }
   padding: 8px 10px;
 }
 .home-news-editor textarea { resize: vertical; }
+.home-news-format-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--text3);
+  line-height: 1.35;
+}
+.home-news-format-hint code {
+  font-size: .78rem;
+  font-weight: 800;
+  color: var(--text2);
+  background: rgba(58, 134, 255, 0.08);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
 .home-news-editor-actions {
   display: flex;
   justify-content: flex-end;
