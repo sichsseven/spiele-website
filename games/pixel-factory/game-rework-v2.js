@@ -1236,9 +1236,11 @@ async function init() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    removeGameLoadingOverlay();
-    if (typeof PZ?.updateNavbar === "function") await PZ.updateNavbar();
+    if (typeof PZ !== "undefined" && typeof PZ.updateNavbar === "function") {
+      await PZ.updateNavbar();
+    }
     await init();
+    removeGameLoadingOverlay();
   } catch (err) {
     console.error("[Pixel Factory] Init-Fehler:", err);
     removeGameLoadingOverlay();
