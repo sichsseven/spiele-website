@@ -277,6 +277,8 @@ const PP = {
   undone: [],
   /** Wechsel der Spielrunde erkennen (kein Reset bei Realtime-Polling) */
   playRoundKey: null,
+  /** Verhindert doppeltes Auto-Abgeben wenn die UI-Timer-Schleife weiterläuft */
+  deadlineFired: false,
 };
 
 /** Viele freundliche Stiftfarben (heller Stil, gut unterscheidbar) */
@@ -711,10 +713,12 @@ async function makeBlankDataUrl() {
 
 function clearTimers() {
   if (PP.uiTimer) { clearInterval(PP.uiTimer); PP.uiTimer = null; }
+  PP.deadlineFired = false;
 }
 
 function startLocalTimer(deadlineIso, maxSec) {
   clearTimers();
+  PP.deadlineFired = false;
   const dl = deadlineIso ? new Date(deadlineIso).getTime() : Date.now() + maxSec * 1000;
   const tick = () => {
     const left = Math.max(0, Math.floor((dl - Date.now()) / 1000));
@@ -723,9 +727,38 @@ function startLocalTimer(deadlineIso, maxSec) {
     const el = $('pp-timer');
     el.textContent = `${m}:${String(s).padStart(2, '0')}`;
     el.classList.toggle('warn', left <= 10);
+    // Zeit abgelaufen: aktuellen Text bzw. aktuelle Zeichnung automatisch abgeben (wie „Fertig“)
+    if (left === 0 && !PP.deadlineFired) {
+      PP.deadlineFired = true;
+      autoSubmitOnDeadline().catch(() => {});
+    }
   };
   tick();
   PP.uiTimer = setInterval(tick, 250);
+}
+
+/** Wenn die Rundenzeit abläuft und der Spieler noch nicht auf Fertig war: Inhalt speichern + ready setzen */
+async function autoSubmitOnDeadline() {
+  const room = await fetchRoom();
+  if (!room || room.status !== 'playing') return;
+  const readyRows = await loadReady(room.current_round);
+  if (readyRows.some((r) => r.user_id === PP.userId && r.ready)) return;
+  await submitCurrentRound();
+  await PP.db.from('pixel_phone_ready').upsert({
+    room_id: PP.roomId,
+    round_number: room.current_round,
+    user_id: PP.userId,
+    ready: true,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'room_id,round_number,user_id' });
+  $('pp-fertig').disabled = true;
+  $('pp-fertig-hint').textContent = 'Zeit abgelaufen – dein Beitrag wurde abgegeben.';
+  await updateReadyList(room);
+  if (PP.userId === PP.hostId) {
+    setTimeout(async () => {
+      await tryAdvanceRound(await fetchRoom());
+    }, 400);
+  }
 }
 
 async function submitCurrentRound() {
