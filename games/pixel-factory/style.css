@@ -1415,3 +1415,137 @@ body {
   0%,100% { transform: translateX(0); }
   50%      { transform: translateX(18px); }
 }
+
+/* Rework v3: Missionen, Pfade, Events, Minigame, Mutationen */
+.rework-panel {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.rework-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.btn-klein {
+  padding: 6px 10px;
+  font-size: 0.76rem;
+}
+.mission-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  background: #f8fbff;
+  margin-top: 8px;
+}
+.mission-card.done {
+  background: #ecfdf5;
+  border-color: #86efac;
+}
+.mission-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.mission-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.mission-bar > div {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #60a5fa);
+}
+.mission-reward {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.event-choices {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+.path-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.path-card {
+  border: 1px solid var(--border);
+  background: #f8fbff;
+  border-radius: 10px;
+  text-align: left;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.path-card.aktiv {
+  border-color: var(--primary);
+  background: #eff6ff;
+}
+.path-card span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.mutation-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.mutation-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f8fbff;
+  text-align: left;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mutation-card:hover {
+  border-color: var(--prestige);
+  background: #f3e8ff;
+}
+.mini-bar {
+  position: relative;
+  margin-top: 12px;
+  width: 100%;
+  height: 18px;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+.mini-center {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 8px;
+  height: 100%;
+  transform: translateX(-50%);
+  background: #fb7185;
+}
+#miniMarker {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 12px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--primary);
+  transform: translateX(-50%);
+}

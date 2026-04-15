@@ -139,6 +139,7 @@ const PZ = {
   /**
    * Spielstand + alle Spieldaten speichern.
    * Highscore (punkte) wird nur aktualisiert wenn der neue Wert HÖHER ist.
+   * Level wird unabhängig davon als Maximalwert geführt (nie gesenkt).
    * extra_daten (Coins, Skins, Upgrades usw.) wird IMMER gespeichert.
    * @param {string} spielName  z.B. 'space-blaster', 'blockfall'
    * @param {number} punkte     Punktzahl dieser Runde
@@ -155,7 +156,8 @@ const PZ = {
 
     // Highscore nur anheben, nie senken
     const finalPunkte = isNewRecord ? punkte : (existing?.punkte || 0);
-    const finalLevel  = isNewRecord ? level  : (existing?.level  || level);
+    // Level/Prestige immer auf dem höchsten erreichten Stand halten.
+    const finalLevel  = Math.max(Number(existing?.level || 0), Number(level || 0));
 
     const { error } = await this.db
       .from('spielstaende')

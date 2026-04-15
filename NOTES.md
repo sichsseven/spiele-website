@@ -1,5 +1,45 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Heutiger Plan (2026-04-15) — Pixel Factory Komplett-Rework (Hard-Reset)
+
+- **Vorhaben:** Pixel Factory vollständig neu aufbauen, damit das Spiel nicht mehr monoton ist: Missionen, Entscheidungen bei Events, Produktionspfade, aktives Minigame, Prestige-Mutationen und Saison-Meta.
+- **Schritte:**
+  1. Neues Rework-Gamefile mit Save-Schema v3 und Hard-Reset-Flow einführen.
+  2. Missionssystem mit 3 Slots und Belohnungen einbauen.
+  3. Event-System auf interaktive Entscheidungen mit Trade-offs umbauen.
+  4. Exklusive Produktionspfade (Speed/Efficiency/Automation) integrieren.
+  5. Aktives Kalibrierungs-Minigame mit Cooldown ergänzen.
+  6. Prestige auf Mutation-Auswahl (1 aus 3) umstellen.
+  7. Saisonpunkte + dritte Ranglistenansicht ergänzen.
+  8. Balancing/Polish, Checks und Abschluss-Doku.
+
+### Pixel Factory Komplett-Rework umgesetzt (2026-04-15) ✅
+- Neues Hauptskript erstellt: `games/pixel-factory/game-rework.js` (komplett neue Kernlogik).
+- Hard-Reset auf Save-Schema v3 integriert:
+  - Alte Save-Stände werden beim Laden erkannt und auf Rework-Startzustand gesetzt.
+  - Hinweis im UI bei durchgeführt em Rework-Reset.
+- **Missionen:** 3 parallele Mission-Slots, Fortschritt live, Rewards mit Pixel/Saisonpunkten/Boosts/Shards.
+- **Events:** Interaktive Event-Karten mit 2-3 Entscheidungsoptionen und unterschiedlichen Folgen.
+- **Produktionspfade:** Speed-Line, Efficiency-Line, Automation-Line mit unterschiedlichen Multiplikatoren/Risiken.
+- **Minigame:** Kalibrierungs-Minispiel (Timing), Burst-Boost + Cooldown.
+- **Prestige-Mutationen:** Bei Prestige Auswahl von 1 aus 3 Mutationen mit positiven/negativen Effekten.
+- **Saison-Meta:** Saisonpunkte im Save, zusätzlicher Ranglisten-Tab „Saison“.
+- UI/UX:
+  - Mission-Panel, Event-Overlay, Minigame-Overlay, Mutationskarten ergänzt.
+  - Rework-Styling für neue Komponenten in `style.css` ergänzt.
+- Startseite des Spiels umgestellt:
+  - `games/pixel-factory/index.html` lädt jetzt `game-rework.js`.
+- Stabilität:
+  - JS-Syntaxcheck für Rework-Datei erfolgreich (`node --check`).
+  - Keine Linterfehler in geänderten Dateien.
+
+### Veränderte Dateien (Pixel Factory Rework)
+- `games/pixel-factory/game-rework.js` (neu)
+- `games/pixel-factory/index.html`
+- `games/pixel-factory/style.css`
+- `auth.js` (Prestige/Level-Speicherlogik für Rangliste korrigiert)
+- `NOTES.md`
+
 ## Heutiger Plan (2026-04-15) — Next.js SSR Migration
 
 - **Vorhaben:** Startseite von statischem HTML auf Next.js mit Server-Side Rendering umstellen (`getServerSideProps`) und lauffaehiges Basis-Setup im Projekt anlegen.
