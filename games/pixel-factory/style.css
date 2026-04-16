@@ -2282,6 +2282,7 @@ body {
   background: transparent;
   box-shadow: none;
   cursor: pointer;
+  touch-action: manipulation;
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;

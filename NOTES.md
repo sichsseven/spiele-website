@@ -735,3 +735,14 @@
 #### Veränderte Dateien
 - `games/pong/game.js`
 - `NOTES.md`
+
+### Pixel Factory – Linienbaum „?“ (2026-04-16)
+
+- Hilfe-Button nutzt `data-tooltip-node` (nicht mehr `data-line-node` auf dem gleichen Element wie die Karte).
+- Tooltip-Zuverlässigkeit: einmaliger **Click-Capture**-Listener auf `#skillTreePanInner` für `.pf-skill-help`, damit das „?“ vor Karten-Upgrade/Pan-Konflikten ausgewertet wird; pro Render keine separaten Help-Listener mehr nötig.
+- CSS: `touch-action: manipulation` auf `.pf-skill-help`.
+
+#### Veränderte Dateien
+- `games/pixel-factory/game-rework-v2.js`
+- `games/pixel-factory/style.css`
+- `NOTES.md`

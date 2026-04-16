@@ -378,6 +378,7 @@ const runtime = {
   pendingPrestigeMutationId: null,
   skillTreePan: { x: 0, y: 0 },
   skillTreePanWired: false,
+  skillTreeHelpDelegationWired: false,
 };
 
 const ui = {};
@@ -1693,7 +1694,7 @@ function closeLineTreeModal() {
 function showLineNodeTooltip(btn) {
   if (!ui.lineTreeTooltip) return;
   const line = btn?.dataset?.line;
-  const nodeId = btn?.dataset?.lineNode;
+  const nodeId = btn?.dataset?.tooltipNode || btn?.dataset?.lineNode;
   const node = line && nodeId ? findLineNode(line, nodeId) : null;
   const body = document.getElementById("lineTreeTooltipBody");
   if (!body) return;
@@ -1718,6 +1719,22 @@ function onDocPointerDownCloseLineTooltip(e) {
 function wireLineTreeModalOnce() {
   if (runtime.lineTreeModalWired) return;
   runtime.lineTreeModalWired = true;
+  const inner = document.getElementById("skillTreePanInner");
+  if (inner && !runtime.skillTreeHelpDelegationWired) {
+    runtime.skillTreeHelpDelegationWired = true;
+    /* Capture: „?“ zuverlässig vor Karten-Klick / Pan; einmal am Container, unabhängig von innerHTML */
+    inner.addEventListener(
+      "click",
+      (e) => {
+        const help = e.target.closest?.(".pf-skill-help[data-line-help]");
+        if (!help) return;
+        e.preventDefault();
+        e.stopPropagation();
+        showLineNodeTooltip(help);
+      },
+      true,
+    );
+  }
   document.getElementById("lineTreeModalClose")?.addEventListener("click", (e) => {
     e.preventDefault();
     closeLineTreeModal();
@@ -1735,14 +1752,6 @@ function wireLineTreeModalOnce() {
       return;
     }
     closeLineTreeModal();
-  });
-  const vp = document.getElementById("skillTreePanViewport");
-  vp?.addEventListener("click", (e) => {
-    const help = e.target.closest?.("[data-line-help]");
-    if (!help) return;
-    e.preventDefault();
-    e.stopPropagation();
-    showLineNodeTooltip(help);
   });
   window.addEventListener("resize", () => {
     if (ui.lineTreeModal && !ui.lineTreeModal.classList.contains("versteckt")) clampSkillTreePan();
@@ -1849,7 +1858,7 @@ function renderLineTree() {
       <div class="pf-skill-node-wrap pf-skill-node-wrap--${lineKey}${dimWrap}" style="left:${pix.cx}px;top:${pix.cy}px;">
         <div class="pf-skill-node-card">
           <div class="pf-skill-help-slot">
-            <button type="button" class="pf-skill-help" data-line-help="1" data-line="${lineKey}" data-line-node="${n.id}" aria-label="Beschreibung">
+            <button type="button" class="pf-skill-help" data-line-help="1" data-line="${lineKey}" data-tooltip-node="${n.id}" aria-label="Beschreibung">
               <span class="pf-skill-help__glyph" aria-hidden="true">?</span>
             </button>
           </div>
@@ -1903,7 +1912,8 @@ function renderLineTree() {
   });
   wireSkillTreePanOnce();
 
-  target.querySelectorAll("[data-line-node]").forEach((btn) => {
+  /* Nur die große Skill-Karte; Hilfe „?“ läuft über Capture-Delegation auf #skillTreePanInner */
+  target.querySelectorAll("button.pf-skill-node[data-line-node]").forEach((btn) => {
     btn.addEventListener("click", (ev) => {
       if (btn.disabled) return;
       ev.stopPropagation();
