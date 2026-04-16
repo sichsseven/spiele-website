@@ -8,7 +8,13 @@ const isTouchDevice=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 if(typeof PJ_SPRITES==='undefined'){
   console.error('pj-skins.js fehlt – Skins können nicht geladen werden.');
 }
-const SPRITES=typeof PJ_SPRITES!=='undefined'?PJ_SPRITES:[];
+const SPRITES=[];
+if(typeof PJ_SPRITES!=='undefined'){
+  for(let si=0;si<PJ_SPRITES.length;si++)SPRITES.push(PJ_SPRITES[si]);
+}
+if(typeof PJ_CLASSIC_SPRITES!=='undefined'){
+  for(let si=0;si<PJ_CLASSIC_SPRITES.length;si++)SPRITES.push(PJ_CLASSIC_SPRITES[si]);
+}
 
 // ── SPIELERDATEN (Supabase-Sync, ohne localStorage) ─────────────────────────
 const LOOT_BOX_PREIS_STD=75;
@@ -104,8 +110,8 @@ function resize(){
 resize();
 window.addEventListener('resize',function(){resize();});
 
-// ── CHARACTERS (Farben zu pj-skins.js Pixelwerten 1–6) ───────────────────────
-const CHARS=[
+// ── CHARACTERS (Farben zu Pixelwerten 1–6; neu = 24×24, klassisch = 16×16) ───
+const CHARS_NEU=[
   {name:'Nimbulus', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#8ec5ff', dark:'#3d6eaa', light:'#eaf6ff', trim:'#5b9cff', acc:'#4a8ae0', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
   {name:'Tropfi', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#5bc0de', dark:'#1a6f85', light:'#d9f4fc', trim:'#2ea3cc', acc:'#39b0d0', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
   {name:'Twinkle', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ffd54f', dark:'#c49000', light:'#fff8e1', trim:'#ffb300', acc:'#ff8f00', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
@@ -124,6 +130,27 @@ const CHARS=[
   {name:'Nova', price:0, scoreReq:0, tier:'m', lootOnly:true, body:'#4fc3f7', dark:'#01579b', light:'#e1f5fe', trim:'#0277bd', acc:'#81d4fa', spark:'#ffffff', myth:'#b3e5fc', code:null, img:null},
   {name:'Astral', price:0, scoreReq:0, tier:'l', lootOnly:true, body:'#ffd740', dark:'#ff6f00', light:'#fff8e1', trim:'#ffab00', acc:'#ffecb3', spark:'#fff59d', myth:'#ffffff', code:null, img:null},
 ];
+/** Original-Skins (16×16), gleiche Reihenfolge wie vor dem großen Skin-Update – Index 17–33. */
+const CHARS_KLASSISCH=[
+  {name:'Grüni', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#7ecf4a', dark:'#2d6e0f', light:'#e3ffd5', trim:'#ffe066', acc:'#ffe066', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Ozean', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#22c5ef', dark:'#0a5a8a', light:'#e5fbff', trim:'#ffffff', acc:'#ffffff', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Feuer', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ff5a1a', dark:'#aa1a00', light:'#ffe8dc', trim:'#ffcc00', acc:'#ffcc00', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Neon', price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#b46aef', dark:'#6a1aaa', light:'#f3e8ff', trim:'#ffaaff', acc:'#ffaaff', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Robot', price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#8aaabb', dark:'#334455', light:'#eef4f8', trim:'#44ffff', acc:'#44ffff', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Gold', price:0, scoreReq:0, tier:'e', lootOnly:true, body:'#ffd700', dark:'#996600', light:'#fff8e0', trim:'#ffffff', acc:'#ffffff', spark:'#fffde7', myth:'#ffffff', code:null, img:null},
+  {name:'Geist', price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#dde0ff', dark:'#6677cc', light:'#f8f9ff', trim:'#ffffff', acc:'#ffffff', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Alien', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#4aef8a', dark:'#1a7a3a', light:'#e6fff0', trim:'#ffff44', acc:'#ffff44', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Tim (Pixel)', price:0, scoreReq:0, tier:'l', lootOnly:true, body:'#f0c090', dark:'#8b4513', light:'#ffe8d0', trim:'#6ab4e8', acc:'#4a90d9', spark:'#fff8e1', myth:'#ffffff', code:null, img:null},
+  {name:'Kirsch', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ff6b9a', dark:'#9d174d', light:'#fff0f5', trim:'#fff0f5', acc:'#fff0f5', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Limette', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#c8f542', dark:'#3d6e0a', light:'#f4ffe0', trim:'#2d5016', acc:'#2d5016', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Mitternacht', price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#3d4f7a', dark:'#1a2238', light:'#e8eefc', trim:'#8eb4ff', acc:'#8eb4ff', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Pfirsich', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ffb38a', dark:'#c45c2d', light:'#fff5e6', trim:'#fff5e6', acc:'#fff5e6', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Lava', price:0, scoreReq:0, tier:'e', lootOnly:true, body:'#ff4500', dark:'#5c1000', light:'#ffe8dc', trim:'#ffd000', acc:'#ffd000', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Polar', price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#e0f4ff', dark:'#4a7aa8', light:'#ffffff', trim:'#1e90ff', acc:'#1e90ff', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Schatten', price:0, scoreReq:0, tier:'e', lootOnly:true, body:'#6a5acd', dark:'#2e1a5e', light:'#ede9ff', trim:'#dda0ff', acc:'#dda0ff', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Sonnenuntergang', price:0, scoreReq:0, tier:'l', lootOnly:true, body:'#ff8c42', dark:'#8b3a00', light:'#fff0e5', trim:'#ffccff', acc:'#ffccff', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+];
+const CHARS=CHARS_NEU.concat(CHARS_KLASSISCH);
 /** Loot: Zuerst Stufe würfeln (Summe 100), dann Skin aus Pool ohne Duplikate. */
 const LOOT_TIER_WEIGHTS={c:48,r:22,sr:12,e:9,m:5,l:4};
 const LOOT_TIER_ORDER=['c','r','sr','e','m','l'];
