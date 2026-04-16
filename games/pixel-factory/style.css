@@ -2234,6 +2234,7 @@ body {
 }
 .pf-skill-node-card .pf-skill-node {
   position: relative;
+  z-index: 1;
   left: auto;
   top: auto;
   transform: none;
@@ -2254,7 +2255,8 @@ body {
   right: 5px;
   width: 44px;
   height: 44px;
-  z-index: 4;
+  /* Über der großen Skill-Karte (DOM danach), sonst fängt die Karte alle Klicks ab */
+  z-index: 12;
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
@@ -2396,7 +2398,7 @@ body {
 .pf-skill-node-wrap--dimmed .pf-skill-help-slot {
   pointer-events: auto;
   opacity: 1;
-  z-index: 5;
+  z-index: 12;
 }
 .pf-skill-node-wrap--dimmed .pf-skill-help__glyph {
   opacity: 1;
