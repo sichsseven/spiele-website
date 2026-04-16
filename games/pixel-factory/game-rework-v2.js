@@ -629,7 +629,7 @@ function zeigeSpeicherHinweis() {
 }
 
 async function saveGame(withToast = false, zeigeHinweis = false) {
-  if (location.search.includes("admin=1")) return;
+  if (new URLSearchParams(location.search).has("admin")) return;
   const user = await PZ.getUser();
   if (!user) return;
   state.session.lastSaveAt = Date.now();
@@ -1050,6 +1050,84 @@ function renderSkinModal() {
   });
 }
 
+/** HTML-Adminleiste (#adminPanel) – nur mit ?admin oder ?admin=1 in der URL. */
+function wireAdminPanel() {
+  if (!new URLSearchParams(location.search).has("admin")) return;
+  const panel = document.getElementById("adminPanel");
+  if (!panel) return;
+  panel.style.display = "block";
+
+  document.getElementById("adm-pixel-btn")?.addEventListener("click", () => {
+    const v = Number(document.getElementById("adm-pixel")?.value);
+    if (!Number.isFinite(v) || v < 0) return;
+    state.economy.pixel = v;
+    state.economy.lifetimePixel = Math.max(state.economy.lifetimePixel, v);
+    recomputeMetaFromLineAndMutations();
+    renderStats();
+    maybeRenderShop();
+    drawPile();
+    toast(`Pixel: ${fmtNumber(v)}`);
+  });
+
+  document.getElementById("adm-prestige-btn")?.addEventListener("click", () => {
+    const v = Number(document.getElementById("adm-prestige")?.value);
+    if (!Number.isFinite(v) || v < 0) return;
+    state.meta.prestige = Math.floor(v);
+    recomputeMetaFromLineAndMutations();
+    renderStats();
+    maybeRenderShop();
+    drawPile();
+    toast(`Prestige: ${state.meta.prestige}`);
+  });
+
+  document.getElementById("adm-qp-btn")?.addEventListener("click", () => {
+    const v = Number(document.getElementById("adm-qp")?.value);
+    if (!Number.isFinite(v) || v < 0) return;
+    state.meta.prestigePoints = Math.floor(v);
+    renderStats();
+    renderLineTree();
+    toast(`Prestigepunkte: ${state.meta.prestigePoints}`);
+  });
+
+  document.getElementById("adm-vorspulen-btn")?.addEventListener("click", () => {
+    const h = Number(document.getElementById("adm-vorspulen")?.value) || 1;
+    const bonus = currentPps() * h * 3600;
+    addPixels(bonus, "Admin-Zeitsprung");
+    toast(`+${fmtNumber(bonus)} Pixel (${h} h)`);
+  });
+
+  document.getElementById("adm-alle-upgrades")?.addEventListener("click", () => {
+    for (const u of UPGRADES) {
+      if (state.economy.boughtUpgrades.includes(u.id)) continue;
+      state.economy.boughtUpgrades.push(u.id);
+      u.apply(state);
+    }
+    recomputeMetaFromLineAndMutations();
+    renderStats();
+    maybeRenderShop();
+    drawPile();
+    toast("Alle Shop-Upgrades");
+  });
+
+  document.getElementById("adm-alle-skins")?.addEventListener("click", () => {
+    const last = SKINS[SKINS.length - 1];
+    applySkin(last.id);
+    toast(`Skin: ${last.name}`);
+  });
+
+  document.getElementById("adm-alle-err")?.addEventListener("click", () => {
+    state.meta.seasonPoints += 10000;
+    renderStats();
+    toast("+10000 Saisonpunkte");
+  });
+
+  document.getElementById("adm-toggle")?.addEventListener("click", () => {
+    const body = panel.querySelector(".adm-body");
+    if (!body) return;
+    body.style.display = body.style.display === "none" ? "block" : "none";
+  });
+}
+
 function handleClick() {
   addPixels(currentPpk());
   state.session.clicksRun += 1;
@@ -1248,15 +1326,26 @@ async function init() {
   setupDynamicUi();
   bindDom();
   bindEvents();
-  applySkin(state.cosmetics.skin);
-  await loadGame();
+  const adminTest = new URLSearchParams(location.search).has("admin");
+  if (adminTest) {
+    Object.assign(state, makeDefaultState());
+    state.economy.pixel = 1e15;
+    state.economy.lifetimePixel = 1e18;
+    state.meta.prestige = 8;
+    state.meta.prestigePoints = 120;
+    randomMissionSet();
+  } else {
+    applySkin(state.cosmetics.skin);
+    await loadGame();
+  }
   applySkin(state.cosmetics.skin);
   recomputeMetaFromLineAndMutations();
   renderStats();
   renderMissions();
   maybeRenderShop();
   drawPile();
-  maybeRenderTutorial();
+  if (!adminTest) maybeRenderTutorial();
+  wireAdminPanel();
 
   runtime.running = true;
   requestAnimationFrame(frame);

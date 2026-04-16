@@ -7,7 +7,7 @@ window.onunhandledrejection=function(e){console.warn('Unhandled promise:',e.reas
 const isTouchDevice=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 
 // ── SPIELERDATEN (Supabase-Sync, ohne localStorage) ─────────────────────────
-const LOOT_BOX_PREIS_STD=150;
+const LOOT_BOX_PREIS_STD=75;
 let pdCache={coins:0,owned:[],sel:0,name:'',upgrades:{},usedCodes:[],lootBoxPreis:LOOT_BOX_PREIS_STD};
 function loadPD(){return pdCache;}
 function savePD(d){pdCache=d||{coins:0,owned:[],sel:0,name:'',upgrades:{},usedCodes:[],lootBoxPreis:LOOT_BOX_PREIS_STD};}
@@ -24,7 +24,7 @@ function buildPJExtra(){
     lootBoxPreis:pd.lootBoxPreis!=null?pd.lootBoxPreis:LOOT_BOX_PREIS_STD,
   };
 }
-function getLootPreis(){pd=loadPD();return pd.lootBoxPreis!=null?pd.lootBoxPreis:LOOT_BOX_PREIS_STD;}
+function getLootPreis(){ return LOOT_BOX_PREIS_STD; }
 function syncSpielstandPJ(){
   if(typeof PZ==='undefined'||adminModus)return Promise.resolve();
   return PZ.getUser().then(function(u){
@@ -54,7 +54,7 @@ let adminModus=false;
 async function initPlayer(){
   adminModus=await PZ.adminPanelErstellen([
     {label:'💰 +5000 Münzen',onClick:function(){pd.coins+=5000;savePD(pd);const sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;}},
-    {label:'🎨 Alle Skins',   onClick:function(){pd.owned=CHARS.map(function(_,i){return i;});savePD(pd);if(typeof renderShop==='function')renderShop();}},
+    {label:'🎨 Alle Skins',   onClick:function(){pd.owned=CHARS.map(function(_,i){return i;});savePD(pd);if(typeof renderShop==='function')renderShop();if(typeof renderMenuSkins==='function')renderMenuSkins();}},
   ]);
   if(adminModus){
     pd.coins=9999;pd.owned=CHARS.map(function(_,i){return i;});
@@ -84,6 +84,7 @@ async function initPlayer(){
     }
   }catch(e){}
   const sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;
+  if(typeof renderMenuSkins==='function')renderMenuSkins();
 }
 
 // ── CANVAS ────────────────────────────────────────────────────────────────────
@@ -890,6 +891,7 @@ function goTo(id){
   touchDir=0;
   const el=document.getElementById(id);if(el)el.classList.remove('h');
   if(id==='sShop')renderShop();
+  if(id==='sMenu'&&typeof renderMenuSkins==='function')renderMenuSkins();
   if(id==='sLB')renderLB();
   if(id==='sName'){pd=loadPD();document.getElementById('ni').value=pd.name||'';}
 }
@@ -917,50 +919,63 @@ const CODES={
   '67':{type:'coins',amount:67},
 };
 
-let curTab='sk';
+let curTab='loot';
 function shopTab(t){
   curTab=t;
-  ['sk','up','cd','loot'].forEach(function(id){
+  ['up','cd','loot'].forEach(function(id){
     const p=document.getElementById('tc-'+id);
     if(p)p.style.display=id===t?'':'none';
     const tab=document.getElementById('tab-'+id);
     if(tab)tab.classList.toggle('active',id===t);
   });
-  if(t==='sk')renderSkins();
   if(t==='up')renderUpgrades();
   if(t==='loot')renderLootTab();
 }
-function renderShop(){pd=loadPD();const s=document.getElementById('shopcoVal');if(s)s.textContent=pd.coins;curTab='sk';shopTab('sk');}
+function renderShop(){pd=loadPD();const s=document.getElementById('shopcoVal');if(s)s.textContent=pd.coins;curTab='loot';shopTab('loot');}
 
-function renderSkins(){
-  pd=loadPD();const s=document.getElementById('shopcoVal');if(s)s.textContent=pd.coins;
-  const grid=document.getElementById('sgrid');grid.innerHTML='';
-  const besitz=(pd.owned||[]).slice();
-  CHARS.forEach(function(ch,i){
-    const hat=besitz.indexOf(i)>=0;
-    const active=hat&&(pd.sel===i);
-    const div=document.createElement('div');
-    div.className='sc'+(hat?' own':'')+(active?' act':'');
-    if(!hat)div.style.opacity='0.72';
-    const sz=Math.round(Math.min(CW*0.09,46));
-    const mc=document.createElement('canvas');mc.width=sz;mc.height=sz;
+/** Skin-Auswahl nur im Hauptmenü (Shop ohne Skin-Tab). */
+function renderMenuSkins(){
+  const bar=document.getElementById('menuSkinBar');
+  if(!bar)return;
+  pd=loadPD();
+  const besitz=pd.owned||[];
+  bar.innerHTML='';
+  if(!besitz.length){
+    const h=document.createElement('div');
+    h.className='menu-skin-hint';
+    h.textContent='Noch keine Skins – hol dir welche in der Lootbox (Shop).';
+    bar.appendChild(h);
+    return;
+  }
+  const row=document.createElement('div');
+  row.className='menu-skin-row';
+  const lt=document.createElement('span');
+  lt.className='menu-skin-label';
+  lt.textContent='Skin wählen:';
+  row.appendChild(lt);
+  besitz.forEach(function(i){
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='menu-skin-btn'+(pd.sel===i?' aktiv':'');
+    const sz=Math.round(Math.min(44,Math.max(32,CW*0.1)));
+    const mc=document.createElement('canvas');
+    mc.width=sz;mc.height=sz;
     mc.style.width=sz+'px';mc.style.height=sz+'px';mc.style.imageRendering='pixelated';
     drawChar(mc.getContext('2d'),i,0,0,sz,false);
-    div.appendChild(mc);
-    const nm=document.createElement('div');nm.className='snm';nm.textContent=ch.name;div.appendChild(nm);
-    const pr=document.createElement('div');pr.className='spr'+(hat?' own':'');
-    pr.textContent=hat?(active?'✓ Aktiv':'Besitz'):'Nur Lootbox';
-    div.appendChild(pr);
-    div.onclick=function(){
-      if(!hat){shopTab('loot');return;}
-      pd=loadPD();
-      pd.sel=i;
-      savePD(pd);
-      syncSpielstandPJ();
-      renderSkins();
-    };
-    grid.appendChild(div);
+    btn.appendChild(mc);
+    btn.title=CHARS[i]?CHARS[i].name:'';
+    (function(idx){
+      btn.onclick=function(){
+        pd=loadPD();
+        pd.sel=idx;
+        savePD(pd);
+        syncSpielstandPJ();
+        renderMenuSkins();
+      };
+    })(i);
+    row.appendChild(btn);
   });
+  bar.appendChild(row);
 }
 
 function renderUpgrades(){
@@ -1052,14 +1067,25 @@ function openLootbox(){
   const sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;
   syncSpielstandPJ();
   renderLootTab();
-  if(typeof renderSkins==='function')renderSkins();
+  if(typeof renderMenuSkins==='function')renderMenuSkins();
+  zeigeLootKaufAnimation(pick,msg);
+}
+
+/** Kurzer Vollbild-Flash + stärkere Karten-Animation nach Kauf. */
+function zeigeLootKaufAnimation(pick,msg){
+  const flash=document.getElementById('lootFxFlash');
+  if(flash){
+    flash.classList.add('loot-fx-on');
+    setTimeout(function(){flash.classList.remove('loot-fx-on');},650);
+  }
+  const resEl=document.getElementById('lootResult');
   if(resEl){
     resEl.innerHTML='';
     resEl.classList.remove('loot-pop');
     void resEl.offsetWidth;
     resEl.classList.add('loot-pop');
-    const wrap=document.createElement('div');wrap.className='loot-reveal';
-    const cv=document.createElement('canvas');const sz=Math.min(120,Math.round(CW*0.28));
+    const wrap=document.createElement('div');wrap.className='loot-reveal loot-reveal-burst';
+    const cv=document.createElement('canvas');const sz=Math.min(128,Math.round(CW*0.3));
     cv.width=sz;cv.height=sz;cv.style.width=cv.style.height=sz+'px';cv.style.imageRendering='pixelated';
     drawChar(cv.getContext('2d'),pick,0,0,sz,false);
     wrap.appendChild(cv);
@@ -1155,6 +1181,7 @@ if(isTouchDevice){
 ctx.fillStyle='#c8e8ff';ctx.fillRect(0,0,CW,CH);
 drawChar(ctx,0,CW/2-20,CH/2-60,40,false);
 goTo('sMenu');
+if(typeof renderMenuSkins==='function')renderMenuSkins();
 const lootBtnBoot=document.getElementById('lootOpenBtn');
 if(lootBtnBoot)lootBtnBoot.addEventListener('click',openLootbox);
 if(typeof PZ!=='undefined')initPlayer();
