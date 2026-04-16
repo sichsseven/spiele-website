@@ -42,9 +42,16 @@ input[type=text]{font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;f
 .menu-skin-hint{font-family:'Nunito',Arial,sans-serif;font-size:clamp(10px,1.8vw,13px);color:#8a9070;line-height:1.35;}
 .menu-skin-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;}
 .menu-skin-label{font-family:'Nunito',Arial,sans-serif;font-size:clamp(11px,2vw,14px);color:#5a7a4a;font-weight:700;margin-right:6px;}
-.menu-skin-btn{border:2px solid #ddd;border-radius:10px;padding:4px;background:#faf8f5;cursor:pointer;line-height:0;transition:border-color .15s,transform .1s;}
-.menu-skin-btn:hover{border-color:#5a9a3a;}
-.menu-skin-btn.aktiv{border-color:#5a9a3a;box-shadow:0 0 0 2px rgba(90,154,58,0.25);}
+.menu-skin-btn{border:2px solid #ddd;border-radius:10px;padding:4px;background:#faf8f5;cursor:pointer;line-height:0;transition:border-color .15s,box-shadow .15s,transform .1s;}
+.menu-skin-btn.menu-skin-tier-c{background:linear-gradient(180deg,#f7f9fb 0%,#eceff1 100%);border-color:#b0bec5;}
+.menu-skin-btn.menu-skin-tier-r{background:linear-gradient(180deg,#f4faf4 0%,#e8f5e9 100%);border-color:#81c784;}
+.menu-skin-btn.menu-skin-tier-sr{background:linear-gradient(180deg,#f3f8ff 0%,#e3f2fd 100%);border-color:#64b5f6;}
+.menu-skin-btn.menu-skin-tier-e{background:linear-gradient(180deg,#faf5fc 0%,#f3e5f5 100%);border-color:#ba68c8;}
+.menu-skin-btn.menu-skin-tier-m{background:linear-gradient(180deg,#ffebee 0%,#ffcdd2 100%);border-color:#e57373;}
+.menu-skin-btn.menu-skin-tier-l{background:linear-gradient(180deg,#fffef5 0%,#fff9c4 100%);border-color:#ffd54f;box-shadow:0 0 10px rgba(255,213,79,0.22);}
+.menu-skin-btn.menu-skin-tier-l.aktiv{box-shadow:0 0 10px rgba(255,213,79,0.22),0 0 0 3px rgba(90,154,58,0.45);}
+.menu-skin-btn:hover{filter:brightness(0.98);}
+.menu-skin-btn.aktiv:not(.menu-skin-tier-l){box-shadow:0 0 0 3px rgba(90,154,58,0.45);}
 .menu-skin-btn:active{transform:scale(0.96);}
 .loot-msg{font-family:'Nunito',Arial,sans-serif;font-size:clamp(12px,2vw,15px);text-align:center;line-height:1.4;}
 .loot-msg.loot-ok{color:#2d6e0f;}
@@ -106,7 +113,7 @@ input[type=text]{font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;f
 .skin-prev-card.tier-r{border-color:#81c784;}
 .skin-prev-card.tier-sr{border-color:#64b5f6;}
 .skin-prev-card.tier-e{border-color:#ba68c8;}
-.skin-prev-card.tier-m{border-color:#ffb74d;box-shadow:0 0 0 1px rgba(255,183,77,0.25);}
+.skin-prev-card.tier-m{border-color:#e57373;box-shadow:0 0 0 1px rgba(229,115,115,0.35);background:linear-gradient(180deg,#fffbfb 0%,#ffebee 100%);}
 .skin-prev-card.tier-l{border-color:#ffd54f;box-shadow:0 0 12px rgba(255,213,79,0.35);}
 .skin-prev-name{font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;font-size:clamp(11px,2vw,13px);color:#333;margin-top:6px;}
 .skin-prev-stufe{font-family:'Nunito',Arial,sans-serif;font-size:clamp(9px,1.5vw,11px);color:#5a7a4a;font-weight:700;margin-top:2px;}

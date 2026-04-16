@@ -151,9 +151,19 @@ const CHARS_KLASSISCH=[
   {name:'Sonnenuntergang', price:0, scoreReq:0, tier:'l', lootOnly:true, body:'#ff8c42', dark:'#8b3a00', light:'#fff0e5', trim:'#ffccff', acc:'#ffccff', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
 ];
 const CHARS=CHARS_NEU.concat(CHARS_KLASSISCH);
-/** Loot: Zuerst Stufe würfeln (Summe 100), dann Skin aus Pool ohne Duplikate. */
-const LOOT_TIER_WEIGHTS={c:48,r:22,sr:12,e:9,m:5,l:4};
+/** Loot: Zuerst Stufe würfeln (Summe 100), dann Skin aus Pool ohne Duplikate. Höhere Stufen seltener. */
+const LOOT_TIER_WEIGHTS={c:57,r:26,sr:10,e:5,m:1,l:1};
 const LOOT_TIER_ORDER=['c','r','sr','e','m','l'];
+/** Reihenfolge für Sortierung: gewöhnlich oben → legendär unten. */
+const TIER_SORT_RANK={c:0,r:1,sr:2,e:3,m:4,l:5};
+function vergleicheSkinIndexNachSeltenheit(a,b){
+  const ta=(CHARS[a]&&CHARS[a].tier)||'c';
+  const tb=(CHARS[b]&&CHARS[b].tier)||'c';
+  const ra=TIER_SORT_RANK[ta]!=null?TIER_SORT_RANK[ta]:99;
+  const rb=TIER_SORT_RANK[tb]!=null?TIER_SORT_RANK[tb]:99;
+  if(ra!==rb)return ra-rb;
+  return a-b;
+}
 function tierLabelDe(t){
   const M={c:'Gewöhnlich',r:'Selten',sr:'Sehr selten',e:'Episch',m:'Mythisch',l:'Legendär'};
   return M[t]||t;
@@ -252,7 +262,7 @@ function drawChar(c2,ci,x,y,sz,flip,time){
     const pulse=0.45+0.55*Math.sin(time*0.1);
     c2.save();
     c2.globalCompositeOperation='lighter';
-    c2.strokeStyle=tTier==='l'?'rgba(255,220,120,'+(0.38*pulse)+')':'rgba(160,220,255,'+(0.24*pulse)+')';
+    c2.strokeStyle=tTier==='l'?'rgba(255,220,120,'+(0.38*pulse)+')':'rgba(230,90,90,'+(0.28*pulse)+')';
     c2.lineWidth=tTier==='l'?3*SC:2*SC;
     c2.beginPath();
     c2.arc(x+sz/2,y+sz/2,sz*(tTier==='l'?0.56:0.5),0,Math.PI*2);
@@ -1003,10 +1013,11 @@ function skinPrevTick(){
   const wrap=document.getElementById('skinVorschauGrid');
   if(!wrap||!wrap._pjSkinPrev)return;
   const t=performance.now()*0.07;
-  wrap._pjSkinPrev.forEach(function(cv,i){
+  wrap._pjSkinPrev.forEach(function(cv){
+    const ci=parseInt(cv.dataset.pjSkinIdx||'0',10);
     const c2=cv.getContext('2d');
     c2.clearRect(0,0,cv.width,cv.height);
-    drawChar(c2,i,0,0,cv.width,false,t+i*9);
+    drawChar(c2,ci,0,0,cv.width,false,t+ci*3);
   });
   skinPrevRafId=requestAnimationFrame(skinPrevTick);
 }
@@ -1045,10 +1056,12 @@ function renderMenuSkins(){
   lt.className='menu-skin-label';
   lt.textContent='Skin wählen:';
   row.appendChild(lt);
-  besitz.forEach(function(i){
+  const besitzSort=besitz.slice().sort(vergleicheSkinIndexNachSeltenheit);
+  besitzSort.forEach(function(i){
+    const tier=(CHARS[i]&&CHARS[i].tier)||'c';
     const btn=document.createElement('button');
     btn.type='button';
-    btn.className='menu-skin-btn'+(pd.sel===i?' aktiv':'');
+    btn.className='menu-skin-btn menu-skin-tier-'+tier+(pd.sel===i?' aktiv':'');
     const sz=Math.round(Math.min(44,Math.max(32,CW*0.1)));
     const mc=document.createElement('canvas');
     mc.width=sz;mc.height=sz;
@@ -1133,10 +1146,15 @@ function renderSkinVorschau(){
   const wrap=document.createElement('div');
   wrap.className='skin-prev-grid';
   const canvases=[];
-  CHARS.forEach(function(ch,i){
+  const vorschauIdx=[];
+  for(let vi=0;vi<CHARS.length;vi++)vorschauIdx.push(vi);
+  vorschauIdx.sort(vergleicheSkinIndexNachSeltenheit);
+  vorschauIdx.forEach(function(i){
+    const ch=CHARS[i];
     const card=document.createElement('div');
     card.className='skin-prev-card tier-'+ch.tier;
     const cv=document.createElement('canvas');
+    cv.dataset.pjSkinIdx=String(i);
     const sz=Math.min(72,Math.round(CW*0.16));
     cv.width=sz;cv.height=sz;
     cv.style.width=cv.style.height=sz+'px';
