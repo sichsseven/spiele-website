@@ -636,9 +636,9 @@ function levelOfNode(line, nodeId) {
   return (state.meta.lineLevels[line] || {})[nodeId] || 0;
 }
 
-function canUpgradeLineNode(line, node) {
-  if (state.meta.prestigePoints < node.cost) return false;
-  if (levelOfNode(line, node.id) >= node.max) return false;
+/** Freigabe durch Parent / reqCross – unabhängig von Prestigepunkten. */
+function nodeIsUnlocked(line, node) {
+  if (!node) return false;
   if (node.req && levelOfNode(line, node.req) <= 0) return false;
   if (node.reqCross) {
     for (const rc of node.reqCross) {
@@ -646,6 +646,13 @@ function canUpgradeLineNode(line, node) {
       if (levelOfNode(rc.line, rc.id) < need) return false;
     }
   }
+  return true;
+}
+
+function canUpgradeLineNode(line, node) {
+  if (!nodeIsUnlocked(line, node)) return false;
+  if (levelOfNode(line, node.id) >= node.max) return false;
+  if (state.meta.prestigePoints < node.cost) return false;
   return true;
 }
 
@@ -780,11 +787,30 @@ function firstFlavourSentence(text) {
   return t.length > 160 ? `${t.slice(0, 157).trim()}…` : t;
 }
 
+/** Harte Zahlen für Tooltip: tooltipHardFacts > bonusValue+bonusScope > desc. */
+function lineNodeHardEffectText(node) {
+  if (!node) return "Kein Kurz-Effekt hinterlegt.";
+  if (typeof node.tooltipHardFacts === "string" && node.tooltipHardFacts.trim()) return node.tooltipHardFacts.trim();
+  if (
+    typeof node.bonusValue === "number" &&
+    Number.isFinite(node.bonusValue) &&
+    typeof node.bonusScope === "string" &&
+    node.bonusScope.trim()
+  ) {
+    const v = node.bonusValue;
+    const scope = node.bonusScope.trim();
+    if (v < 0) return `−${Math.abs(v)}% ${scope}`;
+    return `+${v}% ${scope}`;
+  }
+  const d = (node.desc && String(node.desc).trim()) || "";
+  return d || "Kein Kurz-Effekt hinterlegt.";
+}
+
 /** Tooltip aus dem gleichen Knoten-Objekt wie das Balancing (LINE_TREES / pf-line-trees.js). */
 function buildLineNodeTooltipHtml(node) {
   if (!node) return "";
   const flavourRaw = (node.tooltipFlavour && String(node.tooltipFlavour).trim()) || firstFlavourSentence(node.detail || "") || node.name || "";
-  const effectRaw = (node.desc && String(node.desc).trim()) || "Kein Kurz-Effekt hinterlegt.";
+  const effectRaw = lineNodeHardEffectText(node);
   return `<p class="pf-line-tooltip__flavour">${escapeHtmlPf(flavourRaw)}</p><p class="pf-line-tooltip__effect"><strong>Effekt:</strong> ${escapeHtmlPf(effectRaw)}</p>`;
 }
 
@@ -1484,8 +1510,9 @@ function renderUpgradeCards() {
 function skillNodeButtonClass(line, n) {
   const lvl = levelOfNode(line, n.id);
   if (lvl >= n.max) return "pf-skill-node pf-skill-node--done";
+  if (!nodeIsUnlocked(line, n)) return "pf-skill-node pf-skill-node--locked";
   if (canUpgradeLineNode(line, n)) return "pf-skill-node pf-skill-node--ready";
-  return "pf-skill-node pf-skill-node--locked";
+  return "pf-skill-node pf-skill-node--available";
 }
 
 function edgeSvgClass(parentLine, parentId, childLine, childId, branchLine) {
@@ -1500,9 +1527,9 @@ function edgeSvgClass(parentLine, parentId, childLine, childId, branchLine) {
 }
 
 /** Hierarchisches Grid-Layout (Speed ←, Efficiency ↑, Automation →, Synergy ↓). */
-/** COL/ROW: Abstand der Knotenmittelpunkte ≥ max. Kartenbreite (190px) + 20px Lücke zwischen Rändern. */
+/** COL/ROW: Raster in px; COL u. a. für horizontalen Abstand der Kinder (+15px ggü. früher 212). */
 const SKILL_TREE = {
-  COL: 212,
+  COL: 227,
   ROW: 118,
   DEPTH: 4,
   PAD: 176,
@@ -1584,7 +1611,7 @@ function orthSkillEdgePath(px, py, cx, cy, lineKey) {
 function skillNodeIsRelevant(line, node) {
   if (!node) return false;
   if (levelOfNode(line, node.id) > 0) return true;
-  return canUpgradeLineNode(line, node);
+  return nodeIsUnlocked(line, node);
 }
 
 function getSkillTreeLayout() {
@@ -1824,6 +1851,7 @@ function renderLineTree() {
   const target = document.getElementById("skillTreePanInner");
   if (!target) return;
 
+  _skillTreeLayoutCache = null;
   const layout = getSkillTreeLayout();
 
   const edgeLines = layout.edges.map(
@@ -1839,23 +1867,29 @@ function renderLineTree() {
       const pix = layout.nodePixel.get(`${lineKey}:${n.id}`);
       if (!pix) continue;
       const lvl = levelOfNode(lineKey, n.id);
+      const unlocked = nodeIsUnlocked(lineKey, n);
       const can = canUpgradeLineNode(lineKey, n);
       const reqNode = n.req ? findLineNode(lineKey, n.req) : null;
       let reqTxt = "";
-      if (reqNode && lvl === 0 && !can) reqTxt = `Benötigt: ${reqNode.name}`;
-      if (n.reqCross && lvl === 0 && !can) {
+      if (reqNode && lvl === 0 && !unlocked) reqTxt = `Benötigt: ${reqNode.name}`;
+      if (n.reqCross && lvl === 0 && !unlocked) {
         const miss = n.reqCross.filter((rc) => levelOfNode(rc.line, rc.id) < (rc.min != null ? rc.min : 1));
         if (miss.length) {
           reqTxt = `Fehlt: ${miss.map((rc) => findLineNode(rc.line, rc.id)?.name || rc.id).join(", ")}`;
         }
+      }
+      if (unlocked && lvl < n.max && !can && state.meta.prestigePoints < n.cost) {
+        reqTxt = reqTxt ? `${reqTxt} · Noch ${n.cost} PP` : `Noch ${n.cost} PP`;
       }
       const cls = skillNodeButtonClass(lineKey, n);
       const maxed = lvl >= n.max;
       const tip = `${n.name} (${lvl}/${n.max})${reqTxt ? " · " + reqTxt : ""}`;
       const rel = skillNodeIsRelevant(lineKey, n);
       const dimWrap = rel ? "" : " pf-skill-node-wrap--dimmed";
+      const stabilKernId =
+        lineKey === "efficiency" && n.id === "e_core" ? ` id="skill-stabil-kern" tabindex="-1"` : "";
       nodesHtml.push(`
-      <div class="pf-skill-node-wrap pf-skill-node-wrap--${lineKey}${dimWrap}" style="left:${pix.cx}px;top:${pix.cy}px;">
+      <div class="pf-skill-node-wrap pf-skill-node-wrap--${lineKey}${dimWrap}"${stabilKernId} style="left:${pix.cx}px;top:${pix.cy}px;">
         <div class="pf-skill-node-card">
           <div class="pf-skill-help-slot">
             <button type="button" class="pf-skill-help" data-line-help="1" data-line="${lineKey}" data-tooltip-node="${n.id}" aria-label="Beschreibung">
@@ -1866,7 +1900,7 @@ function renderLineTree() {
             class="${cls}"
             data-line="${lineKey}"
             data-line-node="${n.id}"
-            ${maxed || !can ? "disabled" : ""}
+            ${maxed || !unlocked || !can ? "disabled" : ""}
             title="${escapeHtmlPf(tip)}">
             <span class="pf-skill-node__glyph pf-skill-node__glyph--${lineKey}" aria-hidden="true"></span>
             <span class="pf-skill-node__tag">${lineKey === "speed" ? "SPD" : lineKey === "efficiency" ? "EFF" : lineKey === "automation" ? "AUTO" : "SYN"}</span>
@@ -1885,7 +1919,7 @@ function renderLineTree() {
         <strong class="pf-line-tree-head__line">Linienbaum</strong>
         <span class="pf-line-tree-head__qp">Prestigepunkte: <b>${state.meta.prestigePoints}</b></span>
       </div>
-      <p class="pf-section-hint">Mitte: Speed links · Efficiency oben · Automation rechts · Synergy unten. Rechtwinklige Pfade. Nur freigeschaltete oder kaufbare Knoten leuchten.</p>
+      <p class="pf-section-hint">Mitte: Speed links · Efficiency oben · Automation rechts · Synergy unten. Freigeschaltete Pfade leuchten; Kauf kostet PP (Knoten sichtbar, sobald der Pfad frei ist).</p>
     </div>`;
   if (headSlot) headSlot.innerHTML = headHtml;
 
@@ -1902,8 +1936,10 @@ function renderLineTree() {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       if (runtime.lineTreeCenterNext) {
-        centerSkillTreeOnFocusNode();
         runtime.lineTreeCenterNext = false;
+        window.setTimeout(() => {
+          centerSkillTreeOnFocusNode();
+        }, 0);
       } else {
         clampSkillTreePan();
       }
@@ -1928,20 +1964,34 @@ function centerSkillTreeOnFocusNode() {
   const inner = document.getElementById("skillTreePanInner");
   if (!vp || !inner) return;
   const layout = getSkillTreeLayout();
-  const key = `${LINE_TREE_FOCUS_NODE.line}:${LINE_TREE_FOCUS_NODE.id}`;
-  const p = layout.nodePixel.get(key);
+  inner.style.transform = "translate(0px, 0px)";
+  runtime.skillTreePan = { x: 0, y: 0 };
+
   const vw = vp.clientWidth;
   const vh = vp.clientHeight;
   const bw = inner.offsetWidth || layout.width;
   const bh = inner.offsetHeight || layout.height;
+
+  const focusEl = document.getElementById("skill-stabil-kern");
   let panX;
   let panY;
-  if (p && Number.isFinite(p.cx) && Number.isFinite(p.cy)) {
-    panX = vw / 2 - p.cx;
-    panY = vh / 2 - p.cy;
+  if (focusEl && vw > 40 && vh > 40) {
+    const innerRect = inner.getBoundingClientRect();
+    const elRect = focusEl.getBoundingClientRect();
+    const cx = elRect.left - innerRect.left + elRect.width / 2;
+    const cy = elRect.top - innerRect.top + elRect.height / 2;
+    panX = vw / 2 - cx;
+    panY = vh / 2 - cy;
   } else {
-    panX = (vw - bw) / 2;
-    panY = (vh - bh) / 2;
+    const key = `${LINE_TREE_FOCUS_NODE.line}:${LINE_TREE_FOCUS_NODE.id}`;
+    const p = layout.nodePixel.get(key);
+    if (p && Number.isFinite(p.cx) && Number.isFinite(p.cy)) {
+      panX = vw / 2 - p.cx;
+      panY = vh / 2 - p.cy;
+    } else {
+      panX = (vw - bw) / 2;
+      panY = (vh - bh) / 2;
+    }
   }
   runtime.skillTreePan = { x: panX, y: panY };
   inner.style.transform = `translate(${panX}px, ${panY}px)`;

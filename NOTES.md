@@ -746,3 +746,15 @@
 - `games/pixel-factory/game-rework-v2.js`
 - `games/pixel-factory/style.css`
 - `NOTES.md`
+
+### Pixel Factory – Linienbaum Logik & Fokus (2026-04-16)
+
+- **Freischaltung vs. Kauf:** `nodeIsUnlocked` (Parent/reqCross) getrennt von `canUpgradeLineNode` (PP + Cap). Kinder nach Kauf des Parents: Klasse `pf-skill-node--available` (farbig, bis PP reichen), nicht mehr `locked` mit Graustufen.
+- Layout-Cache bei jedem `renderLineTree` leeren; **COL** +15px; Stabil-Kern `id="skill-stabil-kern"`, Zentrierung nach Layout (`setTimeout(0)`), Pan zuerst auf 0 dann Messung.
+- Tooltips: `tooltipHardFacts` oder `bonusValue`+`bonusScope` in `pf-line-trees.js` für harte Effektzeilen.
+
+#### Veränderte Dateien
+- `games/pixel-factory/game-rework-v2.js`
+- `games/pixel-factory/pf-line-trees.js`
+- `games/pixel-factory/style.css`
+- `NOTES.md`
