@@ -176,6 +176,18 @@
   </div>
 </div>
 
+<!-- Linienbaum Vollbild -->
+<div class="modal-hintergrund pf-line-tree-modal versteckt" id="lineTreeModal" role="dialog" aria-modal="true" aria-labelledby="lineTreeModalTitle">
+  <div class="pf-line-tree-modal__panel">
+    <div class="pf-line-tree-modal__toolbar">
+      <h2 id="lineTreeModalTitle" class="pf-line-tree-modal__title">🌿 Linienbaum</h2>
+      <button type="button" class="modal-schliessen pf-line-tree-modal__close" id="lineTreeModalClose" aria-label="Schließen">✕</button>
+    </div>
+    <div id="lineTreeModalBody" class="pf-line-tree-modal__body"></div>
+  </div>
+</div>
+<div id="lineTreeTooltip" class="pf-line-tooltip versteckt" role="tooltip" hidden></div>
+
 <!-- Toast + Goldene Pixel -->
 <div class="toast-container" id="toastContainer"></div>
 <div id="goldenLayer"></div>
@@ -212,6 +224,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../../auth.js"></script>
 <script>PZ.pruefeSpielStatus('pixel-factory');</script>
+<script src="pf-line-trees.js"></script>
 <script src="game-rework-v2.js"></script>
 </body>
 </html>

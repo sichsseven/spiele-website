@@ -1,8 +1,8 @@
-// Pixel Factory Rework v3.2
+// Pixel Factory Rework v3.3
 // Fokus: Stabilität, klare UX, echte Entscheidungen, funktionierende Interaktionen.
 
 const GAME_ID = "pixel-factory";
-const SAVE_SCHEMA_VERSION = 3;
+const SAVE_SCHEMA_VERSION = 4;
 const AUTOSAVE_MS = 10000;
 const BASE_EVENT_INTERVAL_MS = 210000;
 const COMBO_WINDOW_MS = 1400;
@@ -50,36 +50,33 @@ const UPGRADES = [
   { id: "u_hybrid_2", name: "Dual-Stack", desc: "Klick + Produktion ×1.38", cost: 420000, unlockAt: 260000, apply: (s) => { s.economy.clickMult *= 1.38; s.economy.prodMult *= 1.38; } },
 ];
 
-/** lx/ly = Position im Skill-Tree (0–100), viewBox 100×100 */
-const LINE_TREES = {
-  speed: [
-    { id: "s_core", name: "Startkern", desc: "Startpunkt der Speed-Line (+18% Produktion)", max: 1, cost: 1, lx: 50, ly: 50, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.18 * lvl); } },
-    { id: "s_burst_1", name: "Burst-I", desc: "+38% Produktion", max: 2, cost: 1, req: "s_core", lx: 28, ly: 42, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.38 * lvl); } },
-    { id: "s_burst_2", name: "Burst-II", desc: "+55% Produktion", max: 1, cost: 2, req: "s_burst_1", lx: 12, ly: 28, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.55 * lvl); } },
-    { id: "s_click_1", name: "Aggro-Klick", desc: "+42% Klickkraft", max: 2, cost: 1, req: "s_core", lx: 72, ly: 42, effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.42 * lvl); } },
-    { id: "s_click_2", name: "Aggro-Klick II", desc: "+68% Klickkraft", max: 1, cost: 2, req: "s_click_1", lx: 88, ly: 28, effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.68 * lvl); } },
-    { id: "s_risk_1", name: "Risikotakt", desc: "+70% Produktion, Eventrate +20%", max: 1, cost: 2, req: "s_core", lx: 50, ly: 74, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.7 * lvl); s.meta.eventRateMult *= (1 + 0.2 * lvl); } },
-    { id: "s_capstone", name: "Hyperline", desc: "+95% Produktion", max: 1, cost: 3, req: "s_burst_2", lx: 8, ly: 22, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.95 * lvl); } },
-  ],
-  efficiency: [
-    { id: "e_core", name: "Startkern", desc: "Stabile Basis (Events -10%)", max: 1, cost: 1, lx: 50, ly: 54, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.1 * lvl); } },
-    { id: "e_prod_1", name: "Saubere Linie", desc: "+26% Produktion", max: 3, cost: 1, req: "e_core", lx: 26, ly: 42, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.26 * lvl); } },
-    { id: "e_prod_2", name: "Saubere Linie II", desc: "+40% Produktion", max: 1, cost: 2, req: "e_prod_1", lx: 10, ly: 28, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.4 * lvl); } },
-    { id: "e_ctrl_1", name: "Kontrollraum", desc: "Events -16%", max: 2, cost: 1, req: "e_core", lx: 74, ly: 42, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.16 * lvl); } },
-    { id: "e_ctrl_2", name: "Null-Störung", desc: "Events -24%", max: 1, cost: 2, req: "e_ctrl_1", lx: 90, ly: 28, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.24 * lvl); } },
-    { id: "e_click", name: "Feinmotorik", desc: "+38% Klickkraft", max: 2, cost: 1, req: "e_core", lx: 50, ly: 28, effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.38 * lvl); } },
-    { id: "e_capstone", name: "Null-Verlust", desc: "Offline +80%", max: 1, cost: 3, req: "e_prod_2", lx: 50, ly: 10, effect: (s, lvl) => { s.economy.offlineEff += 0.8 * lvl; } },
-  ],
-  automation: [
-    { id: "a_core", name: "Startkern", desc: "Automations-Basis (+24% Produktion)", max: 1, cost: 1, lx: 50, ly: 52, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.24 * lvl); } },
-    { id: "a_prod_1", name: "Auto-Roboter", desc: "+36% Produktion", max: 3, cost: 1, req: "a_core", lx: 26, ly: 40, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.36 * lvl); } },
-    { id: "a_prod_2", name: "Autopilot", desc: "+60% Produktion", max: 1, cost: 2, req: "a_prod_1", lx: 10, ly: 26, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.6 * lvl); } },
-    { id: "a_off_1", name: "Ghost-Shift", desc: "Offline +42%", max: 3, cost: 1, req: "a_core", lx: 74, ly: 40, effect: (s, lvl) => { s.economy.offlineEff += 0.42 * lvl; } },
-    { id: "a_off_2", name: "Nachtschicht-Netz", desc: "Offline +90%", max: 1, cost: 2, req: "a_off_1", lx: 90, ly: 26, effect: (s, lvl) => { s.economy.offlineEff += 0.9 * lvl; } },
-    { id: "a_ctrl", name: "Störfilter", desc: "Events -15%", max: 2, cost: 1, req: "a_core", lx: 50, ly: 70, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.15 * lvl); } },
-    { id: "a_capstone", name: "Fabriknetz", desc: "+65% Produktion und +25% Klick", max: 1, cost: 3, req: "a_prod_2", lx: 50, ly: 14, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.65 * lvl); s.meta.lineClickMult *= (1 + 0.25 * lvl); } },
-  ],
-};
+/** Erweiterte Bäume inkl. Synergy: pf-line-trees.js → PF_LINE_TREES */
+const LINE_TREES =
+  typeof PF_LINE_TREES !== "undefined"
+    ? PF_LINE_TREES
+    : { speed: [], efficiency: [], automation: [], synergy: [] };
+
+function escapeHtmlPf(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/** Leichter PPC-Bonus auf Tablet/iPad – aktives Tippen soll sich lohnen. */
+function ipadTouchPpcBonus() {
+  if (typeof window.matchMedia !== "function") return 1;
+  const narrow = window.matchMedia("(min-width: 768px) and (max-width: 1024px)").matches;
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  if (narrow && coarse) return 1.09;
+  if (narrow) return 1.05;
+  return 1;
+}
+
+function findLineNode(line, id) {
+  return LINE_TREES[line]?.find((n) => n.id === id) || null;
+}
 
 const MUTATIONS = [
   { id: "m1", title: "Hochdruck", text: "+70% Produktion, Events etwas häufiger", detail: "Produktion x1.7, Eventrate x1.2", apply: (s) => { s.meta.mutationProdMult *= 1.7; s.meta.eventRateMult *= 1.2; } },
@@ -175,6 +172,7 @@ const runtime = {
   forceShopRender: true,
   nextShopRenderAt: 0,
   recentEvents: [],
+  lineTreeModalWired: false,
 };
 
 const ui = {};
@@ -207,7 +205,7 @@ function makeDefaultState() {
       prestigePoints: 0,
       selectedLine: null,
       lineLocked: false,
-      lineLevels: { speed: {}, efficiency: {}, automation: {} },
+      lineLevels: { speed: {}, efficiency: {}, automation: {}, synergy: {} },
       mutationIds: [],
       seasonPoints: 0,
       claimedSeasonTiers: [],
@@ -298,7 +296,8 @@ function currentPpk() {
     * state.meta.mutationClickMult
     * progressClickBoost
     * getComboMult()
-    * activeMult("click");
+    * activeMult("click")
+    * ipadTouchPpcBonus();
 }
 
 function prestigeThreshold() {
@@ -416,13 +415,14 @@ function recomputeMetaFromLineAndMutations() {
     if (m) m.apply(state);
   }
 
-  const line = state.meta.selectedLine;
-  if (!line) return;
-  const levels = state.meta.lineLevels[line] || {};
-  const tree = LINE_TREES[line];
-  for (const node of tree) {
-    const lvl = levels[node.id] || 0;
-    if (lvl > 0) node.effect(state, lvl);
+  for (const lineKey of Object.keys(LINE_TREES)) {
+    const tree = LINE_TREES[lineKey];
+    if (!tree || !Array.isArray(tree)) continue;
+    const levels = state.meta.lineLevels[lineKey] || {};
+    for (const node of tree) {
+      const lvl = levels[node.id] || 0;
+      if (lvl > 0) node.effect(state, lvl);
+    }
   }
 }
 
@@ -431,16 +431,22 @@ function levelOfNode(line, nodeId) {
 }
 
 function canUpgradeLineNode(line, node) {
-  if (state.meta.selectedLine !== line) return false;
   if (state.meta.prestigePoints < node.cost) return false;
   if (levelOfNode(line, node.id) >= node.max) return false;
-  if (!node.req) return true;
-  return levelOfNode(line, node.req) > 0;
+  if (node.req && levelOfNode(line, node.req) <= 0) return false;
+  if (node.reqCross) {
+    for (const rc of node.reqCross) {
+      const need = rc.min != null ? rc.min : 1;
+      if (levelOfNode(rc.line, rc.id) < need) return false;
+    }
+  }
+  return true;
 }
 
 function upgradeLineNode(line, nodeId) {
-  if (state.meta.selectedLine !== line) return;
-  const node = LINE_TREES[line].find((n) => n.id === nodeId);
+  const tree = LINE_TREES[line];
+  if (!tree) return;
+  const node = tree.find((n) => n.id === nodeId);
   if (!node || !canUpgradeLineNode(line, node)) return;
   state.meta.prestigePoints -= node.cost;
   if (!state.meta.lineLevels[line]) state.meta.lineLevels[line] = {};
@@ -452,17 +458,10 @@ function upgradeLineNode(line, nodeId) {
 
 function selectLine(line) {
   if (!LINE_TREES[line]) return;
-  if (state.meta.lineLocked) {
-    toast("Linie ist bis zum nächsten Prestige gesperrt.");
-    return;
-  }
   state.meta.selectedLine = line;
-  state.meta.lineLocked = true;
-  recomputeMetaFromLineAndMutations();
   runtime.forceShopRender = true;
-  renderLineTree();
   renderStats();
-  toast(`Linie gewählt: ${line.toUpperCase()}`);
+  toast(`Fokus: ${line.toUpperCase()} (alle Pfade kaufbar im Linienbaum)`);
 }
 
 function randomMissionSet() {
@@ -649,13 +648,19 @@ async function loadGame() {
     return;
   }
 
-  const incoming = data.extra_daten;
+  let incoming = data.extra_daten;
+  if (incoming.schemaVersion === 3) {
+    incoming = { ...incoming, schemaVersion: SAVE_SCHEMA_VERSION };
+    if (!incoming.meta) incoming.meta = {};
+    if (!incoming.meta.lineLevels) incoming.meta.lineLevels = {};
+    if (!incoming.meta.lineLevels.synergy) incoming.meta.lineLevels.synergy = {};
+  }
   if (incoming.schemaVersion !== SAVE_SCHEMA_VERSION) {
     Object.assign(state, makeDefaultState());
     randomMissionSet();
     await saveGame(false);
     ui.offlineBonus.hidden = false;
-    ui.offlineBonus.textContent = "Hard-Reset aktiv: alter Spielstand wurde auf Rework v3 gesetzt.";
+    ui.offlineBonus.textContent = "Hard-Reset aktiv: alter Spielstand wurde auf die aktuelle Version gesetzt.";
     setTimeout(() => { ui.offlineBonus.hidden = true; }, 8000);
     return;
   }
@@ -681,6 +686,7 @@ async function loadGame() {
       speed: { ...fresh.meta.lineLevels.speed, ...(incoming.meta?.lineLevels?.speed || {}) },
       efficiency: { ...fresh.meta.lineLevels.efficiency, ...(incoming.meta?.lineLevels?.efficiency || {}) },
       automation: { ...fresh.meta.lineLevels.automation, ...(incoming.meta?.lineLevels?.automation || {}) },
+      synergy: { ...fresh.meta.lineLevels.synergy, ...(incoming.meta?.lineLevels?.synergy || {}) },
     },
     mutationIds: Array.isArray(incoming.meta?.mutationIds)
       ? incoming.meta.mutationIds
@@ -864,22 +870,20 @@ function renderShopCards() {
 }
 
 function renderUpgradeCards() {
-  const lineHint = state.meta.lineLocked
-    ? "Die Linie ist bis zum nächsten Prestige fest – danach kannst du wechseln."
-    : "Wähle eine Linie für den Linienbaum (Tab „Linienbaum“).";
-
   const lineButtons = `
-    <div class="pf-path-grid">
-      ${Object.keys(LINE_TREES).map((line) => `
+    <div class="pf-path-hint" role="note">
+      <p class="pf-section-hint"><strong>Linienbaum:</strong> Tab „Linienbaum“ öffnet den Vollbild-Baum mit drei Pfaden (Speed · Efficiency · Automation) und Synergie-Knoten. Du kannst parallel in allen Pfaden investieren – Voraussetzungen siehst du im Baum.</p>
+      <div class="pf-path-grid pf-path-grid--compact">
+      ${["speed", "efficiency", "automation"].map((line) => `
         <button type="button" class="pf-path-card ${state.meta.selectedLine === line ? "pf-path-card--active" : ""}" data-line-pick="${line}">
           <span class="pf-path-card__tag">${line === "speed" ? "⚡" : line === "efficiency" ? "✓" : "🤖"}</span>
           <strong class="pf-path-card__title">${line.toUpperCase()}</strong>
-          <span class="pf-path-card__sub">${line === "speed" ? "Burst & Tempo" : line === "efficiency" ? "Stabilität & Kontrolle" : "Auto & Offline"}</span>
-          ${state.meta.selectedLine === line ? '<span class="pf-path-card__ribbon">Aktiv</span>' : ""}
+          <span class="pf-path-card__sub">${line === "speed" ? "Tempo & Klick" : line === "efficiency" ? "Stabilität & Kontrolle" : "Auto & Offline"}</span>
         </button>
       `).join("")}
+      </div>
+      <p class="pf-section-hint">Kurz-Fokus für die Anzeige – Käufe sind nicht eingeschränkt.</p>
     </div>
-    <p class="pf-section-hint">${lineHint}</p>
   `;
 
   const byKind = { click: [], prod: [], other: [] };
@@ -942,62 +946,160 @@ function skillNodeButtonClass(line, n) {
   return "pf-skill-node pf-skill-node--locked";
 }
 
-function renderLineTree() {
-  const line = state.meta.selectedLine;
-  if (!line) {
-    ui.shopLine.innerHTML = `
-      <div class="pf-line-intro">
-        <strong>Kein Linienbaum aktiv</strong>
-        <p class="pf-section-hint">Wähle im Tab „Upgrades“ eine Line (Speed, Efficiency oder Automation). Danach erscheint der verzweigte Baum hier.</p>
-      </div>`;
-    return;
-  }
-  const tree = LINE_TREES[line];
-  const edgeLines = [];
-  for (const n of tree) {
-    if (!n.req) continue;
-    const p = tree.find((x) => x.id === n.req);
-    if (!p || p.lx == null || n.lx == null) continue;
-    edgeLines.push(`<line class="pf-skill-edge" x1="${p.lx}" y1="${p.ly}" x2="${n.lx}" y2="${n.ly}" />`);
-  }
-  const nodesHtml = tree.map((n) => {
-    const lvl = levelOfNode(line, n.id);
-    const can = canUpgradeLineNode(line, n);
-    const reqNode = n.req ? tree.find((x) => x.id === n.req) : null;
-    const reqTxt = reqNode && lvl === 0 && !can ? `Benötigt: ${reqNode.name}` : "";
-    const cls = skillNodeButtonClass(line, n);
-    const maxed = lvl >= n.max;
-    const tip = `${n.name} (${lvl}/${n.max})${reqTxt ? " · " + reqTxt : ""}`;
-    return `
-      <button type="button"
-        class="${cls}"
-        style="left:${n.lx}%;top:${n.ly}%;"
-        data-line-node="${n.id}"
-        ${maxed || !can ? "disabled" : ""}
-        title="${tip.replace(/"/g, "'")}">
-        <span class="pf-skill-node__name">${n.name}</span>
-        <span class="pf-skill-node__lvl">${lvl}/${n.max}</span>
-        <span class="pf-skill-node__cost">${n.cost} PP</span>
-      </button>`;
-  }).join("");
+function edgeSvgClass(parentLine, parentId, childLine, childId, branchLine) {
+  const pLvl = levelOfNode(parentLine, parentId);
+  const cLvl = levelOfNode(childLine, childId);
+  const lit = pLvl > 0 || cLvl > 0;
+  const active = cLvl > 0;
+  let cls = `pf-skill-edge pf-skill-edge--${branchLine}`;
+  if (lit) cls += " pf-skill-edge--lit";
+  if (active) cls += " pf-skill-edge--active";
+  return cls;
+}
 
+function renderShopPrestigePlaceholder() {
+  if (!ui.shopLine) return;
+  if (runtime.tab !== "prestige") return;
   ui.shopLine.innerHTML = `
-    <div class="pf-line-tree-head">
+    <div class="pf-line-tab-hint">
+      <p class="pf-section-hint">Der <strong>Linienbaum</strong> ist als Vollbild geöffnet. Schließe das Overlay oben rechts oder tippe außerhalb (Tablet).</p>
+      <button type="button" class="pf-line-tab-hint__btn" id="lineTreeReopenBtn">Linienbaum erneut öffnen</button>
+    </div>`;
+  const reopen = document.getElementById("lineTreeReopenBtn");
+  if (reopen) reopen.addEventListener("click", () => openLineTreeModal());
+}
+
+function openLineTreeModal() {
+  if (!ui.lineTreeModal) return;
+  ui.lineTreeModal.classList.remove("versteckt");
+  document.body.classList.add("pf-line-tree-open");
+  renderLineTree();
+}
+
+function closeLineTreeModal() {
+  if (!ui.lineTreeModal) return;
+  ui.lineTreeModal.classList.add("versteckt");
+  document.body.classList.remove("pf-line-tree-open");
+  if (ui.lineTreeTooltip) {
+    ui.lineTreeTooltip.classList.add("versteckt");
+    ui.lineTreeTooltip.textContent = "";
+    ui.lineTreeTooltip.hidden = true;
+  }
+}
+
+function showLineNodeTooltip(btn) {
+  if (!ui.lineTreeTooltip) return;
+  const text = btn.dataset.detail || "";
+  if (!text) return;
+  ui.lineTreeTooltip.textContent = text;
+  ui.lineTreeTooltip.classList.remove("versteckt");
+  ui.lineTreeTooltip.hidden = false;
+  const r = btn.getBoundingClientRect();
+  const pad = 8;
+  ui.lineTreeTooltip.style.left = `${Math.min(window.innerWidth - 280, Math.max(pad, r.left + r.width / 2 - 130))}px`;
+  ui.lineTreeTooltip.style.top = `${Math.min(window.innerHeight - 120, r.bottom + pad)}px`;
+}
+
+function wireLineTreeModalOnce() {
+  if (runtime.lineTreeModalWired) return;
+  runtime.lineTreeModalWired = true;
+  document.getElementById("lineTreeModalClose")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    closeLineTreeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && ui.lineTreeModal && !ui.lineTreeModal.classList.contains("versteckt")) closeLineTreeModal();
+  });
+  ui.lineTreeModalBody?.addEventListener("click", (e) => {
+    const help = e.target.closest?.("[data-line-help]");
+    if (help) {
+      e.preventDefault();
+      e.stopPropagation();
+      showLineNodeTooltip(help);
+      return;
+    }
+    if (e.target.closest(".pf-skill-node")) return;
+    if (ui.lineTreeTooltip && !e.target.closest("#lineTreeTooltip")) {
+      ui.lineTreeTooltip.classList.add("versteckt");
+    }
+  });
+}
+
+function renderLineTree() {
+  const target = ui.lineTreeModalBody;
+  if (!target) return;
+
+  const edgeLines = [];
+  for (const lineKey of Object.keys(LINE_TREES)) {
+    const tree = LINE_TREES[lineKey];
+    if (!tree) continue;
+    for (const n of tree) {
+      if (!n.req) continue;
+      const p = findLineNode(lineKey, n.req);
+      if (!p || p.lx == null || n.lx == null) continue;
+      edgeLines.push(
+        `<line class="${edgeSvgClass(lineKey, n.req, lineKey, n.id, lineKey)}" x1="${p.lx}" y1="${p.ly}" x2="${n.lx}" y2="${n.ly}" />`,
+      );
+    }
+  }
+
+  const nodesHtml = [];
+  for (const lineKey of Object.keys(LINE_TREES)) {
+    const tree = LINE_TREES[lineKey];
+    if (!tree) continue;
+    for (const n of tree) {
+      const lvl = levelOfNode(lineKey, n.id);
+      const can = canUpgradeLineNode(lineKey, n);
+      const reqNode = n.req ? findLineNode(lineKey, n.req) : null;
+      let reqTxt = "";
+      if (reqNode && lvl === 0 && !can) reqTxt = `Benötigt: ${reqNode.name}`;
+      if (n.reqCross && lvl === 0 && !can) {
+        const miss = n.reqCross.filter((rc) => levelOfNode(rc.line, rc.id) < (rc.min != null ? rc.min : 1));
+        if (miss.length) {
+          reqTxt = `Fehlt: ${miss.map((rc) => findLineNode(rc.line, rc.id)?.name || rc.id).join(", ")}`;
+        }
+      }
+      const cls = skillNodeButtonClass(lineKey, n);
+      const maxed = lvl >= n.max;
+      const tip = `${n.name} (${lvl}/${n.max})${reqTxt ? " · " + reqTxt : ""}`;
+      const detail = n.detail || n.desc || "";
+      nodesHtml.push(`
+      <div class="pf-skill-node-wrap pf-skill-node-wrap--${lineKey}" style="left:${n.lx}%;top:${n.ly}%;">
+        <button type="button" class="pf-skill-help" data-line-help="1" data-detail="${escapeHtmlPf(detail)}" aria-label="Beschreibung" title="Info">?</button>
+        <button type="button"
+          class="${cls}"
+          data-line="${lineKey}"
+          data-line-node="${n.id}"
+          ${maxed || !can ? "disabled" : ""}
+          title="${escapeHtmlPf(tip)}">
+          <span class="pf-skill-node__tag">${lineKey === "speed" ? "SPD" : lineKey === "efficiency" ? "EFF" : lineKey === "automation" ? "AUTO" : "SYN"}</span>
+          <span class="pf-skill-node__name">${escapeHtmlPf(n.name)}</span>
+          <span class="pf-skill-node__lvl">${lvl}/${n.max}</span>
+          <span class="pf-skill-node__cost">${n.cost} PP</span>
+        </button>
+      </div>`);
+    }
+  }
+
+  target.innerHTML = `
+    <div class="pf-line-tree-head pf-line-tree-head--modal">
       <div>
-        <strong class="pf-line-tree-head__line">${line.toUpperCase()}-Linie</strong>
+        <strong class="pf-line-tree-head__line">Linienbaum</strong>
         <span class="pf-line-tree-head__qp">Prestigepunkte: <b>${state.meta.prestigePoints}</b></span>
       </div>
-      <p class="pf-section-hint">Startkern in der Mitte – Verzweigungen zeigen Abhängigkeiten. Gold = voll, leuchtender Rand = kaufbar.</p>
+      <p class="pf-section-hint">Mitte: drei Kerne (links Speed, oben Efficiency, rechts Automation) · unten Synergien. Gold = voll. Leuchtende Kanten = freigeschalteter Pfad.</p>
     </div>
-    <div class="pf-skill-tree-board">
+    <div class="pf-skill-tree-board pf-skill-tree-board--modal">
       <svg class="pf-skill-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${edgeLines.join("")}</svg>
-      <div class="pf-skill-nodes">${nodesHtml}</div>
+      <div class="pf-skill-nodes">${nodesHtml.join("")}</div>
     </div>
   `;
-  ui.shopLine.querySelectorAll("[data-line-node]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+
+  target.querySelectorAll("[data-line-node]").forEach((btn) => {
+    btn.addEventListener("click", (ev) => {
       if (btn.disabled) return;
-      upgradeLineNode(line, btn.dataset.lineNode);
+      ev.stopPropagation();
+      upgradeLineNode(btn.dataset.line, btn.dataset.lineNode);
     });
   });
 }
@@ -1007,6 +1109,7 @@ function maybeRenderShop() {
   if (!runtime.forceShopRender && now < runtime.nextShopRenderAt) return;
   renderShopCards();
   renderUpgradeCards();
+  renderShopPrestigePlaceholder();
   renderLineTree();
   runtime.forceShopRender = false;
   runtime.nextShopRenderAt = now + 900;
@@ -1038,11 +1141,14 @@ async function renderLeaderboard(mode) {
     ui.rankContent.innerHTML = `<div class="rang-fehler">Rangliste konnte nicht geladen werden. Details in der Konsole.</div>`;
     return;
   }
-  const filteredV3 = rows.filter((r) => r.extra_daten?.schemaVersion === SAVE_SCHEMA_VERSION);
-  if (rows.length > 0 && filteredV3.length === 0) {
-    console.warn("[Pixel Factory] Rangliste: Keine Einträge mit Schema v3 – zeige alle gespeicherten Zeilen.");
+  const filteredSchema = rows.filter((r) => {
+    const v = r.extra_daten?.schemaVersion;
+    return v === SAVE_SCHEMA_VERSION || v === 3;
+  });
+  if (rows.length > 0 && filteredSchema.length === 0) {
+    console.warn("[Pixel Factory] Rangliste: Keine Einträge mit passendem Schema – zeige alle gespeicherten Zeilen.");
   }
-  const nutze = filteredV3.length > 0 ? filteredV3 : rows;
+  const nutze = filteredSchema.length > 0 ? filteredSchema : rows;
   let sorted = [...nutze];
   if (mode === "prestige") sorted.sort((a, b) => (b.level || 0) - (a.level || 0));
   else if (mode === "season") sorted.sort((a, b) => (b.extra_daten?.meta?.seasonPoints || 0) - (a.extra_daten?.meta?.seasonPoints || 0));
@@ -1269,6 +1375,9 @@ function bindDom() {
   ui.eventOverlay = document.getElementById("eventOverlay");
   ui.prestigeModal = document.getElementById("prestigeConfirmModal");
   ui.pcQP = document.getElementById("pcQP");
+  ui.lineTreeModal = document.getElementById("lineTreeModal");
+  ui.lineTreeModalBody = document.getElementById("lineTreeModalBody");
+  ui.lineTreeTooltip = document.getElementById("lineTreeTooltip");
 }
 
 function setupDynamicUi() {
@@ -1303,6 +1412,21 @@ function bindEvents() {
 
   document.querySelectorAll(".shop-tab").forEach((t) => {
     t.addEventListener("click", () => {
+      if (t.dataset.tab === "prestige") {
+        runtime.tab = "prestige";
+        document.querySelectorAll(".shop-tab").forEach((x) => x.classList.toggle("aktiv", x === t));
+        ui.shopMain.classList.add("versteckt");
+        ui.shopUpgrades.classList.add("versteckt");
+        ui.shopLine.classList.remove("versteckt");
+        const bulk = document.getElementById("bulkLeiste");
+        if (bulk) bulk.classList.add("versteckt");
+        runtime.forceShopRender = true;
+        maybeRenderShop();
+        openLineTreeModal();
+        wireLineTreeModalOnce();
+        return;
+      }
+      closeLineTreeModal();
       runtime.tab = t.dataset.tab;
       document.querySelectorAll(".shop-tab").forEach((x) => x.classList.toggle("aktiv", x === t));
       ui.shopMain.classList.toggle("versteckt", runtime.tab !== "gebaeude");
@@ -1400,6 +1524,7 @@ async function init() {
   setupDynamicUi();
   bindDom();
   bindEvents();
+  wireLineTreeModalOnce();
   const adminTest = new URLSearchParams(location.search).has("admin");
   if (adminTest) {
     Object.assign(state, makeDefaultState());
