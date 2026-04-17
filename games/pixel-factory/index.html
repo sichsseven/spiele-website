@@ -23,8 +23,6 @@
       <span class="tut-punkt aktiv" data-idx="0"></span>
       <span class="tut-punkt" data-idx="1"></span>
       <span class="tut-punkt" data-idx="2"></span>
-      <span class="tut-punkt" data-idx="3"></span>
-      <span class="tut-punkt" data-idx="4"></span>
     </div>
     <div class="tutorial-icon" id="tutorialIcon">🏭</div>
     <div class="tutorial-titel" id="tutorialTitel">Willkommen!</div>
@@ -45,24 +43,13 @@
     <div class="pc-qp" id="pcQP">+1 Prestigepunkt</div>
     <div class="pc-liste">
       <div class="pc-reset">🔄 Pixel &amp; Gebäude werden zurückgesetzt</div>
-      <div class="pc-behalten">✓ Prestige &amp; Prestigepunkte bleiben</div>
-      <div class="pc-behalten">✓ Linienbaum-Upgrades bleiben</div>
+      <div class="pc-behalten">✓ Prestige-Level &amp; Prestigepunkte bleiben</div>
       <div class="pc-behalten">✓ Skins bleiben</div>
-      <div class="pc-behalten">✓ Mutationen bleiben aktiv</div>
       <div class="pc-behalten">⭐ +1 Prestigepunkt erhalten!</div>
     </div>
-    <div id="mutationChoices" class="pf-mutation-grid"></div>
     <div class="pc-buttons">
       <button type="button" class="pc-btn-nein" id="prestigeConfirmNein">Abbrechen</button>
-      <button type="button" class="pc-btn-ja" id="prestigeConfirmJa">Zufällige Mutation</button>
-    </div>
-  </div>
-  <div id="mutationSlotOverlay" class="pf-slot-overlay versteckt" aria-live="polite">
-    <div class="pf-slot-panel pf-modal-glass__panel" id="mutationSlotPanel">
-      <div id="mutationSlotStrip" class="pf-slot-strip" aria-hidden="true"></div>
-      <p class="pf-slot-sub" id="mutationSlotStatus">Die Mutation wird gewürfelt …</p>
-      <div id="mutationSlotResult" class="pf-slot-result versteckt"></div>
-      <button type="button" class="pf-slot-finalize versteckt" id="prestigeFinalizeBtn">Prestige abschließen</button>
+      <button type="button" class="pc-btn-ja" id="prestigeConfirmJa">Prestige ausführen</button>
     </div>
   </div>
 </div>
@@ -139,7 +126,6 @@
       <div class="shop-tabs">
         <button class="shop-tab aktiv" data-tab="gebaeude">🛒 Shop</button>
         <button class="shop-tab" data-tab="upgrades">⚡ Upgrades</button>
-        <button class="shop-tab" data-tab="prestige">🌿 Linienbaum</button>
       </div>
       <div class="bulk-leiste" id="bulkLeiste">
         <span class="bulk-label">Kaufen:</span>
@@ -152,7 +138,6 @@
 
     <div class="shop-inhalt" id="shopGebaeude"></div>
     <div class="shop-inhalt versteckt" id="shopUpgrades"></div>
-    <div class="shop-inhalt versteckt" id="shopPrestige"></div>
 
   </section>
 
@@ -185,30 +170,6 @@
     <h2>🎨 Skins</h2>
     <div id="skinGrid"></div>
   </div>
-</div>
-
-<!-- Linienbaum Vollbild -->
-<div class="modal-hintergrund pf-line-tree-modal versteckt" id="lineTreeModal" role="dialog" aria-modal="true" aria-labelledby="lineTreeModalTitle">
-  <div class="pf-line-tree-modal__panel">
-    <div class="pf-line-tree-modal__toolbar">
-      <h2 id="lineTreeModalTitle" class="pf-line-tree-modal__title">🌿 Linienbaum</h2>
-      <button type="button" class="modal-schliessen pf-line-tree-modal__close" id="lineTreeModalClose" aria-label="Schließen">✕</button>
-    </div>
-    <div id="lineTreeModalBody" class="pf-line-tree-modal__body">
-      <p class="pf-skill-pan-hint">Am leeren Bereich ziehen, um den Baum zu verschieben</p>
-      <div id="lineTreeHeadSlot" class="pf-line-tree-head-slot"></div>
-      <div id="skillTreePanViewport" class="pf-skill-pan-viewport">
-        <div id="skillTreePanInner" class="pf-skill-pan-inner"></div>
-      </div>
-    </div>
-  </div>
-</div>
-<div id="lineTreeTooltip" class="pf-line-tooltip pf-line-tooltip--rich versteckt" role="dialog" aria-modal="true" aria-labelledby="lineTreeTooltipTitle" hidden>
-  <div class="pf-line-tooltip__header">
-    <span id="lineTreeTooltipTitle" class="pf-line-tooltip__title">Skill-Info</span>
-    <button type="button" class="pf-line-tooltip__close" id="lineTreeTooltipClose" aria-label="Schließen">×</button>
-  </div>
-  <div class="pf-line-tooltip__body" id="lineTreeTooltipBody"></div>
 </div>
 
 <!-- Toast + Goldene Pixel -->
@@ -247,7 +208,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../../auth.js"></script>
 <script>PZ.pruefeSpielStatus('pixel-factory');</script>
-<script src="pf-line-trees.js"></script>
 <script src="game-rework-v2.js"></script>
 </body>
 </html>

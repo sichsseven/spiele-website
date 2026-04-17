@@ -1716,6 +1716,31 @@ body {
   }
 }
 
+/* Tab „Upgrades“: links PPS-, rechts PPC-Upgrades (eine Spalte je Seite) */
+.pf-upgrade-two-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  width: 100%;
+  align-items: start;
+}
+@media (min-width: 640px) {
+  .pf-upgrade-two-col {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+  }
+}
+.pf-upgrade-col__title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+.pf-card-grid--upgrades-col {
+  grid-template-columns: 1fr;
+}
+
 .pf-game-card {
   display: flex;
   flex-direction: column;

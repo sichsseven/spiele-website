@@ -1,10 +1,9 @@
-// Pixel Factory Rework v3.3
-// Fokus: Stabilität, klare UX, echte Entscheidungen, funktionierende Interaktionen.
+// Pixel Factory Rework v3.4
+// Fokus: Stabilität, klare UX, additive Shop-Upgrades (PPS / PPC).
 
 const GAME_ID = "pixel-factory";
-const SAVE_SCHEMA_VERSION = 4;
+const SAVE_SCHEMA_VERSION = 5;
 const AUTOSAVE_MS = 10000;
-const BASE_EVENT_INTERVAL_MS = 210000;
 const COMBO_WINDOW_MS = 1400;
 /** @deprecated Nur noch für Fallback; echte Erneuerung über Halbstunden-Grenze (siehe msBisNaechsteHalbeStunde). */
 const MISSION_ROTATE_MS = 30 * 60 * 1000;
@@ -27,42 +26,25 @@ const BUILDINGS = [
   { id: "orbitalDock", name: "Orbital-Dock", icon: "🛸", baseCost: 115000000, growth: 1.232, pps: 690000, unlockAt: 70000000 },
 ];
 
-/** Kosten: PPS etwas teurer; Klick-Pfad hält Midgame-PPC bei ~10–20 % der Gesamtfeel-Production bei aktivem Spielen. */
-const UPGRADES = [
-  { id: "u_click_1", name: "Präzisions-Klick", desc: "+3 Klickkraft", cost: 52, unlockAt: 32, apply: (s) => { s.economy.clickBase += 3; } },
-  { id: "u_click_2", name: "Servo-Hand", desc: "Klickkraft ×1.94", cost: 420, unlockAt: 200, apply: (s) => { s.economy.clickMult *= 1.94; } },
-  { id: "u_click_3", name: "Impuls-Handschuh", desc: "Klickkraft ×2.32", cost: 3200, unlockAt: 1500, apply: (s) => { s.economy.clickMult *= 2.32; } },
-  { id: "u_click_4", name: "Hyperfinger", desc: "Klickkraft ×2.75", cost: 22000, unlockAt: 10000, apply: (s) => { s.economy.clickMult *= 2.75; } },
-  { id: "u_click_5", name: "Neural-Link", desc: "Klickkraft ×3.48", cost: 195000, unlockAt: 120000, apply: (s) => { s.economy.clickMult *= 3.48; } },
-  { id: "u_prod_1", name: "Schichtplan", desc: "Produktion ×1.28", cost: 580, unlockAt: 280, apply: (s) => { s.economy.prodMult *= 1.28; } },
-  { id: "u_prod_2", name: "Qualitätskette", desc: "Produktion ×1.45", cost: 4800, unlockAt: 2600, apply: (s) => { s.economy.prodMult *= 1.45; } },
-  { id: "u_prod_3", name: "Fließband-KI", desc: "Produktion ×1.95", cost: 39500, unlockAt: 20000, apply: (s) => { s.economy.prodMult *= 1.95; } },
-  { id: "u_prod_4", name: "Takt-Optimierung", desc: "Produktion ×2.35", cost: 365000, unlockAt: 180000, apply: (s) => { s.economy.prodMult *= 2.35; } },
-  { id: "u_prod_5", name: "Parallel-Layer", desc: "Produktion ×2.75", cost: 2950000, unlockAt: 1900000, apply: (s) => { s.economy.prodMult *= 2.75; } },
-  { id: "u_combo_1", name: "Flow-Training", desc: "Kombo stärker (+0.1)", cost: 2100, unlockAt: 1000, apply: (s) => { s.economy.comboBonus += 0.1; } },
-  { id: "u_combo_2", name: "Flow-Reflex", desc: "Kombo-Fenster +420ms", cost: 11000, unlockAt: 6000, apply: (s) => { s.economy.comboWindowBonus += 420; } },
-  { id: "u_combo_3", name: "Burst-Kontrolle", desc: "Kombo stärker (+0.16)", cost: 88000, unlockAt: 48000, apply: (s) => { s.economy.comboBonus += 0.16; } },
-  { id: "u_offline_1", name: "Nachtprotokoll", desc: "Offline-Effizienz +24%", cost: 15000, unlockAt: 8000, apply: (s) => { s.economy.offlineEff += 0.24; } },
-  { id: "u_offline_2", name: "Auto-Schicht", desc: "Offline-Effizienz +40%", cost: 135000, unlockAt: 85000, apply: (s) => { s.economy.offlineEff += 0.4; } },
-  { id: "u_event_1", name: "Notfallplan", desc: "Events seltener", cost: 32000, unlockAt: 20000, apply: (s) => { s.meta.eventRateMult *= 0.9; } },
-  { id: "u_event_2", name: "Puffer-Netz", desc: "Events seltener", cost: 340000, unlockAt: 210000, apply: (s) => { s.meta.eventRateMult *= 0.86; } },
-  { id: "u_hybrid_1", name: "Lean-Core", desc: "Klick + Produktion ×1.22", cost: 62000, unlockAt: 34000, apply: (s) => { s.economy.clickMult *= 1.22; s.economy.prodMult *= 1.22; } },
-  { id: "u_hybrid_2", name: "Dual-Stack", desc: "Klick + Produktion ×1.38", cost: 420000, unlockAt: 260000, apply: (s) => { s.economy.clickMult *= 1.38; s.economy.prodMult *= 1.38; } },
+/** Additiv zu Gebäude-PPS (linkes Spalten-Upgrade-Shop). */
+const PPS_SHOP_UPGRADES = [
+  { id: "ps_1", name: "Schichtplan", desc: "+18 px/s", pps: 18, cost: 580, unlockAt: 280 },
+  { id: "ps_2", name: "Qualitätskette", desc: "+85 px/s", pps: 85, cost: 4800, unlockAt: 2600 },
+  { id: "ps_3", name: "Fließband-KI", desc: "+420 px/s", pps: 420, cost: 39500, unlockAt: 20000 },
+  { id: "ps_4", name: "Takt-Optimierung", desc: "+3.800 px/s", pps: 3800, cost: 365000, unlockAt: 180000 },
+  { id: "ps_5", name: "Parallel-Layer", desc: "+32.000 px/s", pps: 32000, cost: 2950000, unlockAt: 1900000 },
 ];
 
-/** Erweiterte Bäume inkl. Synergy: pf-line-trees.js → PF_LINE_TREES */
-const LINE_TREES =
-  typeof PF_LINE_TREES !== "undefined"
-    ? PF_LINE_TREES
-    : { speed: [], efficiency: [], automation: [], synergy: [] };
+/** Additiv zur Klickkraft (rechtes Spalten-Shop), nur Addition – kein Multiplikator. */
+const PPC_SHOP_UPGRADES = [
+  { id: "pc_1", name: "Präzisions-Klick", desc: "+3 Klickkraft", click: 3, cost: 52, unlockAt: 32 },
+  { id: "pc_2", name: "Servo-Hand", desc: "+22 Klickkraft", click: 22, cost: 420, unlockAt: 200 },
+  { id: "pc_3", name: "Impuls-Handschuh", desc: "+180 Klickkraft", click: 180, cost: 3200, unlockAt: 1500 },
+  { id: "pc_4", name: "Hyperfinger", desc: "+1.200 Klickkraft", click: 1200, cost: 22000, unlockAt: 10000 },
+  { id: "pc_5", name: "Neural-Link", desc: "+9.500 Klickkraft", click: 9500, cost: 195000, unlockAt: 120000 },
+];
 
-function escapeHtmlPf(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+const SHOP_UPGRADES_ALL = [...PPS_SHOP_UPGRADES, ...PPC_SHOP_UPGRADES];
 
 /** Leichter PPC-Bonus auf Tablet/iPad – aktives Tippen soll sich lohnen. */
 function ipadTouchPpcBonus() {
@@ -74,274 +56,11 @@ function ipadTouchPpcBonus() {
   return 1;
 }
 
-function findLineNode(line, id) {
-  return LINE_TREES[line]?.find((n) => n.id === id) || null;
-}
-
-const MUTATIONS = [
-  { id: "m1", title: "Hochdruck", text: "+70% Produktion, Events etwas häufiger", detail: "Produktion x1.7, Eventrate x1.2", rarity: "rare", icon: "⚡", mathDetail: "mutationProdMult × 1.7 (alle PPS-Quellen). Zusätzlich eventRateMult × 1.2 (Events häufiger). Multiplikativ mit Linienbaum & Gebäuden.", apply: (s) => { s.meta.mutationProdMult *= 1.7; s.meta.eventRateMult *= 1.2; } },
-  { id: "m2", title: "Reflexlauf", text: "+90% Klickkraft, aber -25% Gebäudeproduktion", detail: "Klick x1.9, Produktion x0.75", rarity: "epic", icon: "🏃", mathDetail: "mutationClickMult × 1.9 (PPC). mutationProdMult × 0.75 (Gebäude-PPS). End-PPS = Gebäude × prodMult × lineProdMult × mutationProdMult × …", apply: (s) => { s.meta.mutationClickMult *= 1.9; s.meta.mutationProdMult *= 0.75; } },
-  { id: "m3", title: "Ruhemodus", text: "Events seltener, dafür -20% Klickkraft", detail: "Eventrate x0.65, Klick x0.8", rarity: "common", icon: "🌙", mathDetail: "eventRateMult × 0.65 (längere Abstände zwischen Events). mutationClickMult × 0.8.", apply: (s) => { s.meta.eventRateMult *= 0.65; s.meta.mutationClickMult *= 0.8; } },
-  { id: "m4", title: "Turbo-Run", text: "Missionen +50% Belohnung, Prestige-Schwelle +18%", detail: "Missionsreward x1.5, Prestigeschwelle x1.18", rarity: "rare", icon: "🎯", mathDetail: "missionRewardMult × 1.5 (Pixel & Saison aus Missionen). prestigeThresholdMult × 1.18 (mehr Lifetime-Pixel für nächstes Prestige).", apply: (s) => { s.meta.missionRewardMult *= 1.5; s.meta.prestigeThresholdMult *= 1.18; } },
-  { id: "m5", title: "Kettenreaktion", text: "Kombo stark, aber Event-Strafen härter", detail: "Kombo +0.35, Event-Strafe x1.4", rarity: "epic", icon: "⛓️", mathDetail: "comboBonus +0.35 (stärkere Kombo-Multiplikation beim Klicken). eventPenaltyMult × 1.4 (härtere negative Event-Effekte, falls genutzt).", apply: (s) => { s.economy.comboBonus += 0.35; s.meta.eventPenaltyMult *= 1.4; } },
-  { id: "m6", title: "Langschicht", text: "Offline massiv stärker, aktive Klicks schwächer", detail: "Offline x2.2, Klick x0.75", rarity: "rare", icon: "🌆", mathDetail: "offlineEff +1.2 (zusätzliche Offline-Effizienz). mutationClickMult × 0.75.", apply: (s) => { s.economy.offlineEff += 1.2; s.meta.mutationClickMult *= 0.75; } },
-];
-
-/** risk: 1–10, höher = besserer Erwartungswert (Timeout wählt Minimum). */
-const EVENT_POOL = [
-  {
-    id: "power",
-    title: "Stromabfall",
-    text: "Das Netz bricht kurz ein. Du musst entscheiden:",
-    visualTheme: "amber",
-    choices: [
-      {
-        id: "repair",
-        icon: "🔧",
-        risk: 5,
-        label: "Sofort reparieren",
-        detail: "Risiko: niedrig · 20s Produktion −15%, danach stabil",
-        mathTooltip: "timedMult prod auf 0.85 für 20s (nur Gebäude-PPS). Efficiency-Pfad mildert den Abfall.",
-        apply: (s) => addTimed(s, "prod", 0.85, 20, "Reparatur aktiv"),
-      },
-      {
-        id: "risk",
-        icon: "⚡",
-        risk: 8,
-        label: "Weiter auf Risiko",
-        detail: "Belohnung: hoch · 30s +35% PPS, danach 25s −20%",
-        mathTooltip: "Erst prod ×1.35 (30s), nach 30s prod ×0.8 (25s). Speed-Pfad verstärkt den Boost.",
-        apply: (s) => {
-          addTimed(s, "prod", 1.35, 30, "Risikofahrt");
-          applyDelayedEffectSafe(30000, () => addTimed(state, "prod", 0.8, 25, "Überhitzung"));
-        },
-      },
-      {
-        id: "backup",
-        icon: "🔋",
-        risk: 7,
-        label: "Backup-Generator",
-        detail: "Sofortbonus: Pixel = aktuelle PPS × Sekunden (siehe Text)",
-        mathTooltip: "Einmalige Pixel = currentPps() × Sekunden. Automation-Pfad verlängert die Sekunden.",
-        apply: () => addPixels(currentPps() * 18, "Backup-Generator"),
-      },
-    ],
-  },
-  {
-    id: "quality",
-    title: "Qualitätsfenster",
-    text: "Eine seltene Charge ist eingetroffen.",
-    visualTheme: "gold",
-    choices: [
-      { id: "mass", icon: "📦", risk: 7, label: "Massenlauf", detail: "45s Produktion +28%", mathTooltip: "addTimed prod ×1.28 für 45s.", apply: (s) => addTimed(s, "prod", 1.28, 45, "Massenlauf") },
-      { id: "premium", icon: "✨", risk: 8, label: "Premium-Serie", detail: "35s Klick +60%", mathTooltip: "addTimed click ×1.6 für 35s (PPC).", apply: (s) => addTimed(s, "click", 1.6, 35, "Premium-Serie") },
-      { id: "store", icon: "📥", risk: 6, label: "Einlagern", detail: "+22 Saisonpunkte", mathTooltip: "Direkt seasonPoints +22 (skaliert durch Mission-Boni).", apply: (s) => addSeasonPoints(s, 22, "Charge eingelagert") },
-    ],
-  },
-  {
-    id: "security",
-    title: "Sicherheitsalarm",
-    text: "Anomalie in den Sensorlogs erkannt.",
-    visualTheme: "blue",
-    choices: [
-      { id: "scan", icon: "📡", risk: 7, label: "Vollscan fahren", detail: "Events 90s lang seltener", mathTooltip: "eventRate timed ×0.72 für 90s.", apply: (s) => addTimed(s, "eventRate", 0.72, 90, "Vollscan läuft") },
-      { id: "ignore", icon: "👀", risk: 5, label: "Ignorieren", detail: "Sofort Pixel, dann 40s instabilere Sensoren", mathTooltip: "Pixel + PPS×12s, dann eventRate ×1.2 (40s). Efficiency reduziert die Strafe.", apply: (s) => { addPixels(currentPps() * 12, "Unsichere Ausbeute"); addTimed(s, "eventRate", 1.2, 40, "Instabile Sensoren"); } },
-      { id: "counter", icon: "🛡️", risk: 7, label: "Gegenmaßnahme", detail: "Missionen +20% Belohnung für 50s", mathTooltip: "missionReward timed ×1.2.", apply: (s) => addTimed(s, "missionReward", 1.2, 50, "Missionsbonus aktiv") },
-    ],
-  },
-  {
-    id: "market",
-    title: "Marktfenster",
-    text: "Ein Händlernetz bietet kurzfristige Deals.",
-    visualTheme: "emerald",
-    choices: [
-      { id: "buy", icon: "🛒", risk: 6, label: "Material einkaufen", detail: "Nächste 3 Gebäude-Käufe −25%", mathTooltip: "discountBuys = 3 (nur Kosten, nicht PPS).", apply: (s) => { s.economy.discountBuys = 3; showBanner("Nächste 3 Käufe -25%"); } },
-      { id: "sell", icon: "💸", risk: 8, label: "Schnellverkauf", detail: "35s Klick-Bonus", mathTooltip: "click ×1.45 für 35s. Speed-Pfad verstärkt.", apply: (s) => addTimed(s, "click", 1.45, 35, "Verkaufspush") },
-      { id: "hold", icon: "⏳", risk: 5, label: "Abwarten", detail: "+15 Saisonpunkte", mathTooltip: "seasonPoints +15.", apply: (s) => addSeasonPoints(s, 15, "Marktbeobachtung") },
-    ],
-  },
-  {
-    id: "heat",
-    title: "Hitzewelle",
-    text: "Die Anlage läuft an der Grenze – Hitze steigt!",
-    visualTheme: "heat",
-    choices: [
-      {
-        id: "cool",
-        icon: "❄️",
-        risk: 5,
-        label: "Kühlen",
-        detail: "Sicher: kurz weniger PPS, danach ruhigere Events",
-        mathTooltip: "30s prod reduziert, danach 70s eventRate reduziert. Efficiency-Pfad mildert stark.",
-        apply: (s) => {
-          addTimed(s, "prod", 0.9, 30, "Kühlung aktiv");
-          applyDelayedEffectSafe(30000, () => addTimed(state, "eventRate", 0.8, 70, "Thermisch stabil"));
-        },
-      },
-      {
-        id: "push",
-        icon: "🔥",
-        risk: 9,
-        label: "Pushen",
-        detail: "Hoher Gewinn: 25s stark erhöhte Produktion",
-        mathTooltip: "25s prod ×1.45+. Speed-Pfad erhöht den Boost, Efficiency nicht.",
-        apply: (s) => addTimed(s, "prod", 1.45, 25, "Overheat-Boost"),
-      },
-      {
-        id: "split",
-        icon: "🔀",
-        risk: 7,
-        label: "Linie teilen",
-        detail: "Ausgewogen: Klick und PPS kurz erhöht",
-        mathTooltip: "30s click ×1.4 und prod ×1.15. Synergy-Pfad stärkt beides etwas.",
-        apply: (s) => {
-          addTimed(s, "click", 1.4, 30, "Split-Modus");
-          addTimed(s, "prod", 1.15, 30, "Split-Modus");
-        },
-      },
-    ],
-  },
-];
-
-const EVENT_CHOICE_MS = 20000;
-
-/** Anteil der investierten Prestige-Punkte pro Pfad (0–1), für Event-Anpassungen. */
-function lineInfluenceNorm() {
-  const ll = state.meta.lineLevels || {};
-  const sum = (k) => Object.values(ll[k] || {}).reduce((a, b) => a + b, 0);
-  const sp = sum("speed");
-  const ef = sum("efficiency");
-  const au = sum("automation");
-  const sy = sum("synergy");
-  const t = sp + ef + au + sy + 0.001;
-  return { speed: sp / t, efficiency: ef / t, automation: au / t, synergy: sy / t };
-}
-
-function buildResolvedEvent(raw) {
-  const inv = lineInfluenceNorm();
-  const choices = raw.choices.map((c) => applyLineTreeToChoice(raw.id, { ...c }, inv));
-  return {
-    id: raw.id,
-    title: raw.title,
-    text: raw.text,
-    visualTheme: raw.visualTheme || "default",
-    lineHint: buildLineHint(inv),
-    choices,
-  };
-}
-
-function buildLineHint(inv) {
-  const max = Math.max(inv.speed, inv.efficiency, inv.automation, inv.synergy);
-  if (max < 0.08) return "Linienbaum: noch wenig investiert – alle Pfade wirken schwach.";
-  if (inv.efficiency === max) return "Linienbaum: Efficiency dominiert → stabilere / mildere Optionen.";
-  if (inv.speed === max) return "Linienbaum: Speed dominiert → aggressivere Boosts möglich.";
-  if (inv.automation === max) return "Linienbaum: Automation dominiert → bessere Passiv-/Offline-lastige Boni.";
-  return "Linienbaum: Synergy dominiert → ausgewogenere Kreuz-Boni.";
-}
-
-function applyLineTreeToChoice(eventId, c, inv) {
-  const key = `${eventId}:${c.id}`;
-  const eff = inv.efficiency;
-  const spd = inv.speed;
-  const aut = inv.automation;
-  const syn = inv.synergy;
-
-  if (key === "heat:cool") {
-    const prodM = Math.min(0.97, 0.9 + eff * 0.14);
-    const evAfter = Math.min(0.92, 0.8 + eff * 0.18);
-    const extra = eff > 0.12 ? ` Efficiency: Abfall nur ${Math.round(prodM * 100)}%.` : "";
-    return {
-      ...c,
-      detail: `${c.detail}${extra}`,
-      apply: (s) => {
-        addTimed(s, "prod", prodM, 30, "Kühlung aktiv");
-        applyDelayedEffectSafe(30000, () => addTimed(state, "eventRate", evAfter, 70, "Thermisch stabil"));
-      },
-    };
-  }
-  if (key === "heat:push") {
-    const prodBoost = Math.min(1.62, 1.45 + spd * 0.2);
-    const extra = spd > 0.12 ? ` Speed: Boost ${(prodBoost * 100 - 100).toFixed(0)}%.` : "";
-    return {
-      ...c,
-      detail: `${c.detail}${extra}`,
-      apply: (s) => addTimed(s, "prod", prodBoost, 25, "Overheat-Boost"),
-    };
-  }
-  if (key === "heat:split") {
-    const ck = Math.min(1.52, 1.4 + syn * 0.15);
-    const pr = Math.min(1.26, 1.15 + syn * 0.12);
-    const extra = syn > 0.1 ? " Synergy: beide Modifikatoren etwas höher." : "";
-    return {
-      ...c,
-      detail: `${c.detail}${extra}`,
-      apply: (s) => {
-        addTimed(s, "click", ck, 30, "Split-Modus");
-        addTimed(s, "prod", pr, 30, "Split-Modus");
-      },
-    };
-  }
-  if (key === "power:repair") {
-    const prodM = Math.min(0.94, 0.85 + eff * 0.14);
-    const extra = eff > 0.12 ? ` Efficiency: nur ${Math.round((1 - prodM) * 100)}% Abfall.` : "";
-    return {
-      ...c,
-      detail: `${c.detail}${extra}`,
-      apply: (s) => addTimed(s, "prod", prodM, 20, "Reparatur aktiv"),
-    };
-  }
-  if (key === "power:risk") {
-    const hi = Math.min(1.5, 1.35 + spd * 0.18);
-    const lo = Math.max(0.72, 0.8 - eff * 0.08);
-    const extra = spd > 0.12 ? " Speed: höherer Hoch." : eff > 0.12 ? " Efficiency: milderes Nachbeben." : "";
-    return {
-      ...c,
-      detail: `${c.detail}${extra}`,
-      apply: (s) => {
-        addTimed(s, "prod", hi, 30, "Risikofahrt");
-        applyDelayedEffectSafe(30000, () => addTimed(state, "prod", lo, 25, "Überhitzung"));
-      },
-    };
-  }
-  if (key === "power:backup") {
-    const sec = 18 + aut * 14;
-    const extra = aut > 0.12 ? ` Automation: +${sec.toFixed(0)}s Äquivalent.` : "";
-    return {
-      ...c,
-      detail: `${c.detail}${extra}`,
-      apply: () => addPixels(currentPps() * sec, "Backup-Generator"),
-    };
-  }
-  if (key === "security:ignore") {
-    const evPen = Math.max(1.05, 1.2 - eff * 0.18);
-    const extra = eff > 0.12 ? ` Efficiency: Sensoren nur ×${evPen.toFixed(2)}.` : "";
-    return {
-      ...c,
-      detail: `${c.detail}${extra}`,
-      apply: (s) => {
-        addPixels(currentPps() * 12, "Unsichere Ausbeute");
-        addTimed(s, "eventRate", evPen, 40, "Instabile Sensoren");
-      },
-    };
-  }
-  if (key === "market:sell") {
-    const mult = Math.min(1.58, 1.45 + spd * 0.16);
-    const extra = spd > 0.12 ? " Speed: stärkerer Klick-Boost." : "";
-    return {
-      ...c,
-      detail: `${c.detail}${extra}`,
-      apply: (s) => addTimed(s, "click", mult, 35, "Verkaufspush"),
-    };
-  }
-  return c;
-}
-
 const MISSIONS = [
-  { id: "m_prod_short", type: "produce", name: "Schichtziel", desc: "Produziere {target} Pixel", baseTarget: 24000, reward: { pixel: 9000, season: 18 } },
-  { id: "m_prod_long", type: "produce", name: "Fokuslauf", desc: "Produziere {target} Pixel", baseTarget: 140000, reward: { pixel: 65000, season: 32 } },
-  { id: "m_click", type: "clicks", name: "Handarbeit", desc: "Mache {target} Klicks", baseTarget: 380, reward: { pixel: 18000, season: 24, timedClick: 1.55 } },
-  { id: "m_event", type: "events", name: "Krisenmanager", desc: "Löse {target} Events", baseTarget: 4, reward: { season: 46, pixel: 24000 } },
-  { id: "m_combo", type: "combo", name: "Flow-Kette", desc: "Erreiche eine Kombo von {target}", baseTarget: 20, reward: { season: 28, timedProd: 1.45 } },
+  { id: "m_prod_short", type: "produce", name: "Schichtziel", desc: "Produziere {target} Pixel", baseTarget: 24000, reward: { pixel: 9000 } },
+  { id: "m_prod_long", type: "produce", name: "Fokuslauf", desc: "Produziere {target} Pixel", baseTarget: 140000, reward: { pixel: 65000 } },
+  { id: "m_click", type: "clicks", name: "Handarbeit", desc: "Mache {target} Klicks", baseTarget: 380, reward: { pixel: 18000, timedClick: 1.55 } },
+  { id: "m_combo", type: "combo", name: "Flow-Kette", desc: "Erreiche eine Kombo von {target}", baseTarget: 20, reward: { pixel: 12000, timedProd: 1.45 } },
 ];
 
 /** Millisekunden bis zur nächsten vollen oder halben Stunde (echte Uhr). */
@@ -364,21 +83,9 @@ const runtime = {
   running: false,
   lastTs: 0,
   autosave: 0,
-  tab: "shop",
+  tab: "gebaeude",
   forceShopRender: true,
   nextShopRenderAt: 0,
-  recentEvents: [],
-  lineTreeModalWired: false,
-  lineTreeCenterNext: false,
-  eventUiRaf: 0,
-  eventDeadline: 0,
-  prestigeMutationChoices: [],
-  mutationSlotRunning: false,
-  mutationSlotRaf: 0,
-  pendingPrestigeMutationId: null,
-  skillTreePan: { x: 0, y: 0 },
-  skillTreePanWired: false,
-  skillTreeHelpDelegationWired: false,
 };
 
 const ui = {};
@@ -396,8 +103,8 @@ function makeDefaultState() {
       pixel: 0,
       lifetimePixel: 0,
       clickBase: 1,
-      clickMult: 1,
-      prodMult: 1,
+      ppsBonusFlat: 0,
+      clickBonusFlat: 0,
       comboBonus: 0,
       comboWindowBonus: 0,
       offlineEff: 0.3,
@@ -409,31 +116,14 @@ function makeDefaultState() {
     meta: {
       prestige: 0,
       prestigePoints: 0,
-      selectedLine: null,
-      lineLocked: false,
-      lineLevels: { speed: {}, efficiency: {}, automation: {}, synergy: {} },
-      mutationIds: [],
-      seasonPoints: 0,
-      claimedSeasonTiers: [],
-      eventRateMult: 1,
-      lineProdMult: 1,
-      lineClickMult: 1,
-      mutationProdMult: 1,
-      mutationClickMult: 1,
-      missionRewardMult: 1,
-      prestigeThresholdMult: 1,
-      eventPenaltyMult: 1,
     },
     session: {
       runToken: Date.now(),
       producedRun: 0,
       clicksRun: 0,
-      eventsSolved: 0,
       maxCombo: 0,
       missions: [],
       activeEffects: [],
-      activeEvent: null,
-      nextEventAt: Date.now() + BASE_EVENT_INTERVAL_MS,
       nextMissionRefreshAt: naechsterMissionenWechselZeitpunkt(),
       comboCount: 0,
       comboUntil: 0,
@@ -476,13 +166,9 @@ function activeMult(key) {
 }
 
 function currentPps() {
-  let pps = 0;
+  let pps = state.economy.ppsBonusFlat || 0;
   for (const b of BUILDINGS) pps += (state.economy.buildings[b.id] || 0) * b.pps;
-  return pps
-    * state.economy.prodMult
-    * state.meta.lineProdMult
-    * state.meta.mutationProdMult
-    * activeMult("prod");
+  return pps * activeMult("prod");
 }
 
 function currentPpk() {
@@ -496,10 +182,8 @@ function currentPpk() {
   else if (state.economy.lifetimePixel < 2_000_000) progressClickBoost *= 1.5;
   else if (state.economy.lifetimePixel < 80_000_000) progressClickBoost *= 1.22;
 
-  return state.economy.clickBase
-    * state.economy.clickMult
-    * state.meta.lineClickMult
-    * state.meta.mutationClickMult
+  const clickFlat = (state.economy.clickBase || 1) + (state.economy.clickBonusFlat || 0);
+  return clickFlat
     * progressClickBoost
     * getComboMult()
     * activeMult("click")
@@ -507,11 +191,7 @@ function currentPpk() {
 }
 
 function prestigeThreshold() {
-  return Math.floor(PRESTIGE_BASE * Math.pow(PRESTIGE_GROWTH, state.meta.prestige) * state.meta.prestigeThresholdMult);
-}
-
-function seasonLevel() {
-  return Math.floor(state.meta.seasonPoints / 100);
+  return Math.floor(PRESTIGE_BASE * Math.pow(PRESTIGE_GROWTH, state.meta.prestige));
 }
 
 function missionScaledTarget(base) {
@@ -520,7 +200,7 @@ function missionScaledTarget(base) {
 }
 
 function missionRewardScaled(v) {
-  return Math.floor(v * (1 + state.meta.prestige * 0.3) * state.meta.missionRewardMult * activeMult("missionReward"));
+  return Math.floor(v * (1 + state.meta.prestige * 0.3) * activeMult("missionReward"));
 }
 
 function addPixels(amount, reason = "") {
@@ -529,12 +209,6 @@ function addPixels(amount, reason = "") {
   state.economy.lifetimePixel += amount;
   state.session.producedRun += amount;
   if (reason) toast(`+${fmtNumber(amount)} Pixel · ${reason}`);
-}
-
-function addSeasonPoints(amount, reason = "") {
-  if (amount <= 0) return;
-  state.meta.seasonPoints += amount;
-  if (reason) toast(`+${amount} Saisonpunkte · ${reason}`);
 }
 
 function addTimed(s, key, mult, seconds, label) {
@@ -552,7 +226,7 @@ function discoverUnlocks() {
     if (state.session.discoveredBuildings[b.id]) continue;
     if (state.economy.pixel >= b.unlockAt) state.session.discoveredBuildings[b.id] = true;
   }
-  for (const u of UPGRADES) {
+  for (const u of SHOP_UPGRADES_ALL) {
     if (state.session.discoveredUpgrades[u.id]) continue;
     if (state.economy.pixel >= u.unlockAt) state.session.discoveredUpgrades[u.id] = true;
   }
@@ -594,87 +268,29 @@ function buyBuilding(id) {
   renderStats();
 }
 
-function buyUpgrade(id) {
-  const u = UPGRADES.find((x) => x.id === id);
+function buyShopUpgrade(id) {
+  const u = SHOP_UPGRADES_ALL.find((x) => x.id === id);
   if (!u || !state.session.discoveredUpgrades[id]) return;
   if (state.economy.boughtUpgrades.includes(id)) return;
   if (state.economy.pixel < u.cost) return;
   state.economy.pixel -= u.cost;
   state.economy.boughtUpgrades.push(id);
-  u.apply(state);
+  recomputeUpgradeBonuses();
   runtime.forceShopRender = true;
   renderStats();
 }
 
-function recomputeMetaFromLineAndMutations() {
-  state.meta.eventRateMult = 1;
-  state.meta.lineProdMult = 1;
-  state.meta.lineClickMult = 1;
-  state.meta.mutationProdMult = 1;
-  state.meta.mutationClickMult = 1;
-  state.meta.missionRewardMult = 1;
-  state.meta.prestigeThresholdMult = 1;
-  state.meta.eventPenaltyMult = 1;
-
-  for (const id of state.meta.mutationIds) {
-    const m = MUTATIONS.find((x) => x.id === id);
-    if (m) m.apply(state);
+function recomputeUpgradeBonuses() {
+  let pps = 0;
+  let clk = 0;
+  for (const id of state.economy.boughtUpgrades) {
+    const p = PPS_SHOP_UPGRADES.find((x) => x.id === id);
+    if (p) pps += p.pps;
+    const c = PPC_SHOP_UPGRADES.find((x) => x.id === id);
+    if (c) clk += c.click;
   }
-
-  for (const lineKey of Object.keys(LINE_TREES)) {
-    const tree = LINE_TREES[lineKey];
-    if (!tree || !Array.isArray(tree)) continue;
-    const levels = state.meta.lineLevels[lineKey] || {};
-    for (const node of tree) {
-      const lvl = levels[node.id] || 0;
-      if (lvl > 0) node.effect(state, lvl);
-    }
-  }
-}
-
-function levelOfNode(line, nodeId) {
-  return (state.meta.lineLevels[line] || {})[nodeId] || 0;
-}
-
-/** Freigabe durch Parent / reqCross – unabhängig von Prestigepunkten. */
-function nodeIsUnlocked(line, node) {
-  if (!node) return false;
-  if (node.req && levelOfNode(line, node.req) <= 0) return false;
-  if (node.reqCross) {
-    for (const rc of node.reqCross) {
-      const need = rc.min != null ? rc.min : 1;
-      if (levelOfNode(rc.line, rc.id) < need) return false;
-    }
-  }
-  return true;
-}
-
-function canUpgradeLineNode(line, node) {
-  if (!nodeIsUnlocked(line, node)) return false;
-  if (levelOfNode(line, node.id) >= node.max) return false;
-  if (state.meta.prestigePoints < node.cost) return false;
-  return true;
-}
-
-function upgradeLineNode(line, nodeId) {
-  const tree = LINE_TREES[line];
-  if (!tree) return;
-  const node = tree.find((n) => n.id === nodeId);
-  if (!node || !canUpgradeLineNode(line, node)) return;
-  state.meta.prestigePoints -= node.cost;
-  if (!state.meta.lineLevels[line]) state.meta.lineLevels[line] = {};
-  state.meta.lineLevels[line][node.id] = levelOfNode(line, node.id) + 1;
-  recomputeMetaFromLineAndMutations();
-  renderLineTree();
-  renderStats();
-}
-
-function selectLine(line) {
-  if (!LINE_TREES[line]) return;
-  state.meta.selectedLine = line;
-  runtime.forceShopRender = true;
-  renderStats();
-  toast(`Fokus: ${line.toUpperCase()} (alle Pfade kaufbar im Linienbaum)`);
+  state.economy.ppsBonusFlat = pps;
+  state.economy.clickBonusFlat = clk;
 }
 
 function randomMissionSet() {
@@ -693,7 +309,6 @@ function randomMissionSet() {
 function missionProgress(m) {
   if (m.type === "produce") return state.session.producedRun;
   if (m.type === "clicks") return state.session.clicksRun;
-  if (m.type === "events") return state.session.eventsSolved;
   if (m.type === "combo") return state.session.maxCombo;
   return 0;
 }
@@ -701,7 +316,6 @@ function missionProgress(m) {
 function completeMission(m) {
   m.done = true;
   if (m.reward.pixel) addPixels(missionRewardScaled(m.reward.pixel), "Mission");
-  if (m.reward.season) addSeasonPoints(missionRewardScaled(m.reward.season), "Mission");
   if (m.reward.timedProd) addTimed(state, "prod", m.reward.timedProd, 45, "Missions-Boost");
   if (m.reward.timedClick) addTimed(state, "click", m.reward.timedClick, 45, "Missions-Boost");
   toast(`Mission geschafft: ${m.name}`);
@@ -722,173 +336,10 @@ function updateMissions() {
   }
 }
 
-function pickEvent() {
-  const candidates = EVENT_POOL.filter((e) => !runtime.recentEvents.includes(e.id));
-  const pool = candidates.length > 0 ? candidates : EVENT_POOL;
-  const e = pool[Math.floor(Math.random() * pool.length)];
-  runtime.recentEvents.push(e.id);
-  if (runtime.recentEvents.length > 3) runtime.recentEvents.shift();
-  return e;
-}
-
-function eventInterval() {
-  return Math.floor(BASE_EVENT_INTERVAL_MS * state.meta.eventRateMult * activeMult("eventRate"));
-}
-
-function maybeSpawnEvent() {
-  if (state.session.activeEvent) return;
-  if (Date.now() < state.session.nextEventAt) return;
-  const raw = pickEvent();
-  state.session.activeEvent = buildResolvedEvent(raw);
-  state.session.nextEventAt = Date.now() + eventInterval();
-  renderEventModal();
-}
-
-function stopEventUiTimer() {
-  if (runtime.eventUiRaf) {
-    cancelAnimationFrame(runtime.eventUiRaf);
-    runtime.eventUiRaf = 0;
-  }
-  runtime.eventDeadline = 0;
-  const vig = document.getElementById("eventVignette");
-  if (vig) vig.className = "pf-event-vignette";
-}
-
-function setEventVignetteTheme(theme) {
-  const vig = document.getElementById("eventVignette");
-  if (!vig) return;
-  vig.className = "pf-event-vignette";
-  if (!theme || theme === "off" || theme === "default") return;
-  if (theme === "heat") vig.classList.add("pf-event-vignette--heat");
-  else if (theme === "amber") vig.classList.add("pf-event-vignette--amber");
-  else if (theme === "gold") vig.classList.add("pf-event-vignette--gold");
-  else if (theme === "blue") vig.classList.add("pf-event-vignette--blue");
-  else if (theme === "emerald") vig.classList.add("pf-event-vignette--emerald");
-  else vig.classList.add("pf-event-vignette--soft");
-}
-
-function closeLineTreeTooltip() {
-  if (!ui.lineTreeTooltip) return;
-  ui.lineTreeTooltip.classList.add("versteckt");
-  ui.lineTreeTooltip.hidden = true;
-  const body = document.getElementById("lineTreeTooltipBody");
-  if (body) {
-    body.innerHTML = "";
-    body.textContent = "";
-  }
-}
-
-/** Erster Satz aus detail als Flavour; optional überschreibbar mit node.tooltipFlavour (LINE_TREES). */
-function firstFlavourSentence(text) {
-  if (!text) return "";
-  const t = String(text).trim();
-  const m = t.match(/^(.+?[.!?])(\s+|$)/);
-  if (m) return m[1].trim();
-  return t.length > 160 ? `${t.slice(0, 157).trim()}…` : t;
-}
-
-/** Harte Zahlen für Tooltip: tooltipHardFacts > bonusValue+bonusScope > desc. */
-function lineNodeHardEffectText(node) {
-  if (!node) return "Kein Kurz-Effekt hinterlegt.";
-  if (typeof node.tooltipHardFacts === "string" && node.tooltipHardFacts.trim()) return node.tooltipHardFacts.trim();
-  if (
-    typeof node.bonusValue === "number" &&
-    Number.isFinite(node.bonusValue) &&
-    typeof node.bonusScope === "string" &&
-    node.bonusScope.trim()
-  ) {
-    const v = node.bonusValue;
-    const scope = node.bonusScope.trim();
-    if (v < 0) return `−${Math.abs(v)}% ${scope}`;
-    return `+${v}% ${scope}`;
-  }
-  const d = (node.desc && String(node.desc).trim()) || "";
-  return d || "Kein Kurz-Effekt hinterlegt.";
-}
-
-/** Tooltip aus dem gleichen Knoten-Objekt wie das Balancing (LINE_TREES / pf-line-trees.js). */
-function buildLineNodeTooltipHtml(node) {
-  if (!node) return "";
-  const flavourRaw = (node.tooltipFlavour && String(node.tooltipFlavour).trim()) || firstFlavourSentence(node.detail || "") || node.name || "";
-  const effectRaw = lineNodeHardEffectText(node);
-  return `<p class="pf-line-tooltip__flavour">${escapeHtmlPf(flavourRaw)}</p><p class="pf-line-tooltip__effect"><strong>Effekt:</strong> ${escapeHtmlPf(effectRaw)}</p>`;
-}
-
-/** Beim Öffnen: Stabil-Kern (Efficiency-Start) in die Mitte des Pan-Viewports legen. */
-const LINE_TREE_FOCUS_NODE = { line: "efficiency", id: "e_core" };
-
-function showPfFloatingTooltip(anchor, text) {
-  if (!ui.lineTreeTooltip || !text) return;
-  const body = document.getElementById("lineTreeTooltipBody");
-  if (body) body.textContent = text;
-  else ui.lineTreeTooltip.textContent = text;
-  ui.lineTreeTooltip.classList.remove("versteckt");
-  ui.lineTreeTooltip.hidden = false;
-  const r = anchor.getBoundingClientRect();
-  const pad = 8;
-  const tw = 300;
-  ui.lineTreeTooltip.style.left = `${Math.min(window.innerWidth - tw - pad, Math.max(pad, r.left + r.width / 2 - tw / 2))}px`;
-  ui.lineTreeTooltip.style.top = `${Math.min(window.innerHeight - 160, r.bottom + pad)}px`;
-}
-
-function autoResolveEventWorst() {
-  const e = state.session.activeEvent;
-  if (!e || !e.choices.length) return;
-  let worst = e.choices[0];
-  for (const c of e.choices) {
-    if ((c.risk ?? 5) < (worst.risk ?? 5)) worst = c;
-  }
-  toast("Zeit abgelaufen – automatisch gewählt (niedrigster Erwartungswert).");
-  resolveEvent(worst.id);
-}
-
-function tickEventTimer() {
-  const fill = document.getElementById("eventTimerFill");
-  const e = state.session.activeEvent;
-  if (!e || !runtime.eventDeadline) {
-    stopEventUiTimer();
-    return;
-  }
-  const left = Math.max(0, runtime.eventDeadline - Date.now());
-  const pct = left / EVENT_CHOICE_MS;
-  if (fill) fill.style.width = `${pct * 100}%`;
-  if (left <= 0) {
-    stopEventUiTimer();
-    autoResolveEventWorst();
-    return;
-  }
-  runtime.eventUiRaf = requestAnimationFrame(tickEventTimer);
-}
-
-function resolveEvent(choiceId) {
-  const e = state.session.activeEvent;
-  if (!e) return;
-  const choice = e.choices.find((c) => c.id === choiceId);
-  if (!choice) return;
-  stopEventUiTimer();
-  choice.apply(state);
-  state.session.eventsSolved += 1;
-  state.session.activeEvent = null;
-  ui.eventOverlay.classList.add("versteckt");
-  updateMissions();
-}
-
 // Minigames wurden bewusst entfernt.
 
 function calcPrestigeGain() {
   return 1;
-}
-
-function mutationRarityClass(r) {
-  if (r === "epic") return "epic";
-  if (r === "rare") return "rare";
-  return "common";
-}
-
-function mutationRarityLabel(r) {
-  if (r === "epic") return "Episch";
-  if (r === "rare") return "Selten";
-  return "Üblich";
 }
 
 function spawnPrestigeModalConfetti() {
@@ -966,192 +417,17 @@ function markTutorialDone() {
   }
 }
 
-function cancelMutationSlotAnimation() {
-  if (runtime.mutationSlotRaf) {
-    cancelAnimationFrame(runtime.mutationSlotRaf);
-    runtime.mutationSlotRaf = 0;
-  }
-  document.getElementById("prestigeConfirmModal")?.classList.remove("pf-prestige-modal--rolling");
-  document.getElementById("mutationSlotPanel")?.classList.remove("pf-slot-panel--rolling");
-}
-
-/** Zeigt während des Würfelns eine Karten-Vorschau (Sammelkarten-Look). */
-function renderSlotStripPreview(m) {
-  const strip = document.getElementById("mutationSlotStrip");
-  if (!strip || !m) return;
-  strip.innerHTML = `
-    <div class="pf-mutation-card pf-mutation-card--${mutationRarityClass(m.rarity)} pf-mutation-card--slot-spin">
-      <span class="pf-mutation-card__rarity">${mutationRarityLabel(m.rarity)}</span>
-      <span class="pf-mutation-card__icon" aria-hidden="true">${m.icon || "✦"}</span>
-      <strong class="pf-mutation-card__title">${escapeHtmlPf(m.title)}</strong>
-      <span class="pf-mutation-card__desc">${escapeHtmlPf(m.text)}</span>
-    </div>`;
-}
-
-function runMutationSlotMachine() {
-  const choices = runtime.prestigeMutationChoices;
-  if (!choices?.length || runtime.mutationSlotRunning) return;
-  cancelMutationSlotAnimation();
-  runtime.mutationSlotRunning = true;
-  runtime.pendingPrestigeMutationId = null;
-
-  const quickBtn = document.getElementById("prestigeConfirmJa");
-  const neinBtn = document.getElementById("prestigeConfirmNein");
-  const finalizeBtn = document.getElementById("prestigeFinalizeBtn");
-  if (quickBtn) quickBtn.disabled = true;
-  if (neinBtn) neinBtn.disabled = false;
-
-  const overlay = document.getElementById("mutationSlotOverlay");
-  const panel = document.getElementById("mutationSlotPanel");
-  const statusEl = document.getElementById("mutationSlotStatus");
-  const resultEl = document.getElementById("mutationSlotResult");
-  const modalBg = document.getElementById("prestigeConfirmModal");
-
-  if (resultEl) {
-    resultEl.classList.add("versteckt");
-    resultEl.innerHTML = "";
-  }
-  if (finalizeBtn) {
-    finalizeBtn.classList.add("versteckt");
-    finalizeBtn.disabled = true;
-  }
-
-  if (statusEl) statusEl.textContent = "Die Mutation wird gewürfelt …";
-  if (overlay) overlay.classList.remove("versteckt");
-  if (panel) panel.classList.add("pf-slot-panel--rolling");
-  if (modalBg) modalBg.classList.add("pf-prestige-modal--rolling");
-
-  spawnPrestigeModalConfetti();
-
-  const final = choices[Math.floor(Math.random() * choices.length)];
-  const rollMs = 2000 + Math.random() * 1000;
-  const t0 = performance.now();
-  let lastSparkle = t0;
-
-  function finishRoll() {
-    runtime.mutationSlotRunning = false;
-    if (panel) panel.classList.remove("pf-slot-panel--rolling");
-    if (modalBg) modalBg.classList.remove("pf-prestige-modal--rolling");
-
-    const strip = document.getElementById("mutationSlotStrip");
-    if (strip) strip.innerHTML = "";
-
-    runtime.pendingPrestigeMutationId = final.id;
-
-    if (statusEl) statusEl.textContent = "Deine Mutation:";
-    if (resultEl) {
-      resultEl.classList.remove("versteckt");
-      resultEl.innerHTML = `
-        <div class="pf-mutation-card-wrap pf-mutation-card-wrap--result">
-          <button type="button" class="pf-mutation-card__tip" data-math-detail="${escapeHtmlPf(final.mathDetail || final.detail)}" aria-label="Formeln">?</button>
-          <div class="pf-mutation-card pf-mutation-card--${mutationRarityClass(final.rarity)} pf-mutation-card--result-reveal">
-            <span class="pf-mutation-card__rarity">${mutationRarityLabel(final.rarity)}</span>
-            <span class="pf-mutation-card__icon" aria-hidden="true">${final.icon || "✦"}</span>
-            <strong class="pf-mutation-card__title">${escapeHtmlPf(final.title)}</strong>
-            <span class="pf-mutation-card__desc">${escapeHtmlPf(final.text)}</span>
-          </div>
-        </div>`;
-      const tip = resultEl.querySelector(".pf-mutation-card__tip");
-      tip?.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        showPfFloatingTooltip(tip, tip.dataset.mathDetail || "");
-      });
-    }
-    if (finalizeBtn) {
-      finalizeBtn.classList.remove("versteckt");
-      finalizeBtn.disabled = false;
-    }
-    if (quickBtn) quickBtn.disabled = true;
-    if (neinBtn) neinBtn.disabled = false;
-  }
-
-  function tick(now) {
-    const elapsed = now - t0;
-    const i = Math.floor(elapsed / 85) % choices.length;
-    renderSlotStripPreview(choices[i]);
-    if (now - lastSparkle > 450) {
-      lastSparkle = now;
-      spawnPrestigeModalConfetti();
-    }
-    if (elapsed < rollMs) {
-      runtime.mutationSlotRaf = requestAnimationFrame(tick);
-    } else {
-      runtime.mutationSlotRaf = 0;
-      finishRoll();
-    }
-  }
-
-  runtime.mutationSlotRaf = requestAnimationFrame(tick);
-}
-
 function openPrestigeModal() {
   if (state.economy.lifetimePixel < prestigeThreshold()) return;
-  cancelMutationSlotAnimation();
-  runtime.mutationSlotRunning = false;
-  runtime.pendingPrestigeMutationId = null;
-  document.getElementById("mutationSlotOverlay")?.classList.add("versteckt");
-  document.getElementById("mutationSlotResult")?.classList.add("versteckt");
-  document.getElementById("prestigeFinalizeBtn")?.classList.add("versteckt");
-  const stripReset = document.getElementById("mutationSlotStrip");
-  if (stripReset) stripReset.innerHTML = "";
-  const statusReset = document.getElementById("mutationSlotStatus");
-  if (statusReset) statusReset.textContent = "Die Mutation wird gewürfelt …";
-
-  const choices = [];
-  const src = [...MUTATIONS];
-  while (choices.length < 3 && src.length > 0) {
-    const i = Math.floor(Math.random() * src.length);
-    choices.push(src.splice(i, 1)[0]);
-  }
-  runtime.prestigeMutationChoices = choices;
-  const wrap = document.getElementById("mutationChoices");
-  if (!wrap) return;
   ui.pcQP.textContent = `+${calcPrestigeGain()} Prestigepunkt`;
-  wrap.innerHTML = choices.map((m) => `
-    <div class="pf-mutation-card-wrap">
-      <button type="button" class="pf-mutation-card__tip" data-math-detail="${escapeHtmlPf(m.mathDetail || m.detail)}" aria-label="Formeln">?</button>
-      <button type="button" class="pf-mutation-card pf-mutation-card--${mutationRarityClass(m.rarity)}" data-mut="${m.id}">
-        <span class="pf-mutation-card__rarity">${mutationRarityLabel(m.rarity)}</span>
-        <span class="pf-mutation-card__icon" aria-hidden="true">${m.icon || "✦"}</span>
-        <strong class="pf-mutation-card__title">${escapeHtmlPf(m.title)}</strong>
-        <span class="pf-mutation-card__desc">${escapeHtmlPf(m.text)}</span>
-      </button>
-    </div>
-  `).join("");
-
-  wrap.querySelectorAll("[data-mut]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (runtime.mutationSlotRunning) return;
-      doPrestige(btn.dataset.mut);
-    });
-  });
-  wrap.querySelectorAll(".pf-mutation-card__tip").forEach((el) => {
-    el.addEventListener("click", (ev) => {
-      ev.stopPropagation();
-      showPfFloatingTooltip(el, el.dataset.mathDetail || "");
-    });
-  });
-
-  const quickBtn = document.getElementById("prestigeConfirmJa");
-  const neinBtn = document.getElementById("prestigeConfirmNein");
-  if (quickBtn) {
-    quickBtn.textContent = "Zufällige Mutation";
-    quickBtn.disabled = false;
-    quickBtn.onclick = () => runMutationSlotMachine();
-  }
-  if (neinBtn) neinBtn.disabled = false;
   ui.prestigeModal.classList.remove("versteckt");
   requestAnimationFrame(() => spawnPrestigeModalConfetti());
 }
 
-function doPrestige(mutationId) {
-  const mutation = MUTATIONS.find((m) => m.id === mutationId);
-  if (!mutation) return;
-  runtime.pendingPrestigeMutationId = null;
+function doPrestige() {
+  if (state.economy.lifetimePixel < prestigeThreshold()) return;
   state.meta.prestige += 1;
   state.meta.prestigePoints += calcPrestigeGain();
-  state.meta.mutationIds.push(mutationId);
-  state.meta.lineLocked = false;
 
   const keepMeta = deepClone(state.meta);
   const keepCos = deepClone(state.cosmetics);
@@ -1164,15 +440,12 @@ function doPrestige(mutationId) {
   state.cosmetics = keepCos;
 
   randomMissionSet();
-  recomputeMetaFromLineAndMutations();
+  recomputeUpgradeBonuses();
   ui.prestigeModal.classList.add("versteckt");
-  document.getElementById("mutationSlotOverlay")?.classList.add("versteckt");
-  runtime.mutationSlotRunning = false;
   runtime.forceShopRender = true;
   renderStats();
   renderMissions();
-  renderLineTree();
-  toast(`Prestige ${state.meta.prestige} · Mutation: ${mutation.title} · +1 Prestigepunkt`);
+  toast(`Prestige ${state.meta.prestige} · +1 Prestigepunkt`);
 }
 
 function applyOfflineBonus(lastTs) {
@@ -1209,6 +482,49 @@ async function saveGame(withToast = false, zeigeHinweis = false) {
   if (zeigeHinweis && !res.error) zeigeSpeicherHinweis();
 }
 
+/** Übernimmt ältere Save-Versionen (v3/v4/…) in das aktuelle Schema v5. */
+function migrateSaveToCurrent(raw) {
+  const fresh = makeDefaultState();
+  const e = raw.economy || {};
+  const boughtKnown = Array.isArray(e.boughtUpgrades)
+    ? e.boughtUpgrades.filter((id) => SHOP_UPGRADES_ALL.some((u) => u.id === id))
+    : [];
+  return {
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    economy: {
+      ...fresh.economy,
+      pixel: Number(e.pixel) || 0,
+      lifetimePixel: Number(e.lifetimePixel) || 0,
+      clickBase: Number(e.clickBase) || 1,
+      buildings: { ...fresh.economy.buildings, ...(e.buildings || {}) },
+      boughtUpgrades: boughtKnown,
+      bulk: Number(e.bulk) || 1,
+      discountBuys: Number(e.discountBuys) || 0,
+      comboBonus: Number(e.comboBonus) || 0,
+      comboWindowBonus: Number(e.comboWindowBonus) || 0,
+      offlineEff: Number.isFinite(Number(e.offlineEff)) ? Number(e.offlineEff) : 0.3,
+    },
+    meta: {
+      prestige: Math.max(0, Math.floor(Number(raw.meta?.prestige) || 0)),
+      prestigePoints: Math.max(0, Math.floor(Number(raw.meta?.prestigePoints) || 0)),
+    },
+    session: {
+      ...fresh.session,
+      runToken: Date.now(),
+      producedRun: Number(raw.session?.producedRun) || 0,
+      clicksRun: Number(raw.session?.clicksRun) || 0,
+      maxCombo: Number(raw.session?.maxCombo) || 0,
+      missions: Array.isArray(raw.session?.missions) ? raw.session.missions : fresh.session.missions,
+      nextMissionRefreshAt: Number(raw.session?.nextMissionRefreshAt) || fresh.session.nextMissionRefreshAt,
+      activeEffects: [],
+      discoveredBuildings: { ...fresh.session.discoveredBuildings, ...(raw.session?.discoveredBuildings || {}) },
+      discoveredUpgrades: { ...fresh.session.discoveredUpgrades, ...(raw.session?.discoveredUpgrades || {}) },
+      lastSaveAt: Number(raw.session?.lastSaveAt) || 0,
+    },
+    cosmetics: { ...fresh.cosmetics, ...(raw.cosmetics || {}) },
+  };
+}
+
 async function loadGame() {
   const data = await PZ.loadScore(GAME_ID);
   if (!data || !data.extra_daten) {
@@ -1216,80 +532,35 @@ async function loadGame() {
     return;
   }
 
-  let incoming = data.extra_daten;
-  if (incoming.schemaVersion === 3) {
-    incoming = { ...incoming, schemaVersion: SAVE_SCHEMA_VERSION };
-    if (!incoming.meta) incoming.meta = {};
-    if (!incoming.meta.lineLevels) incoming.meta.lineLevels = {};
-    if (!incoming.meta.lineLevels.synergy) incoming.meta.lineLevels.synergy = {};
-  }
-  if (incoming.schemaVersion !== SAVE_SCHEMA_VERSION) {
-    Object.assign(state, makeDefaultState());
-    randomMissionSet();
-    await saveGame(false);
-    ui.offlineBonus.hidden = false;
-    ui.offlineBonus.textContent = "Hard-Reset aktiv: alter Spielstand wurde auf die aktuelle Version gesetzt.";
-    setTimeout(() => { ui.offlineBonus.hidden = true; }, 8000);
-    return;
-  }
-
+  const migrated = migrateSaveToCurrent(data.extra_daten);
   const fresh = makeDefaultState();
   state.economy = {
     ...fresh.economy,
-    ...(incoming.economy || {}),
+    ...migrated.economy,
     buildings: {
       ...fresh.economy.buildings,
-      ...((incoming.economy && incoming.economy.buildings) || {}),
+      ...migrated.economy.buildings,
     },
-    boughtUpgrades: Array.isArray(incoming.economy?.boughtUpgrades)
-      ? incoming.economy.boughtUpgrades
-      : fresh.economy.boughtUpgrades,
   };
-  state.meta = {
-    ...fresh.meta,
-    ...(incoming.meta || {}),
-    lineLevels: {
-      ...fresh.meta.lineLevels,
-      ...(incoming.meta?.lineLevels || {}),
-      speed: { ...fresh.meta.lineLevels.speed, ...(incoming.meta?.lineLevels?.speed || {}) },
-      efficiency: { ...fresh.meta.lineLevels.efficiency, ...(incoming.meta?.lineLevels?.efficiency || {}) },
-      automation: { ...fresh.meta.lineLevels.automation, ...(incoming.meta?.lineLevels?.automation || {}) },
-      synergy: { ...fresh.meta.lineLevels.synergy, ...(incoming.meta?.lineLevels?.synergy || {}) },
-    },
-    mutationIds: Array.isArray(incoming.meta?.mutationIds)
-      ? incoming.meta.mutationIds
-      : fresh.meta.mutationIds,
-    claimedSeasonTiers: Array.isArray(incoming.meta?.claimedSeasonTiers)
-      ? incoming.meta.claimedSeasonTiers
-      : fresh.meta.claimedSeasonTiers,
-  };
+  state.meta = { ...fresh.meta, ...migrated.meta };
   state.session = {
     ...fresh.session,
-    ...(incoming.session || {}),
+    ...migrated.session,
     discoveredBuildings: {
       ...fresh.session.discoveredBuildings,
-      ...(incoming.session?.discoveredBuildings || {}),
+      ...migrated.session.discoveredBuildings,
     },
     discoveredUpgrades: {
       ...fresh.session.discoveredUpgrades,
-      ...(incoming.session?.discoveredUpgrades || {}),
+      ...migrated.session.discoveredUpgrades,
     },
-    missions: Array.isArray(incoming.session?.missions)
-      ? incoming.session.missions
-      : fresh.session.missions,
-    activeEffects: Array.isArray(incoming.session?.activeEffects)
-      ? incoming.session.activeEffects
-      : fresh.session.activeEffects,
   };
-  state.cosmetics = {
-    ...fresh.cosmetics,
-    ...(incoming.cosmetics || {}),
-  };
+  state.cosmetics = { ...fresh.cosmetics, ...migrated.cosmetics };
   state.schemaVersion = SAVE_SCHEMA_VERSION;
 
   if (!Array.isArray(state.session.missions) || state.session.missions.length === 0) randomMissionSet();
   if (state.session.nextMissionRefreshAt < Date.now()) randomMissionSet();
-  recomputeMetaFromLineAndMutations();
+  recomputeUpgradeBonuses();
   applyOfflineBonus(state.session.lastSaveAt);
 }
 
@@ -1363,7 +634,7 @@ function renderStats() {
   const ready = needed <= 0;
   ui.prestigeBtn.disabled = !ready;
   ui.prestigeInfo.textContent = ready
-    ? "Prestige bereit · Mutation wählen"
+    ? "Prestige bereit"
     : `${fmtNumber(needed)} Pixel bis Prestige`;
 
   const comboActive = Date.now() <= state.session.comboUntil;
@@ -1385,7 +656,6 @@ function renderMissions() {
     const ratio = Math.min(1, (m.progress || 0) / m.target);
     const rewards = [];
     if (m.reward.pixel) rewards.push(`${missionRewardScaled(m.reward.pixel)} Pixel`);
-    if (m.reward.season) rewards.push(`${missionRewardScaled(m.reward.season)} Saison`);
     return `
       <div class="mission-card ${m.done ? "done" : ""}">
         <div class="mission-top"><strong>${m.name}</strong><span>${Math.floor(ratio * 100)}%</span></div>
@@ -1395,13 +665,6 @@ function renderMissions() {
       </div>
     `;
   }).join("");
-}
-
-/** Shop-Upgrade-Karte: Klick (blau) / Produktion (Bernstein) / Sonstiges */
-function upgradeCardKind(u) {
-  if (u.id.startsWith("u_click")) return "click";
-  if (u.id.startsWith("u_prod")) return "prod";
-  return "other";
 }
 
 function renderShopCards() {
@@ -1438,31 +701,7 @@ function renderShopCards() {
 }
 
 function renderUpgradeCards() {
-  const lineButtons = `
-    <div class="pf-path-hint" role="note">
-      <p class="pf-section-hint"><strong>Linienbaum:</strong> Tab „Linienbaum“ öffnet den Vollbild-Baum mit drei Pfaden (Speed · Efficiency · Automation) und Synergie-Knoten. Du kannst parallel in allen Pfaden investieren – Voraussetzungen siehst du im Baum.</p>
-      <div class="pf-path-grid pf-path-grid--compact">
-      ${["speed", "efficiency", "automation"].map((line) => `
-        <button type="button" class="pf-path-card ${state.meta.selectedLine === line ? "pf-path-card--active" : ""}" data-line-pick="${line}">
-          <span class="pf-path-card__tag">${line === "speed" ? "⚡" : line === "efficiency" ? "✓" : "🤖"}</span>
-          <strong class="pf-path-card__title">${line.toUpperCase()}</strong>
-          <span class="pf-path-card__sub">${line === "speed" ? "Tempo & Klick" : line === "efficiency" ? "Stabilität & Kontrolle" : "Auto & Offline"}</span>
-        </button>
-      `).join("")}
-      </div>
-      <p class="pf-section-hint">Kurz-Fokus für die Anzeige – Käufe sind nicht eingeschränkt.</p>
-    </div>
-  `;
-
-  const byKind = { click: [], prod: [], other: [] };
-  for (const u of UPGRADES) {
-    const k = upgradeCardKind(u);
-    if (k === "click") byKind.click.push(u);
-    else if (k === "prod") byKind.prod.push(u);
-    else byKind.other.push(u);
-  }
-
-  function cardHtml(u) {
+  function cardHtml(u, kind) {
     const discovered = !!state.session.discoveredUpgrades[u.id];
     if (!discovered) {
       return `
@@ -1476,11 +715,11 @@ function renderUpgradeCards() {
     }
     const bought = state.economy.boughtUpgrades.includes(u.id);
     const can = !bought && state.economy.pixel >= u.cost;
-    const kind = upgradeCardKind(u);
-    const effClass = kind === "click" ? "pf-card-effect--ppk" : kind === "prod" ? "pf-card-effect--ppsu" : "pf-card-effect--misc";
+    const effClass = kind === "ppc" ? "pf-card-effect--ppk" : "pf-card-effect--ppsu";
     const stateClass = bought ? "pf-game-card--bought" : can ? "pf-game-card--afford" : "pf-game-card--expensive";
+    const cssKind = kind === "ppc" ? "click" : "prod";
     return `
-      <button type="button" class="pf-game-card pf-game-card--upgrade pf-game-card--${kind} ${stateClass}" data-buy-upgrade="${u.id}" ${bought ? "disabled" : ""}>
+      <button type="button" class="pf-game-card pf-game-card--upgrade pf-game-card--${cssKind} ${stateClass}" data-buy-upgrade="${u.id}" ${bought ? "disabled" : ""}>
         <div class="pf-card-main">
           <h3 class="pf-card-title">${u.name}</h3>
           <p class="pf-card-effect ${effClass}">${u.desc}</p>
@@ -1489,542 +728,24 @@ function renderUpgradeCards() {
       </button>`;
   }
 
-  const sec = (title, arr) =>
-    arr.length
-      ? `<div class="pf-upgrade-section"><h4 class="pf-upgrade-section__title">${title}</h4><div class="pf-card-grid pf-card-grid--upgrades">${arr.map(cardHtml).join("")}</div></div>`
-      : "";
+  const colPps = PPS_SHOP_UPGRADES.map((u) => cardHtml(u, "pps")).join("");
+  const colPpc = PPC_SHOP_UPGRADES.map((u) => cardHtml(u, "ppc")).join("");
 
-  ui.shopUpgrades.innerHTML = `${lineButtons}
-    ${sec("Klickkraft (PPC)", byKind.click)}
-    ${sec("Produktion (PPS)", byKind.prod)}
-    ${sec("Sonstiges", byKind.other)}`;
+  ui.shopUpgrades.innerHTML = `
+    <div class="pf-upgrade-two-col">
+      <div class="pf-upgrade-col pf-upgrade-col--pps">
+        <h4 class="pf-upgrade-col__title">Pixel pro Sekunde</h4>
+        <div class="pf-card-grid pf-card-grid--upgrades pf-card-grid--upgrades-col">${colPps}</div>
+      </div>
+      <div class="pf-upgrade-col pf-upgrade-col--ppc">
+        <h4 class="pf-upgrade-col__title">Pixel pro Klick</h4>
+        <div class="pf-card-grid pf-card-grid--upgrades pf-card-grid--upgrades-col">${colPpc}</div>
+      </div>
+    </div>`;
 
   ui.shopUpgrades.querySelectorAll("[data-buy-upgrade]").forEach((btn) => {
-    btn.addEventListener("click", () => buyUpgrade(btn.dataset.buyUpgrade));
+    btn.addEventListener("click", () => buyShopUpgrade(btn.dataset.buyUpgrade));
   });
-  ui.shopUpgrades.querySelectorAll("[data-line-pick]").forEach((btn) => {
-    btn.addEventListener("click", () => selectLine(btn.dataset.linePick));
-  });
-}
-
-function skillNodeButtonClass(line, n) {
-  const lvl = levelOfNode(line, n.id);
-  if (lvl >= n.max) return "pf-skill-node pf-skill-node--done";
-  if (!nodeIsUnlocked(line, n)) return "pf-skill-node pf-skill-node--locked";
-  if (canUpgradeLineNode(line, n)) return "pf-skill-node pf-skill-node--ready";
-  return "pf-skill-node pf-skill-node--available";
-}
-
-function edgeSvgClass(parentLine, parentId, childLine, childId, branchLine) {
-  const pLvl = levelOfNode(parentLine, parentId);
-  const cLvl = levelOfNode(childLine, childId);
-  const lit = pLvl > 0 || cLvl > 0;
-  const active = cLvl > 0;
-  let cls = `pf-skill-edge pf-skill-edge--${branchLine}`;
-  if (lit) cls += " pf-skill-edge--lit pf-skill-edge--flow";
-  if (active) cls += " pf-skill-edge--active";
-  return cls;
-}
-
-/** Hierarchisches Grid-Layout (Speed ←, Efficiency ↑, Automation →, Synergy ↓). */
-/** COL/ROW: Raster in px; COL u. a. für horizontalen Abstand der Kinder (+15px ggü. früher 212). */
-const SKILL_TREE = {
-  COL: 227,
-  ROW: 118,
-  DEPTH: 4,
-  PAD: 176,
-};
-
-let _skillTreeLayoutCache = null;
-
-function buildLineChildrenMap(tree) {
-  const ids = new Set(tree.map((n) => n.id));
-  const m = new Map();
-  for (const n of tree) {
-    if (!n.req || !ids.has(n.req)) continue;
-    if (!m.has(n.req)) m.set(n.req, []);
-    m.get(n.req).push(n.id);
-  }
-  for (const [, arr] of m) arr.sort((a, b) => a.localeCompare(b));
-  return m;
-}
-
-function layoutTreeLeftRight(tree, rootId, dir) {
-  const cm = buildLineChildrenMap(tree);
-  const pos = new Map();
-  let nextY = 0;
-  const dx = SKILL_TREE.DEPTH * (dir === "left" ? -1 : 1);
-  function dfs(nodeId, depth) {
-    const kids = cm.get(nodeId) || [];
-    if (kids.length === 0) {
-      const y = nextY++;
-      pos.set(nodeId, { gx: depth * dx, gy: y });
-      return y;
-    }
-    const ys = kids.map((k) => dfs(k, depth + 1));
-    const y = ys.reduce((a, b) => a + b, 0) / ys.length;
-    pos.set(nodeId, { gx: depth * dx, gy: y });
-    return y;
-  }
-  dfs(rootId, 0);
-  const ys = [...pos.values()].map((p) => p.gy);
-  const mid = (Math.min(...ys) + Math.max(...ys)) / 2;
-  for (const p of pos.values()) p.gy -= mid;
-  return pos;
-}
-
-function layoutTreeUpDown(tree, rootId, dir) {
-  const cm = buildLineChildrenMap(tree);
-  const pos = new Map();
-  let nextX = 0;
-  const dy = SKILL_TREE.DEPTH * (dir === "up" ? -1 : 1);
-  function dfs(nodeId, depth) {
-    const kids = cm.get(nodeId) || [];
-    if (kids.length === 0) {
-      const x = nextX++;
-      pos.set(nodeId, { gx: x, gy: depth * dy });
-      return x;
-    }
-    const xs = kids.map((k) => dfs(k, depth + 1));
-    const x = xs.reduce((a, b) => a + b, 0) / xs.length;
-    pos.set(nodeId, { gx: x, gy: depth * dy });
-    return x;
-  }
-  dfs(rootId, 0);
-  const xs = [...pos.values()].map((p) => p.gx);
-  const mid = (Math.min(...xs) + Math.max(...xs)) / 2;
-  for (const p of pos.values()) p.gx -= mid;
-  return pos;
-}
-
-function orthSkillEdgePath(px, py, cx, cy, lineKey) {
-  if (lineKey === "efficiency" || lineKey === "synergy") {
-    if (Math.abs(px - cx) < 2) return `M ${px} ${py} L ${cx} ${cy}`;
-    const my = (py + cy) / 2;
-    return `M ${px} ${py} L ${px} ${my} L ${cx} ${my} L ${cx} ${cy}`;
-  }
-  if (Math.abs(py - cy) < 2) return `M ${px} ${py} L ${cx} ${cy}`;
-  const mx = (px + cx) / 2;
-  return `M ${px} ${py} L ${mx} ${py} L ${mx} ${cy} L ${cx} ${cy}`;
-}
-
-function skillNodeIsRelevant(line, node) {
-  if (!node) return false;
-  if (levelOfNode(line, node.id) > 0) return true;
-  return nodeIsUnlocked(line, node);
-}
-
-function getSkillTreeLayout() {
-  if (_skillTreeLayoutCache) return _skillTreeLayoutCache;
-
-  const speedT = LINE_TREES.speed || [];
-  const effT = LINE_TREES.efficiency || [];
-  const autoT = LINE_TREES.automation || [];
-  const synT = LINE_TREES.synergy || [];
-
-  const sp = layoutTreeLeftRight(speedT, "s_core", "left");
-  const ep = layoutTreeUpDown(effT, "e_core", "up");
-  const ap = layoutTreeLeftRight(autoT, "a_core", "right");
-  const yp = layoutTreeUpDown(synT, "syn_seed", "down");
-
-  const anchor = {
-    speed: { gx: -12, gy: 0 },
-    efficiency: { gx: 0, gy: -12 },
-    automation: { gx: 12, gy: 0 },
-    synergy: { gx: 0, gy: 13 },
-  };
-
-  const merged = [];
-  for (const [id, p] of sp) merged.push({ line: "speed", id, gx: anchor.speed.gx + p.gx, gy: anchor.speed.gy + p.gy });
-  for (const [id, p] of ep) merged.push({ line: "efficiency", id, gx: anchor.efficiency.gx + p.gx, gy: anchor.efficiency.gy + p.gy });
-  for (const [id, p] of ap) merged.push({ line: "automation", id, gx: anchor.automation.gx + p.gx, gy: anchor.automation.gy + p.gy });
-  for (const [id, p] of yp) merged.push({ line: "synergy", id, gx: anchor.synergy.gx + p.gx, gy: anchor.synergy.gy + p.gy });
-
-  let minGx = Infinity;
-  let minGy = Infinity;
-  let maxGx = -Infinity;
-  let maxGy = -Infinity;
-  for (const m of merged) {
-    minGx = Math.min(minGx, m.gx);
-    minGy = Math.min(minGy, m.gy);
-    maxGx = Math.max(maxGx, m.gx);
-    maxGy = Math.max(maxGy, m.gy);
-  }
-
-  const { COL, ROW, PAD } = SKILL_TREE;
-  const pad = PAD;
-  const w = (maxGx - minGx) * COL + 2 * pad;
-  const h = (maxGy - minGy) * ROW + 2 * pad;
-  const offX = pad - minGx * COL;
-  const offY = pad - minGy * ROW;
-
-  const nodePixel = new Map();
-  for (const m of merged) {
-    const cx = offX + m.gx * COL;
-    const cy = offY + m.gy * ROW;
-    nodePixel.set(`${m.line}:${m.id}`, { cx, cy, line: m.line, id: m.id });
-  }
-
-  const edges = [];
-  for (const lineKey of Object.keys(LINE_TREES)) {
-    const tree = LINE_TREES[lineKey];
-    if (!tree) continue;
-    for (const n of tree) {
-      if (!n.req) continue;
-      const p = findLineNode(lineKey, n.req);
-      if (!p) continue;
-      const pk = `${lineKey}:${n.req}`;
-      const ck = `${lineKey}:${n.id}`;
-      const P = nodePixel.get(pk);
-      const C = nodePixel.get(ck);
-      if (!P || !C) continue;
-      edges.push({
-        lineKey,
-        pId: n.req,
-        cId: n.id,
-        d: orthSkillEdgePath(P.cx, P.cy, C.cx, C.cy, lineKey),
-      });
-    }
-  }
-
-  _skillTreeLayoutCache = { width: w, height: h, nodePixel, edges };
-  return _skillTreeLayoutCache;
-}
-
-function renderShopPrestigePlaceholder() {
-  if (!ui.shopLine) return;
-  if (runtime.tab !== "prestige") return;
-  ui.shopLine.innerHTML = `
-    <div class="pf-line-tab-hint">
-      <p class="pf-section-hint">Der <strong>Linienbaum</strong> ist als Vollbild geöffnet. Schließe das Overlay oben rechts oder tippe außerhalb (Tablet).</p>
-      <button type="button" class="pf-line-tab-hint__btn" id="lineTreeReopenBtn">Linienbaum erneut öffnen</button>
-    </div>`;
-  const reopen = document.getElementById("lineTreeReopenBtn");
-  if (reopen) reopen.addEventListener("click", () => openLineTreeModal());
-}
-
-function openLineTreeModal() {
-  if (!ui.lineTreeModal) return;
-  runtime.lineTreeCenterNext = true;
-  ui.lineTreeModal.classList.remove("versteckt");
-  document.body.classList.add("pf-line-tree-open");
-  renderLineTree();
-}
-
-function closeLineTreeModal() {
-  if (!ui.lineTreeModal) return;
-  ui.lineTreeModal.classList.add("versteckt");
-  document.body.classList.remove("pf-line-tree-open");
-  closeLineTreeTooltip();
-}
-
-function showLineNodeTooltip(btn) {
-  if (!ui.lineTreeTooltip) return;
-  const line = btn?.dataset?.line;
-  const nodeId = btn?.dataset?.tooltipNode || btn?.dataset?.lineNode;
-  const node = line && nodeId ? findLineNode(line, nodeId) : null;
-  const body = document.getElementById("lineTreeTooltipBody");
-  if (!body) return;
-  body.innerHTML = node ? buildLineNodeTooltipHtml(node) : "";
-  if (!body.innerHTML.trim()) return;
-  ui.lineTreeTooltip.classList.remove("versteckt");
-  ui.lineTreeTooltip.hidden = false;
-  const r = btn.getBoundingClientRect();
-  const pad = 10;
-  const tw = 320;
-  ui.lineTreeTooltip.style.left = `${Math.min(window.innerWidth - tw - pad, Math.max(pad, r.left + r.width / 2 - tw / 2))}px`;
-  ui.lineTreeTooltip.style.top = `${Math.min(window.innerHeight - 220, r.bottom + pad)}px`;
-}
-
-function onDocPointerDownCloseLineTooltip(e) {
-  if (!ui.lineTreeTooltip || ui.lineTreeTooltip.classList.contains("versteckt")) return;
-  if (e.target.closest("#lineTreeTooltip")) return;
-  if (e.target.closest(".pf-skill-help")) return;
-  closeLineTreeTooltip();
-}
-
-function wireLineTreeModalOnce() {
-  if (runtime.lineTreeModalWired) return;
-  runtime.lineTreeModalWired = true;
-  const inner = document.getElementById("skillTreePanInner");
-  if (inner && !runtime.skillTreeHelpDelegationWired) {
-    runtime.skillTreeHelpDelegationWired = true;
-    /* Capture: „?“ zuverlässig vor Karten-Klick / Pan; einmal am Container, unabhängig von innerHTML */
-    inner.addEventListener(
-      "click",
-      (e) => {
-        const help = e.target.closest?.(".pf-skill-help[data-line-help]");
-        if (!help) return;
-        e.preventDefault();
-        e.stopPropagation();
-        showLineNodeTooltip(help);
-      },
-      true,
-    );
-  }
-  document.getElementById("lineTreeModalClose")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    closeLineTreeModal();
-  });
-  document.getElementById("lineTreeTooltipClose")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    closeLineTreeTooltip();
-  });
-  document.addEventListener("pointerdown", onDocPointerDownCloseLineTooltip, true);
-  document.addEventListener("keydown", (e) => {
-    if (e.key !== "Escape" || !ui.lineTreeModal || ui.lineTreeModal.classList.contains("versteckt")) return;
-    if (ui.lineTreeTooltip && !ui.lineTreeTooltip.classList.contains("versteckt")) {
-      closeLineTreeTooltip();
-      return;
-    }
-    closeLineTreeModal();
-  });
-  window.addEventListener("resize", () => {
-    if (ui.lineTreeModal && !ui.lineTreeModal.classList.contains("versteckt")) clampSkillTreePan();
-  });
-}
-
-/** Leitungs-Animation: schneller bei höherem PPS (duration in Sekunden). */
-function updateSkillTreeFlowSpeed() {
-  const svg = document.querySelector("#skillTreePanInner .pf-skill-svg");
-  if (!svg) return;
-  const pps = Math.max(0.15, currentPps());
-  const sec = Math.max(0.55, Math.min(3.4, 2.65 / Math.pow(Math.log10(pps + 12), 0.52)));
-  svg.style.setProperty("--pf-flow-dur", `${sec.toFixed(2)}s`);
-}
-
-function wireSkillTreePanOnce() {
-  if (runtime.skillTreePanWired) return;
-  const vp = document.getElementById("skillTreePanViewport");
-  if (!vp) return;
-  runtime.skillTreePanWired = true;
-  let dragging = false;
-  let startCX = 0;
-  let startCY = 0;
-  let originX = 0;
-  let originY = 0;
-
-  vp.addEventListener("pointerdown", (e) => {
-    if (e.target.closest(".pf-skill-help") || e.target.closest(".pf-skill-node")) return;
-    if (e.target.closest("#lineTreeTooltip")) return;
-    dragging = true;
-    try {
-      vp.setPointerCapture(e.pointerId);
-    } catch (_) { /* ignore */ }
-    startCX = e.clientX;
-    startCY = e.clientY;
-    originX = runtime.skillTreePan.x;
-    originY = runtime.skillTreePan.y;
-    vp.classList.add("pf-skill-pan-viewport--dragging");
-  });
-  vp.addEventListener("pointermove", (e) => {
-    if (!dragging) return;
-    const dx = e.clientX - startCX;
-    const dy = e.clientY - startCY;
-    const nx = originX + dx;
-    const ny = originY + dy;
-    runtime.skillTreePan = { x: nx, y: ny };
-    const inner = document.getElementById("skillTreePanInner");
-    if (inner) inner.style.transform = `translate(${nx}px, ${ny}px)`;
-  });
-  const endDrag = () => {
-    if (!dragging) return;
-    dragging = false;
-    vp.classList.remove("pf-skill-pan-viewport--dragging");
-    clampSkillTreePan();
-  };
-  vp.addEventListener("pointerup", endDrag);
-  vp.addEventListener("pointercancel", endDrag);
-}
-
-function edgePathClass(lineKey, pId, cId) {
-  const base = edgeSvgClass(lineKey, pId, lineKey, cId, lineKey);
-  const pN = findLineNode(lineKey, pId);
-  const cN = findLineNode(lineKey, cId);
-  const bright = skillNodeIsRelevant(lineKey, pN) || skillNodeIsRelevant(lineKey, cN);
-  return `${base}${bright ? "" : " pf-skill-edge--dim"}`;
-}
-
-function renderLineTree() {
-  const headSlot = document.getElementById("lineTreeHeadSlot");
-  const target = document.getElementById("skillTreePanInner");
-  if (!target) return;
-
-  _skillTreeLayoutCache = null;
-  const layout = getSkillTreeLayout();
-
-  const edgeLines = layout.edges.map(
-    (e) =>
-      `<path class="${edgePathClass(e.lineKey, e.pId, e.cId)}" d="${e.d}" />`,
-  );
-
-  const nodesHtml = [];
-  for (const lineKey of Object.keys(LINE_TREES)) {
-    const tree = LINE_TREES[lineKey];
-    if (!tree) continue;
-    for (const n of tree) {
-      const pix = layout.nodePixel.get(`${lineKey}:${n.id}`);
-      if (!pix) continue;
-      const lvl = levelOfNode(lineKey, n.id);
-      const unlocked = nodeIsUnlocked(lineKey, n);
-      const can = canUpgradeLineNode(lineKey, n);
-      const reqNode = n.req ? findLineNode(lineKey, n.req) : null;
-      let reqTxt = "";
-      if (reqNode && lvl === 0 && !unlocked) reqTxt = `Benötigt: ${reqNode.name}`;
-      if (n.reqCross && lvl === 0 && !unlocked) {
-        const miss = n.reqCross.filter((rc) => levelOfNode(rc.line, rc.id) < (rc.min != null ? rc.min : 1));
-        if (miss.length) {
-          reqTxt = `Fehlt: ${miss.map((rc) => findLineNode(rc.line, rc.id)?.name || rc.id).join(", ")}`;
-        }
-      }
-      if (unlocked && lvl < n.max && !can && state.meta.prestigePoints < n.cost) {
-        reqTxt = reqTxt ? `${reqTxt} · Noch ${n.cost} PP` : `Noch ${n.cost} PP`;
-      }
-      const cls = skillNodeButtonClass(lineKey, n);
-      const maxed = lvl >= n.max;
-      const tip = `${n.name} (${lvl}/${n.max})${reqTxt ? " · " + reqTxt : ""}`;
-      const rel = skillNodeIsRelevant(lineKey, n);
-      const dimWrap = rel ? "" : " pf-skill-node-wrap--dimmed";
-      const stabilKernId =
-        lineKey === "efficiency" && n.id === "e_core" ? ` id="skill-stabil-kern" tabindex="-1"` : "";
-      nodesHtml.push(`
-      <div class="pf-skill-node-wrap pf-skill-node-wrap--${lineKey}${dimWrap}"${stabilKernId} style="left:${pix.cx}px;top:${pix.cy}px;">
-        <div class="pf-skill-node-card">
-          <div class="pf-skill-help-slot">
-            <button type="button" class="pf-skill-help" data-line-help="1" data-line="${lineKey}" data-tooltip-node="${n.id}" aria-label="Beschreibung">
-              <span class="pf-skill-help__glyph" aria-hidden="true">?</span>
-            </button>
-          </div>
-          <button type="button"
-            class="${cls}"
-            data-line="${lineKey}"
-            data-line-node="${n.id}"
-            ${maxed || !unlocked || !can ? "disabled" : ""}
-            title="${escapeHtmlPf(tip)}">
-            <span class="pf-skill-node__glyph pf-skill-node__glyph--${lineKey}" aria-hidden="true"></span>
-            <span class="pf-skill-node__tag">${lineKey === "speed" ? "SPD" : lineKey === "efficiency" ? "EFF" : lineKey === "automation" ? "AUTO" : "SYN"}</span>
-            <span class="pf-skill-node__name">${escapeHtmlPf(n.name)}</span>
-            <span class="pf-skill-node__lvl">${lvl}/${n.max}</span>
-            <span class="pf-skill-node__cost">${n.cost} PP</span>
-          </button>
-        </div>
-      </div>`);
-    }
-  }
-
-  const headHtml = `
-    <div class="pf-line-tree-head pf-line-tree-head--modal">
-      <div>
-        <strong class="pf-line-tree-head__line">Linienbaum</strong>
-        <span class="pf-line-tree-head__qp">Prestigepunkte: <b>${state.meta.prestigePoints}</b></span>
-      </div>
-      <p class="pf-section-hint">Mitte: Speed links · Efficiency oben · Automation rechts · Synergy unten. Freigeschaltete Pfade leuchten; Kauf kostet PP (Knoten sichtbar, sobald der Pfad frei ist).</p>
-    </div>`;
-  if (headSlot) headSlot.innerHTML = headHtml;
-
-  target.innerHTML = `
-    <div class="pf-skill-tree-board pf-skill-tree-board--modal pf-skill-tree-board--sized" style="width:${layout.width}px;height:${layout.height}px">
-      <svg class="pf-skill-svg" viewBox="0 0 ${layout.width} ${layout.height}" width="${layout.width}" height="${layout.height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${edgeLines.join("")}</svg>
-      <div class="pf-skill-nodes">${nodesHtml.join("")}</div>
-    </div>
-  `;
-
-  target.style.width = `${layout.width}px`;
-  target.style.height = `${layout.height}px`;
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      if (runtime.lineTreeCenterNext) {
-        runtime.lineTreeCenterNext = false;
-        window.setTimeout(() => {
-          centerSkillTreeOnFocusNode();
-        }, 0);
-      } else {
-        clampSkillTreePan();
-      }
-      updateSkillTreeFlowSpeed();
-    });
-  });
-  wireSkillTreePanOnce();
-
-  /* Nur die große Skill-Karte; Hilfe „?“ läuft über Capture-Delegation auf #skillTreePanInner */
-  target.querySelectorAll("button.pf-skill-node[data-line-node]").forEach((btn) => {
-    btn.addEventListener("click", (ev) => {
-      if (btn.disabled) return;
-      ev.stopPropagation();
-      upgradeLineNode(btn.dataset.line, btn.dataset.lineNode);
-    });
-  });
-}
-
-/** Zentriert den Stabil-Kern (e_core) im sichtbaren Viewport; Fallback: gesamtes Board mittig. */
-function centerSkillTreeOnFocusNode() {
-  const vp = document.getElementById("skillTreePanViewport");
-  const inner = document.getElementById("skillTreePanInner");
-  if (!vp || !inner) return;
-  const layout = getSkillTreeLayout();
-  inner.style.transform = "translate(0px, 0px)";
-  runtime.skillTreePan = { x: 0, y: 0 };
-
-  const vw = vp.clientWidth;
-  const vh = vp.clientHeight;
-  const bw = inner.offsetWidth || layout.width;
-  const bh = inner.offsetHeight || layout.height;
-
-  const focusEl = document.getElementById("skill-stabil-kern");
-  let panX;
-  let panY;
-  if (focusEl && vw > 40 && vh > 40) {
-    const innerRect = inner.getBoundingClientRect();
-    const elRect = focusEl.getBoundingClientRect();
-    const cx = elRect.left - innerRect.left + elRect.width / 2;
-    const cy = elRect.top - innerRect.top + elRect.height / 2;
-    panX = vw / 2 - cx;
-    panY = vh / 2 - cy;
-  } else {
-    const key = `${LINE_TREE_FOCUS_NODE.line}:${LINE_TREE_FOCUS_NODE.id}`;
-    const p = layout.nodePixel.get(key);
-    if (p && Number.isFinite(p.cx) && Number.isFinite(p.cy)) {
-      panX = vw / 2 - p.cx;
-      panY = vh / 2 - p.cy;
-    } else {
-      panX = (vw - bw) / 2;
-      panY = (vh - bh) / 2;
-    }
-  }
-  runtime.skillTreePan = { x: panX, y: panY };
-  inner.style.transform = `translate(${panX}px, ${panY}px)`;
-  clampSkillTreePan();
-}
-
-function clampSkillTreePan() {
-  const vp = document.getElementById("skillTreePanViewport");
-  const inner = document.getElementById("skillTreePanInner");
-  if (!vp || !inner) return;
-  const bw = inner.offsetWidth;
-  const bh = inner.offsetHeight;
-  if (bw < 8 || bh < 8) return;
-  const vw = vp.clientWidth;
-  const vh = vp.clientHeight;
-  const margin = 32;
-  let minX = Math.min(margin, vw - bw - margin);
-  let maxX = Math.max(vw - bw - margin, margin);
-  let minY = Math.min(margin, vh - bh - margin);
-  let maxY = Math.max(vh - bh - margin, margin);
-  if (minX > maxX) {
-    const t = (minX + maxX) / 2;
-    minX = maxX = t;
-  }
-  if (minY > maxY) {
-    const t = (minY + maxY) / 2;
-    minY = maxY = t;
-  }
-  let { x, y } = runtime.skillTreePan || { x: 0, y: 0 };
-  x = Math.max(minX, Math.min(maxX, x));
-  y = Math.max(minY, Math.min(maxY, y));
-  runtime.skillTreePan = { x, y };
-  inner.style.transform = `translate(${x}px, ${y}px)`;
 }
 
 function maybeRenderShop() {
@@ -2032,62 +753,8 @@ function maybeRenderShop() {
   if (!runtime.forceShopRender && now < runtime.nextShopRenderAt) return;
   renderShopCards();
   renderUpgradeCards();
-  renderShopPrestigePlaceholder();
-  renderLineTree();
   runtime.forceShopRender = false;
   runtime.nextShopRenderAt = now + 900;
-}
-
-function renderEventModal() {
-  const e = state.session.activeEvent;
-  if (!e) return;
-  stopEventUiTimer();
-  setEventVignetteTheme(e.visualTheme || "default");
-
-  const titleEl = document.getElementById("eventTitle");
-  const hintEl = document.getElementById("eventLineHint");
-  const textEl = document.getElementById("eventText");
-  if (titleEl) titleEl.textContent = e.title;
-  if (hintEl) hintEl.textContent = e.lineHint || "";
-  if (textEl) textEl.textContent = e.text;
-
-  const wrap = document.getElementById("eventChoices");
-  wrap.innerHTML = e.choices.map((c) => `
-    <div class="pf-event-action-row">
-      <span class="pf-event-card__help" role="button" tabindex="0" data-event-tip="${escapeHtmlPf(c.mathTooltip || "Keine Detailformel hinterlegt.")}" aria-label="Mechanik erklären">?</span>
-      <button type="button" class="pf-event-action-card" data-event-choice="${c.id}">
-        <span class="pf-event-action-card__icon" aria-hidden="true">${c.icon || "▸"}</span>
-        <span class="pf-event-action-card__textblock">
-          <strong class="pf-event-action-card__label">${escapeHtmlPf(c.label)}</strong>
-          <span class="pf-event-action-card__detail">${escapeHtmlPf(c.detail)}</span>
-          <span class="pf-event-action-card__meta">Erwartungswert-Rang <b>${c.risk ?? "–"}</b>/10 · höher = tendenziell besser</span>
-        </span>
-      </button>
-    </div>
-  `).join("");
-
-  wrap.querySelectorAll("[data-event-choice]").forEach((btn) => {
-    btn.addEventListener("click", () => resolveEvent(btn.dataset.eventChoice));
-  });
-  wrap.querySelectorAll("[data-event-tip]").forEach((el) => {
-    const tip = el.dataset.eventTip || "";
-    const open = (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      showPfFloatingTooltip(el, tip);
-    };
-    el.addEventListener("click", open);
-    el.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter" || ev.key === " ") open(ev);
-    });
-  });
-
-  const fill = document.getElementById("eventTimerFill");
-  if (fill) fill.style.width = "100%";
-  runtime.eventDeadline = Date.now() + EVENT_CHOICE_MS;
-  runtime.eventUiRaf = requestAnimationFrame(tickEventTimer);
-
-  ui.eventOverlay.classList.remove("versteckt");
 }
 
 async function renderLeaderboard(mode) {
@@ -2101,7 +768,7 @@ async function renderLeaderboard(mode) {
   }
   const filteredSchema = rows.filter((r) => {
     const v = r.extra_daten?.schemaVersion;
-    return v === SAVE_SCHEMA_VERSION || v === 3;
+    return v === SAVE_SCHEMA_VERSION || v === 4 || v === 3;
   });
   if (rows.length > 0 && filteredSchema.length === 0) {
     console.warn("[Pixel Factory] Rangliste: Keine Einträge mit passendem Schema – zeige alle gespeicherten Zeilen.");
@@ -2109,7 +776,6 @@ async function renderLeaderboard(mode) {
   const nutze = filteredSchema.length > 0 ? filteredSchema : rows;
   let sorted = [...nutze];
   if (mode === "prestige") sorted.sort((a, b) => (b.level || 0) - (a.level || 0));
-  else if (mode === "season") sorted.sort((a, b) => (b.extra_daten?.meta?.seasonPoints || 0) - (a.extra_daten?.meta?.seasonPoints || 0));
   else sorted.sort((a, b) => (b.punkte || 0) - (a.punkte || 0));
 
   if (sorted.length === 0) {
@@ -2118,10 +784,10 @@ async function renderLeaderboard(mode) {
   }
   ui.rankContent.innerHTML = `
     <table class="rangliste-tabelle">
-      <thead><tr><th>#</th><th>Spieler</th><th>${mode === "pixel" ? "Pixel" : mode === "prestige" ? "Prestige" : "Saison"}</th></tr></thead>
+      <thead><tr><th>#</th><th>Spieler</th><th>${mode === "pixel" ? "Pixel" : "Prestige"}</th></tr></thead>
       <tbody>
         ${sorted.slice(0, 20).map((r, i) => {
-          const val = mode === "pixel" ? fmtNumber(r.punkte || 0) : mode === "prestige" ? (r.level || 0) : (r.extra_daten?.meta?.seasonPoints || 0);
+          const val = mode === "pixel" ? fmtNumber(r.punkte || 0) : (r.level || 0);
           return `<tr><td>${i + 1}</td><td>${r.benutzername || "Anonym"}</td><td>${val}</td></tr>`;
         }).join("")}
       </tbody>
@@ -2129,29 +795,11 @@ async function renderLeaderboard(mode) {
   `;
 }
 
-function renderSeasonModal() {
-  const lvl = seasonLevel();
-  const nextTierPts = (lvl + 1) * 100;
-  const nextDiff = nextTierPts - state.meta.seasonPoints;
-  const reward = `Nächster Tier-Bonus: +${5 + lvl * 2}% Produktion für diesen Run`;
-  const progressPct = Math.max(0, Math.min(100, Math.floor((state.meta.seasonPoints % 100))));
-  document.getElementById("errungenschaftenGrid").innerHTML = `
-    <div class="season-wrap">
-      <div class="season-card">
-        <div class="season-top">
-          <strong>Level ${lvl}</strong>
-          <span>${state.meta.seasonPoints} Punkte</span>
-        </div>
-        <div class="season-bar"><div style="width:${progressPct}%"></div></div>
-        <div class="upgrade-text">${nextDiff <= 0 ? "Tier bereit!" : `${nextDiff} Punkte bis Tier ${lvl + 1}`}</div>
-      </div>
-      <div class="season-grid">
-        <div class="season-card"><strong>Belohnung</strong><div class="upgrade-text">${reward}</div></div>
-        <div class="season-card"><strong>Wie bekomme ich Punkte?</strong><div class="upgrade-text">Missionen abschließen und Event-Entscheidungen meistern.</div></div>
-        <div class="season-card"><strong>Tipp</strong><div class="upgrade-text">Schwere Missionen bringen deutlich mehr Saisonpunkte als kurze Aufgaben.</div></div>
-      </div>
-    </div>
-  `;
+function renderErfolgeModal() {
+  const grid = document.getElementById("errungenschaftenGrid");
+  if (grid) {
+    grid.innerHTML = `<p class="upgrade-text" style="padding:12px;text-align:center;">Sammle Lifetime-Pixel und steigere dein Prestige – Errungenschaften werden hier später ergänzt.</p>`;
+  }
   document.getElementById("errungenschaftenModal").classList.remove("versteckt");
 }
 
@@ -2198,7 +846,7 @@ function wireAdminPanel() {
     if (!Number.isFinite(v) || v < 0) return;
     state.economy.pixel = v;
     state.economy.lifetimePixel = Math.max(state.economy.lifetimePixel, v);
-    recomputeMetaFromLineAndMutations();
+    recomputeUpgradeBonuses();
     renderStats();
     maybeRenderShop();
     drawPile();
@@ -2209,7 +857,7 @@ function wireAdminPanel() {
     const v = Number(document.getElementById("adm-prestige")?.value);
     if (!Number.isFinite(v) || v < 0) return;
     state.meta.prestige = Math.floor(v);
-    recomputeMetaFromLineAndMutations();
+    recomputeUpgradeBonuses();
     renderStats();
     maybeRenderShop();
     drawPile();
@@ -2221,7 +869,6 @@ function wireAdminPanel() {
     if (!Number.isFinite(v) || v < 0) return;
     state.meta.prestigePoints = Math.floor(v);
     renderStats();
-    renderLineTree();
     toast(`Prestigepunkte: ${state.meta.prestigePoints}`);
   });
 
@@ -2233,12 +880,11 @@ function wireAdminPanel() {
   });
 
   document.getElementById("adm-alle-upgrades")?.addEventListener("click", () => {
-    for (const u of UPGRADES) {
+    for (const u of SHOP_UPGRADES_ALL) {
       if (state.economy.boughtUpgrades.includes(u.id)) continue;
       state.economy.boughtUpgrades.push(u.id);
-      u.apply(state);
     }
-    recomputeMetaFromLineAndMutations();
+    recomputeUpgradeBonuses();
     renderStats();
     maybeRenderShop();
     drawPile();
@@ -2252,9 +898,8 @@ function wireAdminPanel() {
   });
 
   document.getElementById("adm-alle-err")?.addEventListener("click", () => {
-    state.meta.seasonPoints += 10000;
-    renderStats();
-    toast("+10000 Saisonpunkte");
+    addPixels(1e12, "Admin-Test");
+    toast("+1B Pixel (Test)");
   });
 
   document.getElementById("adm-toggle")?.addEventListener("click", () => {
@@ -2287,11 +932,9 @@ function maybeRenderTutorial() {
   const skipBtn = document.getElementById("tutSkip");
 
   const steps = [
-    { icon: "🏭", title: "Willkommen beim Rework", text: "Hier ist alles auf Entscheidungen gebaut: Missionen, Events und Linienbaum." },
-    { icon: "🛒", title: "Shop & Upgrades", text: "Kaufe im Shop Gebäude. Unbekannte Items zeigen ??? und werden automatisch freigeschaltet, sobald du genug Pixel hast." },
-    { icon: "🌿", title: "Line-Baum", text: "Mit jedem Prestige bekommst du 1 Prestigepunkt. Investiere ihn in deinen aktiven Linienbaum." },
-    { icon: "✦", title: "Prestige-Mutationen", text: "Bei Prestige musst du 1 Mutation wählen. Diese kann den Run stark verändern (stark positiv + klarer Nachteil)." },
-    { icon: "📅", title: "Saison & Missionen", text: "Missionen werden automatisch alle 30 Minuten neu gemischt. Saisonpunkte bringen Fortschritt und Rangliste." },
+    { icon: "🏭", title: "Willkommen", text: "Klicke den Pixelhaufen, kaufe Gebäude und Upgrades. Missionen wechseln zur vollen und halben Stunde." },
+    { icon: "🛒", title: "Shop & Upgrades", text: "Im Tab „Shop“ gibt es Gebäude. Unter „Upgrades“ links Bonus-Pixel pro Sekunde, rechts additiv Pixel pro Klick." },
+    { icon: "✦", title: "Prestige", text: "Genug Lifetime-Pixel? Prestige setzt den Run zurück, erhöht dein Prestige-Level und gibt dir Prestigepunkte." },
   ];
   let idx = 0;
   function render() {
@@ -2329,17 +972,12 @@ function bindDom() {
   ui.comboLabel = document.getElementById("komboLabel");
   ui.shopMain = document.getElementById("shopGebaeude");
   ui.shopUpgrades = document.getElementById("shopUpgrades");
-  ui.shopLine = document.getElementById("shopPrestige");
   ui.offlineBonus = document.getElementById("offlineBonus");
   ui.banner = document.getElementById("ereignisBanner");
   ui.toast = document.getElementById("toastContainer");
   ui.rankContent = document.getElementById("ranglisteInhalt");
-  ui.eventOverlay = document.getElementById("eventOverlay");
   ui.prestigeModal = document.getElementById("prestigeConfirmModal");
   ui.pcQP = document.getElementById("pcQP");
-  ui.lineTreeModal = document.getElementById("lineTreeModal");
-  ui.lineTreeModalBody = document.getElementById("lineTreeModalBody");
-  ui.lineTreeTooltip = document.getElementById("lineTreeTooltip");
 }
 
 function setupDynamicUi() {
@@ -2355,56 +993,17 @@ function setupDynamicUi() {
   `;
   actions.appendChild(missionPanel);
   ui.missionList = document.getElementById("missionList");
-
-  const ev = document.createElement("div");
-  ev.id = "eventOverlay";
-  ev.className = "modal-hintergrund pf-modal-glass versteckt";
-  ev.innerHTML = `
-    <div class="modal pf-event-modal pf-modal-glass__panel">
-      <div class="pf-event-timer-track" aria-hidden="true">
-        <div id="eventTimerFill" class="pf-event-timer-fill"></div>
-      </div>
-      <p id="eventLineHint" class="pf-event-line-hint"></p>
-      <h2 id="eventTitle"></h2>
-      <p id="eventText" class="pf-event-text"></p>
-      <div id="eventChoices" class="pf-event-action-grid"></div>
-    </div>`;
-  document.body.appendChild(ev);
-
-  if (!document.getElementById("mutationChoices")) {
-    const mut = document.createElement("div");
-    mut.id = "mutationChoices";
-    mut.className = "mutation-grid pf-mutation-grid";
-    document.querySelector(".pc-liste")?.appendChild(mut);
-  }
 }
 
 function bindEvents() {
   document.querySelector(".shop-tab[data-tab='gebaeude']").textContent = "🛒 Shop";
-  document.querySelector(".shop-tab[data-tab='prestige']").textContent = "🌿 Linienbaum";
 
   document.querySelectorAll(".shop-tab").forEach((t) => {
     t.addEventListener("click", () => {
-      if (t.dataset.tab === "prestige") {
-        runtime.tab = "prestige";
-        document.querySelectorAll(".shop-tab").forEach((x) => x.classList.toggle("aktiv", x === t));
-        ui.shopMain.classList.add("versteckt");
-        ui.shopUpgrades.classList.add("versteckt");
-        ui.shopLine.classList.remove("versteckt");
-        const bulk = document.getElementById("bulkLeiste");
-        if (bulk) bulk.classList.add("versteckt");
-        runtime.forceShopRender = true;
-        maybeRenderShop();
-        openLineTreeModal();
-        wireLineTreeModalOnce();
-        return;
-      }
-      closeLineTreeModal();
       runtime.tab = t.dataset.tab;
       document.querySelectorAll(".shop-tab").forEach((x) => x.classList.toggle("aktiv", x === t));
       ui.shopMain.classList.toggle("versteckt", runtime.tab !== "gebaeude");
       ui.shopUpgrades.classList.toggle("versteckt", runtime.tab !== "upgrades");
-      ui.shopLine.classList.toggle("versteckt", runtime.tab !== "prestige");
       const bulk = document.getElementById("bulkLeiste");
       if (bulk) bulk.classList.toggle("versteckt", runtime.tab !== "gebaeude");
       runtime.forceShopRender = true;
@@ -2421,23 +1020,16 @@ function bindEvents() {
   ui.canvas.addEventListener("click", handleClick);
   ui.prestigeBtn.addEventListener("click", openPrestigeModal);
   document.getElementById("prestigeConfirmNein").addEventListener("click", () => {
-    cancelMutationSlotAnimation();
-    runtime.mutationSlotRunning = false;
-    runtime.pendingPrestigeMutationId = null;
-    document.getElementById("mutationSlotResult")?.classList.add("versteckt");
-    document.getElementById("prestigeFinalizeBtn")?.classList.add("versteckt");
     ui.prestigeModal.classList.add("versteckt");
-    document.getElementById("mutationSlotOverlay")?.classList.add("versteckt");
   });
 
-  document.getElementById("prestigeFinalizeBtn")?.addEventListener("click", () => {
-    const id = runtime.pendingPrestigeMutationId;
-    if (!id) return;
-    doPrestige(id);
+  document.getElementById("prestigeConfirmJa").addEventListener("click", () => {
+    if (state.economy.lifetimePixel < prestigeThreshold()) return;
+    doPrestige();
   });
 
-  document.getElementById("errungenschaftenBtn").textContent = "📅 Saison";
-  document.getElementById("errungenschaftenBtn").addEventListener("click", renderSeasonModal);
+  document.getElementById("errungenschaftenBtn").textContent = "🎖 Erfolge";
+  document.getElementById("errungenschaftenBtn").addEventListener("click", renderErfolgeModal);
   document.getElementById("errungenschaftenSchliessen").addEventListener("click", () => document.getElementById("errungenschaftenModal").classList.add("versteckt"));
 
   document.getElementById("skinBtn").addEventListener("click", () => {
@@ -2452,27 +1044,12 @@ function bindEvents() {
   });
   document.getElementById("ranglisteSchliessen").addEventListener("click", () => document.getElementById("ranglisteModal").classList.add("versteckt"));
   const tabs = document.querySelector(".rangliste-tabs");
-  if (!tabs.querySelector('[data-rl="season"]')) {
-    const s = document.createElement("button");
-    s.className = "rl-tab";
-    s.dataset.rl = "season";
-    s.textContent = "Saison";
-    tabs.appendChild(s);
-  }
   tabs.querySelectorAll(".rl-tab").forEach((tab) => {
     tab.addEventListener("click", async () => {
       tabs.querySelectorAll(".rl-tab").forEach((x) => x.classList.toggle("aktiv", x === tab));
       await renderLeaderboard(tab.dataset.rl);
     });
   });
-}
-
-function applyDelayedEffectSafe(delayMs, cb) {
-  const token = state.session.runToken;
-  setTimeout(() => {
-    if (state.session.runToken !== token) return;
-    cb();
-  }, delayMs);
 }
 
 function removeGameLoadingOverlay() {
@@ -2491,7 +1068,6 @@ function frame(ts) {
 
   addPixels(currentPps() * dt);
   updateMissions();
-  maybeSpawnEvent();
 
   runtime.autosave += dt * 1000;
   if (runtime.autosave >= AUTOSAVE_MS) {
@@ -2504,13 +1080,6 @@ function frame(ts) {
   renderMissions();
   maybeRenderShop();
 
-  if (ui.lineTreeModal && !ui.lineTreeModal.classList.contains("versteckt")) {
-    if (!runtime._lastFlowAt || ts - runtime._lastFlowAt > 350) {
-      runtime._lastFlowAt = ts;
-      updateSkillTreeFlowSpeed();
-    }
-  }
-
   requestAnimationFrame(frame);
 }
 
@@ -2518,7 +1087,6 @@ async function init() {
   setupDynamicUi();
   bindDom();
   bindEvents();
-  wireLineTreeModalOnce();
   const adminTest = new URLSearchParams(location.search).has("admin");
   if (adminTest) {
     Object.assign(state, makeDefaultState());
@@ -2533,7 +1101,7 @@ async function init() {
   }
   applySkin(state.cosmetics.skin);
   syncTutorialSkipFromState();
-  recomputeMetaFromLineAndMutations();
+  recomputeUpgradeBonuses();
   renderStats();
   renderMissions();
   maybeRenderShop();
