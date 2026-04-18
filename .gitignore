@@ -2,8 +2,6 @@
 docs/superpowers/
 node_modules/
 dist/
-!games/gamblers-table-vite/dist/
-!games/gamblers-table-vite/dist/**
 .next/
 ssr-content/
 
