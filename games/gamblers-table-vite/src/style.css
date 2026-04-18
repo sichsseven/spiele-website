@@ -15,9 +15,14 @@
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+}
+
 html,
 body {
   margin: 0;
+  min-height: 100%;
   height: 100%;
   background: var(--gt-bg);
   color: var(--gt-text);
@@ -26,8 +31,16 @@ body {
   touch-action: manipulation;
 }
 
+/* Ein Kind füllt die Seite zuverlässig — sonst kann der Canvas-Bereich 0px hoch bleiben */
+body {
+  display: flex;
+  flex-direction: column;
+}
+
 .gt-app {
+  flex: 1 1 auto;
   min-height: 100%;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
@@ -84,8 +97,10 @@ body {
 }
 
 .gt-canvas {
-  flex: 1;
-  min-height: 220px;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 260px;
+  min-height: min(520px, 52vh);
   border-radius: 18px;
   overflow: hidden;
   border: 1px solid rgba(45, 90, 69, 0.35);
