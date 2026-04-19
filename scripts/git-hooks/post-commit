@@ -1,0 +1,14 @@
+#!/bin/sh
+# Vorlage: nach `git commit` automatisch `git push` (aktueller Branch → origin).
+# Install:  .\scripts\install-git-hooks.ps1
+
+command -v git >/dev/null 2>&1 || exit 0
+git remote get-url origin >/dev/null 2>&1 || exit 0
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+case "$branch" in
+  HEAD) exit 0 ;;
+esac
+
+git push origin "$branch" 2>&1
+exit 0
