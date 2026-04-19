@@ -18,6 +18,7 @@
   </div>
   <div id="save-toast" class="save-toast" role="status" aria-live="polite"></div>
   <div id="shop-tooltip" class="shop-tooltip" hidden></div>
+  <div id="skilltree-tooltip" class="skilltree-tooltip" hidden></div>
   <div id="prestige-overlay" class="prestige-overlay" aria-hidden="true"></div>
 
   <div id="app-root">
@@ -96,7 +97,7 @@
 
           <div class="expedition-dd expedition-dd--log">
             <h3 class="expedition-dd__title">Kampf-Log &amp; Beute</h3>
-            <pre class="expedition-log" id="expedition-log" aria-live="polite"></pre>
+            <div class="expedition-log" id="expedition-log" aria-live="polite"></div>
           </div>
 
           <div class="artifact-panel expedition-artifacts">
@@ -114,7 +115,22 @@
             <span class="portal-essence">🌌 Welten-Essenz: <strong id="stat-essence">0</strong></span>
             <button type="button" id="btn-prestige" class="btn-prestige" disabled>Dimension verschlingen</button>
           </div>
-          <p class="portal-placeholder">Hier folgt später der Welten-Essenz-Skilltree.</p>
+          <h3 class="skilltree-heading">Welten-Essenz — Skilltree</h3>
+          <p class="skilltree-lead">Kaufe Knoten mit Welten-Essenz. Pfade: Blut (Klicks), Schatten (Passiv), Eroberer (Beute).</p>
+          <div class="skilltree-viewport" id="skilltree-viewport">
+            <div class="skilltree-canvas" id="skilltree-canvas">
+              <svg
+                class="skilltree-svg"
+                id="skilltree-svg"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <g id="skilltree-lines"></g>
+              </svg>
+              <div class="skilltree-nodes" id="skilltree-nodes"></div>
+            </div>
+          </div>
         </div>
       </section>
     </div>

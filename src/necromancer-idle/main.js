@@ -11,6 +11,7 @@ import {
 } from './GameState.js';
 import { initShopUI } from './ShopUI.js';
 import { initExpeditionSystem } from './ExpeditionSystem.js';
+import { initSkillTreeUI } from './SkillTreeUI.js';
 import { AudioManager } from './AudioManager.js';
 
 function initTabNavigation() {
@@ -70,6 +71,7 @@ void (async function bootstrap() {
   startPassiveLoop();
   initShopUI(audio);
   initExpeditionSystem();
+  initSkillTreeUI();
   initTabNavigation();
 
   let saveToastTimer = 0;

@@ -54,8 +54,19 @@ export function initExpeditionSystem() {
 
   function appendLog(line) {
     if (!logEl) return;
-    const t = logEl.textContent?.trim() ?? '';
-    logEl.textContent = t ? `${t}\n${line}` : line;
+    const row = document.createElement('div');
+    row.className = 'expedition-log-line';
+    row.textContent = line;
+    logEl.appendChild(row);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function appendLogLootHtml(innerHtml) {
+    if (!logEl) return;
+    const row = document.createElement('div');
+    row.className = 'expedition-log-line expedition-log-line--loot';
+    row.innerHTML = innerHtml;
+    logEl.appendChild(row);
     logEl.scrollTop = logEl.scrollHeight;
   }
 
@@ -122,15 +133,16 @@ export function initExpeditionSystem() {
   document.addEventListener('necro-expedition-complete', (e) => {
     const d = /** @type {CustomEvent} */ (e).detail;
     if (!d) return;
-    const { lost, artifactName } = d;
-    if (artifactName) {
-      appendLog(
-        `Erfolg! Du hast ein [${artifactName}] gefunden. ${lost} Skelette sind zu Staub zerfallen.`,
+    const { lost, survived, loot } = d;
+    if (loot && loot.itemName) {
+      appendLogLootHtml(
+        `Beute: <span class="loot-tag" style="color:${loot.color}">[${loot.label}]</span> <span class="loot-name" style="color:${loot.color}">${loot.itemName}</span>`,
       );
-    } else if (lost > 0) {
-      appendLog(`Die Plünderung endet. ${lost} Skelette sind zu Staub zerfallen, ${d.survived} kehren ins Lager zurück.`);
+    }
+    if (lost > 0) {
+      appendLog(`Die Plünderung endet. ${lost} Skelette sind zu Staub zerfallen, ${survived} kehren ins Lager zurück.`);
     } else {
-      appendLog(`Die Plünderung endet. ${d.survived} Skelette kehren wohlbehalten zurück.`);
+      appendLog(`Die Plünderung endet. ${survived} Skelette kehren wohlbehalten zurück.`);
     }
   });
 

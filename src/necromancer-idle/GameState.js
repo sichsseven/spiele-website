@@ -1,7 +1,5 @@
 import { UPGRADE_DEFINITIONS, getDefinitionById, priceAtLevel } from './upgrades.js';
 import {
-  ARTIFACT_DEFS,
-  ARTIFACT_DROP_CHANCE,
   ELITE_UNITS,
   EXPEDITION_DURATION_SEC,
   PLUNDER_LOSS_MAX,
@@ -9,6 +7,8 @@ import {
   getArtifactDefById,
   getEliteUnitById,
 } from './expeditionData.js';
+import { rollExpeditionLoot } from './lootData.js';
+import { getSkillNodeById } from './SkillTreeData.js';
 import {
   fetchUserProgress,
   getCurrentUserId,
@@ -16,8 +16,8 @@ import {
 } from './necroSupabase.js';
 
 const BASE_BONES_PER_CLICK = 1;
-const SAVE_KEY = 'necromancer-idle-save-v3';
-const SAVE_VERSION = 3;
+const SAVE_KEY = 'necromancer-idle-save-v4';
+const SAVE_VERSION = 4;
 
 const MAX_CLICKS_PER_SEC = 15;
 
@@ -58,6 +58,9 @@ export const GameState = {
   /** Artefakt-Id → Anzahl (permanente Buffs) */
   /** @type {Record<string, number>} */
   artifactsOwned: {},
+  /** Freigeschaltete Skilltree-Knoten (Welten-Essenz) */
+  /** @type {string[]} */
+  unlockedSkills: ['center_node'],
 };
 
 let passiveRemainder = 0;
@@ -95,8 +98,7 @@ export function startExpedition() {
 }
 
 /**
- * Nach abgeschlossenem Balken: Verluste, Beute, Überlebende kehren zurück.
- * @returns {null | { lost: number; survived: number; deployed: number; artifactName: string | null; artifactDropped: boolean }}
+ * Nach abgeschlossenem Balken: Verluste, Beute (Loot-RNG), Überlebende kehren zurück.
  */
 export function finishExpeditionPlunder() {
   const es = GameState.expeditionState;
@@ -117,25 +119,51 @@ export function finishExpeditionPlunder() {
 
   es.activeUnits.skeletonWarrior = survived;
 
-  let artifactName = null;
-  if (deployed > 0 && Math.random() < ARTIFACT_DROP_CHANCE) {
-    const def = ARTIFACT_DEFS[0];
-    if (def) {
-      GameState.artifactsOwned[def.id] = (GameState.artifactsOwned[def.id] ?? 0) + 1;
-      artifactName = def.name;
-    }
+  /** @type {ReturnType<typeof rollExpeditionLoot> | null} */
+  let loot = null;
+  if (deployed > 0) {
+    loot = rollExpeditionLoot();
   }
 
   const result = {
     lost,
     survived,
     deployed,
-    artifactName,
-    artifactDropped: artifactName != null,
+    loot,
   };
   dispatchStateChanged();
   document.dispatchEvent(new CustomEvent('necro-expedition-complete', { detail: result }));
   return result;
+}
+
+export function isSkillUnlocked(id) {
+  return GameState.unlockedSkills.includes(id);
+}
+
+export function canPurchaseSkill(id) {
+  const n = getSkillNodeById(id);
+  if (!n || isSkillUnlocked(id)) return false;
+  for (const r of n.requires) {
+    if (!isSkillUnlocked(r)) return false;
+  }
+  return GameState.worldEssence >= n.cost;
+}
+
+/**
+ * @returns {boolean}
+ */
+export function buySkillNode(id) {
+  const n = getSkillNodeById(id);
+  if (!n || isSkillUnlocked(id)) return false;
+  for (const r of n.requires) {
+    if (!isSkillUnlocked(r)) return false;
+  }
+  if (GameState.worldEssence < n.cost) return false;
+  GameState.worldEssence -= n.cost;
+  GameState.unlockedSkills.push(id);
+  console.log('[Skilltree]', n.path, n.name, n.id);
+  dispatchStateChanged();
+  return true;
 }
 
 export function tickExpedition(deltaSeconds) {
@@ -448,6 +476,16 @@ function applyLoadedState(data) {
     GameState.artifactsOwned = {};
   }
 
+  const rawSkills = data.unlocked_skills ?? data.unlockedSkills;
+  if (Array.isArray(rawSkills) && rawSkills.length > 0) {
+    GameState.unlockedSkills = [...new Set(rawSkills.map((s) => String(s)))];
+    if (!GameState.unlockedSkills.includes('center_node')) {
+      GameState.unlockedSkills.unshift('center_node');
+    }
+  } else {
+    GameState.unlockedSkills = ['center_node'];
+  }
+
   dispatchStateChanged();
 }
 
@@ -482,6 +520,7 @@ function buildPersistPayload() {
       deployed_this_run: GameState.expeditionState.deployedThisRun,
     },
     artifacts_owned: { ...GameState.artifactsOwned },
+    unlocked_skills: [...GameState.unlockedSkills],
   };
 }
 
@@ -515,6 +554,7 @@ export function saveGameLocal() {
         deployedThisRun: GameState.expeditionState.deployedThisRun,
       },
       artifactsOwned: { ...GameState.artifactsOwned },
+      unlockedSkills: [...GameState.unlockedSkills],
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
     document.dispatchEvent(new CustomEvent('necro-game-saved'));
@@ -546,16 +586,33 @@ export async function saveGame() {
 }
 
 const SAVE_KEY_LEGACY = 'necromancer-idle-save-v2';
+const SAVE_KEY_LEGACY_V3 = 'necromancer-idle-save-v3';
 
 export function loadGameLocal() {
   try {
     let raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY_V3);
     if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY);
     if (!raw) return false;
     const data = JSON.parse(raw);
     if (typeof data.upgrades !== 'object') return false;
 
     if (data.v === SAVE_VERSION) {
+      applyLoadedState({
+        bones: data.bones,
+        grave_goods: data.graveGoods,
+        world_essence: data.worldEssence,
+        dimensions_completed: data.dimensionsCompleted,
+        dimension_multiplier: data.dimensionMultiplier,
+        lifetime_bones_this_run: data.lifetimeBonesThisRun,
+        upgrades: data.upgrades,
+        expedition_state: data.expeditionState,
+        artifacts_owned: data.artifactsOwned,
+        unlocked_skills: data.unlockedSkills,
+      });
+      return true;
+    }
+    if (data.v === 3) {
       applyLoadedState({
         bones: data.bones,
         grave_goods: data.graveGoods,
@@ -615,6 +672,7 @@ export async function loadFromSupabase() {
     upgrades: row.upgrades,
     expedition_state: row.expedition_state,
     artifacts_owned: row.artifacts_owned,
+    unlocked_skills: row.unlocked_skills,
   });
   return true;
 }

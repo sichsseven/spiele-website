@@ -643,8 +643,15 @@ body {
   color: #9a9088;
   background: #0a0808;
   border: 1px solid #1c1410;
-  white-space: pre-wrap;
   word-break: break-word;
+}
+
+.expedition-log-line {
+  margin-bottom: 0.28rem;
+}
+
+.expedition-log-line--loot {
+  font-weight: 600;
 }
 
 .expedition-artifacts {
@@ -665,11 +672,163 @@ body {
   color: var(--muted);
 }
 
-.portal-placeholder {
-  margin: 0.75rem 0 0;
+.skilltree-heading {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.skilltree-lead {
+  margin: 0 0 0.5rem;
   font-size: 0.72rem;
   color: var(--muted);
-  font-style: italic;
+  line-height: 1.4;
+}
+
+.skilltree-viewport {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  overflow: auto;
+  background: #0a0a0f;
+  border: 1px solid rgba(80, 60, 100, 0.45);
+  border-radius: 10px;
+  margin-top: 0.35rem;
+}
+
+.skilltree-canvas {
+  position: relative;
+  min-height: 600px;
+  width: 100%;
+  min-width: 520px;
+}
+
+.skilltree-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.skilltree-line {
+  stroke-width: 0.42;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.skilltree-line--locked {
+  stroke: #333;
+}
+
+.skilltree-line--purchasable {
+  stroke: #8b0000;
+  animation: skilltree-line-pulse 1.15s ease-in-out infinite;
+}
+
+.skilltree-line--owned {
+  stroke: #39ff14;
+  filter: drop-shadow(0 0 1.5px rgba(57, 255, 20, 0.65));
+}
+
+@keyframes skilltree-line-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.skilltree-nodes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.skilltree-node {
+  pointer-events: auto;
+  position: absolute;
+  min-width: 4.5rem;
+  max-width: 8rem;
+  padding: 0.28rem 0.4rem;
+  font-family: inherit;
+  font-size: 0.58rem;
+  line-height: 1.2;
+  text-align: center;
+  border-radius: 999px;
+  border: 2px solid #3a3548;
+  cursor: default;
+  transform: translate(-50%, -50%);
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.skilltree-node__inner {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skilltree-node--locked {
+  opacity: 0.45;
+  background: linear-gradient(180deg, #1e1c24, #121018);
+  color: #7a7788;
+}
+
+.skilltree-node--purchasable {
+  opacity: 1;
+  background: linear-gradient(180deg, #2a1820, #160c12);
+  color: #f0d8e0;
+  border-color: #8b0000;
+  box-shadow:
+    0 0 10px rgba(139, 0, 0, 0.55),
+    0 0 22px rgba(139, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.skilltree-node--purchasable:hover {
+  box-shadow:
+    0 0 14px rgba(139, 0, 0, 0.75),
+    0 0 28px rgba(255, 40, 40, 0.25);
+}
+
+.skilltree-node--bought {
+  opacity: 1;
+  background: linear-gradient(180deg, #153015, #0a180c);
+  color: #c8ffc8;
+  border-color: #39ff14;
+  box-shadow: 0 0 12px rgba(57, 255, 20, 0.35);
+}
+
+.skilltree-tooltip {
+  position: fixed;
+  z-index: 120;
+  max-width: 260px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text);
+  background: rgba(14, 12, 20, 0.96);
+  border: 1px solid rgba(155, 89, 182, 0.45);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+.skilltree-tooltip strong {
+  color: var(--gold);
+}
+
+.skilltree-tip-path {
+  color: var(--muted);
+  font-size: 0.68rem;
 }
 
 .artifact-panel {
