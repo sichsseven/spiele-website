@@ -27,7 +27,10 @@ export const BUILDINGS: BuildingDef[] = [
   { id: "orbitalDock", name: "Orbital-Dock", icon: "🛸", baseCost: 115000000, growth: 1.232, pps: 690000, unlockAt: 70000000 },
 ];
 
-/** Kosten: `floor(costBase * 1.15^tier)` für PPS- und PPC-Upgrades. */
+/**
+ * Kosten für den **nächsten** Kauf, wenn bereits `ownedLevel` Stufen dieser Linie gekauft sind
+ * (0 = noch keiner). Preis = floor(costBase × 1.15^(tier + ownedLevel)).
+ */
 export const SHOP_COST_GROWTH = 1.15;
 
 export interface PpsShopUpgradeDef {
@@ -84,17 +87,17 @@ export const SHOP_UPGRADES_ALL: ShopUpgradeDef[] = [...PPS_SHOP_UPGRADES, ...PPC
 
 export const SHOP_UPGRADE_IDS = new Set(SHOP_UPGRADES_ALL.map((u) => u.id));
 
-export function shopPpsUpgradeCost(u: PpsShopUpgradeDef): number {
-  return Math.floor(u.costBase * Math.pow(SHOP_COST_GROWTH, u.tier));
+export function shopPpsUpgradeCostAtLevel(u: PpsShopUpgradeDef, ownedLevel: number): number {
+  return Math.floor(u.costBase * Math.pow(SHOP_COST_GROWTH, u.tier + Math.max(0, ownedLevel)));
 }
 
-export function shopPpcUpgradeCost(u: PpcShopUpgradeDef): number {
-  return Math.floor(u.costBase * Math.pow(SHOP_COST_GROWTH, u.tier));
+export function shopPpcUpgradeCostAtLevel(u: PpcShopUpgradeDef, ownedLevel: number): number {
+  return Math.floor(u.costBase * Math.pow(SHOP_COST_GROWTH, u.tier + Math.max(0, ownedLevel)));
 }
 
-export function shopUpgradePrice(u: ShopUpgradeDef): number {
-  if ("pps" in u) return shopPpsUpgradeCost(u);
-  return shopPpcUpgradeCost(u);
+export function shopUpgradePriceAtLevel(u: ShopUpgradeDef, ownedLevel: number): number {
+  if ("pps" in u) return shopPpsUpgradeCostAtLevel(u, ownedLevel);
+  return shopPpcUpgradeCostAtLevel(u, ownedLevel);
 }
 
 export interface MissionDef {

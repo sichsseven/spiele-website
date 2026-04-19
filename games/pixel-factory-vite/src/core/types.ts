@@ -24,7 +24,8 @@ export interface EconomyState {
   comboWindowBonus: number;
   offlineEff: number;
   buildings: Record<string, number>;
-  boughtUpgrades: string[];
+  /** Anzahl gekaufter Stufen pro Shop-Upgrade-ID (mehrfach kaufbar, stapelt sich). */
+  shopUpgradeLevels: Record<string, number>;
   bulk: number;
   discountBuys: number;
 }
