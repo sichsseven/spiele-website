@@ -17,7 +17,24 @@ import {
 
 const BASE_BONES_PER_CLICK = 1;
 const SAVE_KEY = 'necromancer-idle-save-v5';
+/** Nur `?admin=1`: getrennt vom normalen Spielstand, kein Cloud-Sync */
+const SAVE_KEY_ADMIN = 'necromancer-idle-save-v5-admin';
 const SAVE_VERSION = 5;
+
+/** @type {boolean} */
+let necromancerAdminSandbox = false;
+
+/**
+ * Vor `loadGameAsync()` setzen: `?admin=1` isoliert Speicher & Supabase.
+ * @param {boolean} value
+ */
+export function setNecromancerAdminSandbox(value) {
+  necromancerAdminSandbox = !!value;
+}
+
+function activeSaveKey() {
+  return necromancerAdminSandbox ? SAVE_KEY_ADMIN : SAVE_KEY;
+}
 
 const MAX_CLICKS_PER_SEC = 15;
 
@@ -548,6 +565,7 @@ function buildPersistPayload() {
 }
 
 export async function saveToSupabase() {
+  if (necromancerAdminSandbox) return false;
   try {
     const auth = await getCurrentUserId();
     if (!auth) return false;
@@ -579,7 +597,7 @@ export function saveGameLocal() {
       artifactsOwned: { ...GameState.artifactsOwned },
       unlockedSkills: [...GameState.unlockedSkills],
     };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    localStorage.setItem(activeSaveKey(), JSON.stringify(data));
     document.dispatchEvent(new CustomEvent('necro-game-saved'));
     return true;
   } catch (e) {
@@ -614,10 +632,12 @@ const SAVE_KEY_LEGACY_V4 = 'necromancer-idle-save-v4';
 
 export function loadGameLocal() {
   try {
-    let raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY_V4);
-    if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY_V3);
-    if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY);
+    let raw = localStorage.getItem(activeSaveKey());
+    if (!necromancerAdminSandbox) {
+      if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY_V4);
+      if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY_V3);
+      if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY);
+    }
     if (!raw) return false;
     const data = JSON.parse(raw);
     if (typeof data.upgrades !== 'object') return false;
@@ -712,6 +732,7 @@ export function loadGameLocal() {
 }
 
 export async function loadFromSupabase() {
+  if (necromancerAdminSandbox) return false;
   const auth = await getCurrentUserId();
   if (!auth) return false;
   const row = await fetchUserProgress(auth.userId);
@@ -753,8 +774,11 @@ export async function loadFromSupabase() {
   return true;
 }
 
-/** Supabase zuerst (wenn eingeloggt + Zeile), sonst localStorage */
+/** Supabase zuerst (wenn eingeloggt + Zeile), sonst localStorage. Admin-Sandbox: nur lokal. */
 export async function loadGameAsync() {
+  if (necromancerAdminSandbox) {
+    return loadGameLocal();
+  }
   const fromCloud = await loadFromSupabase();
   if (fromCloud) return true;
   return loadGameLocal();

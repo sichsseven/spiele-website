@@ -6,6 +6,7 @@ import {
   loadGameAsync,
   performPrestige,
   saveGame,
+  setNecromancerAdminSandbox,
   startPassiveLoop,
   canPrestigeNow,
 } from './GameState.js';
@@ -57,6 +58,11 @@ const config = {
 };
 
 void (async function bootstrap() {
+  const adminTest =
+    typeof URLSearchParams !== 'undefined' &&
+    new URLSearchParams(window.location.search).has('admin');
+  setNecromancerAdminSandbox(adminTest);
+
   const PZ = globalThis.PZ;
   if (PZ && typeof PZ.pruefeSpielStatus === 'function') {
     await PZ.pruefeSpielStatus('necromancer-idle');

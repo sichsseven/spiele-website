@@ -360,7 +360,7 @@ const PZ = {
         <button class="pz-adm-toggle" id="pzAdmToggle">▾</button>
       </div>
       <div class="pz-adm-body" id="pzAdmBody">
-        <div class="pz-adm-info">Kein Speichern aktiv</div>
+        <div class="pz-adm-info">Test oft ohne Cloud; Spielstände können je nach Spiel getrennt sein.</div>
         ${btns}
       </div>`;
     document.body.appendChild(panel);
