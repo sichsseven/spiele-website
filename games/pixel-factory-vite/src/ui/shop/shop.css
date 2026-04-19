@@ -1,0 +1,668 @@
+/* Shop-Overlay – angelehnt an pixel-factory/style.css (Game Cards, 2-Spalten-Grid). */
+
+.pf-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+.pf-overlay--hidden {
+  display: none;
+}
+
+.pf-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+}
+
+.pf-overlay__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 720px;
+  max-height: min(92vh, 900px);
+  background: linear-gradient(180deg, #fbfdff 0%, #f0f6ff 100%);
+  border-radius: 20px 20px 0 0;
+  border: 1px solid var(--border);
+  box-shadow: 0 -8px 40px rgba(30, 64, 175, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .pf-overlay {
+    align-items: center;
+    padding: 16px;
+  }
+  .pf-overlay__panel {
+    border-radius: 20px;
+    max-height: min(88vh, 860px);
+  }
+}
+
+.pf-overlay__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pf-overlay__head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.pf-overlay__close {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.pf-overlay__body {
+  padding: 12px 14px 18px;
+  overflow: auto;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pf-shop-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pf-shop-tab {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.pf-shop-tab--active {
+  border-color: rgba(79, 110, 248, 0.55);
+  background: linear-gradient(180deg, #eef2ff, #e0e7ff);
+  color: var(--primary-dark);
+}
+
+.pf-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.pf-bulk__label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.pf-bulk-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-weight: 800;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.pf-bulk-btn--active {
+  border-color: var(--primary);
+  background: #eef2ff;
+  color: var(--primary-dark);
+}
+
+.pf-hidden {
+  display: none !important;
+}
+
+.pf-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.pf-card-grid--shop {
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 520px) {
+  .pf-card-grid--shop {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+.pf-card-grid--upgrades-col {
+  grid-template-columns: 1fr;
+}
+
+.pf-upgrade-two-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .pf-card-grid--upgrades-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pf-upgrade-two-col {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+  }
+}
+
+.pf-upgrade-col__title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.pf-game-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 12px 10px;
+  background: linear-gradient(165deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: 0 2px 8px rgba(61, 91, 216, 0.06);
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.22s ease,
+    border-color 0.18s ease;
+}
+
+.pf-game-card:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(61, 91, 216, 0.1);
+}
+
+.pf-game-card:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.pf-game-card--afford {
+  border-color: rgba(79, 110, 248, 0.45);
+  box-shadow: 0 2px 10px rgba(79, 110, 248, 0.12);
+}
+
+.pf-game-card--expensive {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.pf-game-card--locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: repeating-linear-gradient(-45deg, #fbfdff, #fbfdff 6px, #f0f4ff 6px, #f0f4ff 12px);
+}
+
+.pf-game-card--bought {
+  opacity: 0.65;
+  cursor: default;
+  border-color: #c7d2fe;
+}
+
+.pf-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, #f0f6ff, #e8f0fe);
+}
+
+.pf-card-icon--building {
+  background: linear-gradient(145deg, #eef4ff, #e0eaff);
+}
+
+.pf-card-icon--muted {
+  background: #f1f5f9;
+  color: var(--text-muted);
+  font-weight: 900;
+}
+
+.pf-card-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.pf-card-title {
+  font-size: 0.95rem;
+  font-weight: 900;
+  line-height: 1.2;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.pf-card-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  background: var(--primary);
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 999px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.pf-card-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.pf-card-effect {
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.pf-card-effect--pps {
+  color: #c2410c;
+}
+
+.pf-card-effect--ppk {
+  color: var(--primary-dark);
+}
+
+.pf-card-effect--ppsu {
+  color: #b45309;
+}
+
+.pf-effect-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+.pf-pixel-unit {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.pf-card-buy {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  background: linear-gradient(180deg, #f8fafc, #eef2ff);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.pf-game-card--afford .pf-card-buy {
+  background: linear-gradient(180deg, #eef2ff, #e0e7ff);
+  border-color: rgba(79, 110, 248, 0.35);
+  color: var(--primary-dark);
+}
+
+.pf-card-buy--disabled {
+  background: #f1f5f9;
+  color: var(--text-muted);
+}
+
+/* ── Tab „Upgrades“: dunkles Panel + zweispaltiger Shop ───────────── */
+
+.pf-overlay--shop-dark .pf-overlay__panel {
+  background: linear-gradient(180deg, #242424 0%, #1a1a1a 100%);
+  border-color: #3f3f3f;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+}
+
+.pf-overlay--shop-dark .pf-overlay__head {
+  border-bottom-color: #3f3f3f;
+}
+
+.pf-overlay--shop-dark .pf-overlay__head h2 {
+  color: #f1f5f9;
+}
+
+.pf-overlay--shop-dark .pf-overlay__close {
+  background: #2d2d2d;
+  border-color: #444;
+  color: #e2e8f0;
+}
+
+.pf-overlay--shop-dark .pf-overlay__body {
+  background: #1a1a1a;
+}
+
+.pf-overlay--shop-dark .pf-shop-tabs {
+  margin-bottom: 10px;
+}
+
+.pf-overlay--shop-dark .pf-shop-tab {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #cbd5e1;
+}
+
+.pf-overlay--shop-dark .pf-shop-tab--active {
+  border-color: rgba(59, 130, 246, 0.55);
+  background: linear-gradient(180deg, #1e3a5f, #172554);
+  color: #93c5fd;
+}
+
+.pf-shop-upgrades-dark {
+  --pf-shop-bg: #1a1a1a;
+  --pf-shop-card: #1f1f1f;
+  --pf-shop-border: #333;
+  --pf-shop-muted: #94a3b8;
+  --pf-shop-pps: #22c55e;
+  --pf-shop-pps-dim: rgba(34, 197, 94, 0.35);
+  --pf-shop-ppc: #3b82f6;
+  --pf-shop-ppc-dim: rgba(59, 130, 246, 0.35);
+  --pf-shop-text: #f1f5f9;
+  width: 100%;
+  min-height: 200px;
+}
+
+.pf-shop-upgrades-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .pf-shop-upgrades-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+    align-items: start;
+  }
+}
+
+.pf-shop-col__header {
+  margin-bottom: 12px;
+}
+
+.pf-shop-col__title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--pf-shop-text);
+  letter-spacing: -0.02em;
+}
+
+.pf-shop-col__subtitle {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--pf-shop-muted);
+}
+
+.pf-shop-col__progress {
+  margin-bottom: 4px;
+}
+
+.pf-shop-col__progress-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--pf-shop-muted);
+  margin-bottom: 6px;
+}
+
+.pf-shop-col__track {
+  height: 6px;
+  border-radius: 999px;
+  background: #2d2d2d;
+  overflow: hidden;
+  border: 1px solid #3a3a3a;
+}
+
+.pf-shop-col--pps .pf-shop-col__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #15803d, var(--pf-shop-pps));
+  transition: width 0.25s ease;
+}
+
+.pf-shop-col--ppc .pf-shop-col__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1d4ed8, var(--pf-shop-ppc));
+  transition: width 0.25s ease;
+}
+
+.pf-shop-col__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pf-shop-card {
+  border: 1px solid var(--pf-shop-border);
+  border-radius: 14px;
+  padding: 12px 14px 14px;
+  background: var(--pf-shop-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.22s ease,
+    border-color 0.18s ease;
+}
+
+.pf-shop-card--pps.pf-shop-card--afford {
+  border-color: var(--pf-shop-pps-dim);
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.12);
+}
+
+.pf-shop-card--ppc.pf-shop-card--afford {
+  border-color: var(--pf-shop-ppc-dim);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+}
+
+.pf-shop-card--afford:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.pf-shop-card--locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: repeating-linear-gradient(-45deg, #1a1a1a, #1a1a1a 5px, #222 5px, #222 10px);
+}
+
+.pf-shop-card--bought {
+  opacity: 0.82;
+  border-color: #3f3f46;
+}
+
+.pf-shop-card--blocked:not(.pf-shop-card--bought) {
+  opacity: 0.92;
+}
+
+.pf-shop-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pf-shop-card__step {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--pf-shop-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pf-shop-card__tag {
+  font-size: 0.62rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+}
+
+.pf-shop-card__tag--pps {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.pf-shop-card__tag--ppc {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.pf-shop-card__title {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--pf-shop-text);
+  line-height: 1.2;
+}
+
+.pf-shop-card__meta {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--pf-shop-muted);
+}
+
+.pf-shop-card__effect {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.pf-shop-card__effect--pps {
+  color: #86efac;
+}
+
+.pf-shop-card__effect--ppc {
+  color: #93c5fd;
+}
+
+.pf-shop-card__detail {
+  margin: 0 0 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #a8b8cc;
+  line-height: 1.4;
+}
+
+.pf-shop-card__hint {
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.pf-shop-card__meter {
+  height: 5px;
+  border-radius: 999px;
+  background: #2d2d2d;
+  overflow: hidden;
+  margin-bottom: 12px;
+  border: 1px solid #333;
+}
+
+.pf-shop-card__meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.pf-shop-card__meter-fill--pps {
+  background: linear-gradient(90deg, #15803d, var(--pf-shop-pps));
+}
+
+.pf-shop-card__meter-fill--ppc {
+  background: linear-gradient(90deg, #1d4ed8, var(--pf-shop-ppc));
+}
+
+.pf-shop-card__btn {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #444;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.pf-shop-card--pps .pf-shop-card__btn:not(:disabled) {
+  background: linear-gradient(180deg, #14532d, #166534);
+  border-color: rgba(34, 197, 94, 0.45);
+  color: #ecfdf5;
+}
+
+.pf-shop-card--ppc .pf-shop-card__btn:not(:disabled) {
+  background: linear-gradient(180deg, #1e3a8a, #1d4ed8);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #eff6ff;
+}
+
+.pf-shop-card__btn:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+
+.pf-shop-card--blocked .pf-shop-card__btn:disabled,
+.pf-shop-card--locked .pf-shop-card__btn:disabled {
+  background: #2d2d2d !important;
+  border-color: #404040 !important;
+  color: #71717a !important;
+  cursor: not-allowed;
+  filter: none;
+  opacity: 1;
+}
+
+.pf-shop-card--bought .pf-shop-card__btn:disabled {
+  background: #2a2a2a;
+  border-color: #3f3f3f;
+  color: #64748b;
+  cursor: default;
+  opacity: 1;
+}

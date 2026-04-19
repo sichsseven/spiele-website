@@ -1,0 +1,361 @@
+/* ══════════════════════════════════════════
+   SPACE BLASTER — Style
+   Dunkel, Weltraum-Ästhetik, HUD overlay
+══════════════════════════════════════════ */
+:root {
+  --bg:        #05050f;
+  --hud-bg:    rgba(0,0,0,.75);
+  --accent:    #3af;
+  --accent2:   #f3a;
+  --text:      #e8eaf6;
+  --text2:     #90a4ae;
+  --btn-prime: #3a86ff;
+  --btn-sec:   rgba(255,255,255,.1);
+  --coin:      #ffd600;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* ── Screens ─────────────────────────────── */
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1rem;
+}
+.screen.hidden { display: none; }
+
+/* ── Back-Button (absolut oben links) ───── */
+.back-btn {
+  position: absolute; top: 1rem; left: 1rem;
+  background: var(--btn-sec);
+  border: 1px solid rgba(255,255,255,.15);
+  color: var(--text2);
+  padding: .4rem .9rem;
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .85rem; font-weight: 700;
+  cursor: pointer; text-decoration: none;
+}
+
+/* ── Back-Button inline (im Shop-Header) ── */
+.back-btn-inline {
+  background: var(--btn-sec);
+  border: 1px solid rgba(255,255,255,.15);
+  color: var(--text2);
+  padding: .4rem .8rem;
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .85rem; font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── Title Screen ────────────────────────── */
+.title-logo {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(2.4rem, 8vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.05;
+  text-align: center;
+  background: linear-gradient(135deg, #3af 0%, #f3a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.title-sub {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .75rem; letter-spacing: .3em;
+  color: var(--text2); margin-top: -.5rem;
+}
+.title-coins {
+  font-size: 1.1rem; font-weight: 800;
+  color: var(--coin);
+}
+.title-btns { display: flex; flex-direction: column; gap: .6rem; width: min(280px, 80vw); }
+
+/* ── Buttons ─────────────────────────────── */
+.btn {
+  padding: .8rem 1.5rem;
+  border: none; border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem; font-weight: 800;
+  cursor: pointer; transition: opacity .15s, transform .1s;
+  text-align: center;
+}
+.btn:hover   { opacity: .88; }
+.btn:active  { transform: scale(.97); }
+.btn-primary  { background: var(--btn-prime); color: #fff; }
+.btn-secondary { background: var(--btn-sec); color: var(--text); border: 1px solid rgba(255,255,255,.15); }
+
+/* ── HUD (über dem Canvas) ───────────────── */
+#hud {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center;
+  gap: .5rem; padding: .4rem .75rem;
+  background: var(--hud-bg);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  height: 48px;
+}
+.hud-item {
+  display: flex; flex-direction: column;
+  align-items: center;
+  flex: 1; min-width: 0;
+}
+.hud-label {
+  font-size: .62rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text2);
+}
+.hud-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .9rem; font-weight: 700;
+  color: var(--text);
+}
+.hud-lives { flex: 1.5; }
+#hud-lives-icons { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; margin-top: 1px; }
+.life-icon { width: 14px; height: 14px; }
+
+/* ── Power-Up Timer Leisten ──────────────── */
+#pw-timers {
+  position: absolute; top: 48px; left: 0; right: 0;
+  display: flex; gap: .3rem; padding: .3rem .5rem;
+  z-index: 10; pointer-events: none;
+  flex-wrap: wrap;
+}
+.pw-timer-item {
+  display: flex; align-items: center; gap: .3rem;
+  background: rgba(0,0,0,.6);
+  border-radius: 6px; padding: .2rem .5rem;
+  font-size: .72rem; font-weight: 800;
+  border: 1px solid rgba(255,255,255,.1);
+  min-width: 80px;
+}
+.pw-timer-label { color: var(--text); white-space: nowrap; }
+.pw-timer-bar-wrap {
+  flex: 1; height: 4px;
+  background: rgba(255,255,255,.15);
+  border-radius: 2px; overflow: hidden;
+}
+.pw-timer-bar { height: 100%; border-radius: 2px; }
+
+/* ── Canvas ──────────────────────────────── */
+#c {
+  position: absolute; top: 0; left: 0;
+  display: block;
+}
+#screen-game { overflow: hidden; }
+
+/* ── Game Over ───────────────────────────── */
+.go-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  font-weight: 900;
+  color: var(--accent2);
+}
+.go-wave { font-size: 1rem; color: var(--text2); }
+.result-box {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  width: min(320px, 88vw);
+  display: flex; flex-direction: column; gap: .5rem;
+}
+.result-row {
+  display: flex; justify-content: space-between;
+  font-size: .95rem;
+}
+.result-row span:last-child { font-weight: 800; color: var(--accent); }
+.login-hint {
+  background: rgba(0, 18, 40, 0.92);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: .75rem 1.2rem;
+  text-align: center;
+  font-size: .85rem;
+  color: #90b8d0;
+  margin: .4rem 0 .6rem;
+  width: min(320px, 88vw);
+  backdrop-filter: blur(6px);
+}
+.login-hint strong { display: block; font-size: .92rem; margin-bottom: .25rem; color: var(--accent); }
+.login-hint a {
+  display: inline-block;
+  margin-top: .45rem;
+  background: var(--accent);
+  color: #001020;
+  font-weight: 700;
+  text-decoration: none;
+  padding: .4rem 1rem;
+  border-radius: 8px;
+  font-size: .88rem;
+  transition: opacity .15s;
+}
+.login-hint a:hover { opacity: .85; }
+.go-btns { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; width: min(320px, 88vw); }
+.go-btns .btn { flex: 1; min-width: 100px; }
+
+/* ── Shop ────────────────────────────────── */
+.shop-header {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; gap: .75rem;
+  padding: .75rem 1rem;
+  background: var(--hud-bg);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.shop-title {
+  flex: 1; text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem; font-weight: 700;
+}
+.shop-balance { font-size: .95rem; font-weight: 800; color: var(--coin); }
+#screen-shop {
+  justify-content: flex-start;
+  padding-top: 70px;
+  overflow-y: auto;
+  gap: .5rem;
+  align-items: stretch;
+}
+.shop-section-title {
+  font-size: .75rem; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--text2);
+  padding: .5rem .75rem 0;
+  align-self: flex-start;
+  width: min(420px, 94vw);
+}
+.shop-grid {
+  display: flex; flex-direction: column; gap: .5rem;
+  width: min(420px, 94vw); padding: 0 .5rem;
+}
+.shop-card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  display: flex; align-items: center; gap: .75rem;
+}
+.shop-card.owned { border-color: rgba(58,170,255,.35); background: rgba(58,170,255,.06); }
+.shop-card.locked { opacity: .45; }
+.shop-card-icon { font-size: 1.4rem; flex-shrink: 0; }
+.shop-card-info { flex: 1; min-width: 0; }
+.shop-card-name { font-weight: 800; font-size: .9rem; }
+.shop-card-desc { font-size: .75rem; color: var(--text2); margin-top: 2px; }
+.shop-card-btn {
+  padding: .4rem .85rem;
+  border-radius: 8px; border: none;
+  font-family: 'Nunito', sans-serif;
+  font-size: .85rem; font-weight: 800;
+  cursor: pointer; transition: opacity .15s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.shop-card-btn:hover { opacity: .8; }
+.shop-card-btn.buy  { background: var(--btn-prime); color: #fff; }
+.shop-card-btn.done { background: rgba(255,255,255,.1); color: var(--text2); cursor: default; }
+
+/* ── Rangliste ───────────────────────────── */
+#screen-lb {
+  justify-content: flex-start;
+  padding-top: 4rem; padding-bottom: 2rem;
+  overflow-y: auto; gap: .75rem;
+}
+.lb-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.3rem; font-weight: 700; text-align: center;
+}
+#lb-content { width: min(440px, 94vw); }
+.lb-table { width: 100%; border-collapse: collapse; }
+.lb-table th {
+  font-size: .7rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text2);
+  padding: .4rem .5rem; text-align: left;
+}
+.lb-table td { padding: .45rem .5rem; font-size: .88rem; border-top: 1px solid rgba(255,255,255,.05); }
+.lb-rank  { font-weight: 900; width: 36px; }
+.lb-rank.g { color: #ffd600; }
+.lb-rank.s { color: #b0bec5; }
+.lb-rank.b { color: #ff8a65; }
+.lb-name  { font-weight: 700; }
+.lb-score { font-weight: 800; color: var(--accent); text-align: right; }
+.lb-wave  { font-weight: 700; color: var(--text2); text-align: right; font-size: .8rem; }
+.lb-empty { text-align: center; color: var(--text2); padding: 1.5rem; font-size: .85rem; }
+
+/* ── Pause-Button (Mobile, oben rechts im HUD) ── */
+.pause-btn {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #fff;
+  border-radius: 8px;
+  width: 32px; height: 32px;
+  font-size: 1rem; line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.pause-btn:hover { background: rgba(255,255,255,.22); }
+
+/* ── Pausemenü-Overlay ─────────────────── */
+#pause-menu {
+  position: absolute; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5,5,15,.6);
+  backdrop-filter: blur(6px);
+}
+#pause-menu.hidden { display: none; }
+
+.pause-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1rem;
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  min-width: 220px;
+}
+.pause-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem; font-weight: 900;
+  color: #1a2a4a;
+}
+.pause-card .btn {
+  width: 100%;
+}
+.pause-card .btn-primary {
+  background: #3a86ff; color: #fff;
+}
+.pause-card .btn-secondary {
+  background: #f0f4ff; color: #3a4a6a;
+  border: 1px solid #d0daf0;
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-height: 600px) {
+  #hud { padding: .25rem .5rem; height: 40px; }
+  .hud-val { font-size: .78rem; }
+}
+
+@media (min-width: 768px) {
+  .title-btns { width: min(340px, 46vw); }
+  #pw-timers { padding: .35rem .9rem; gap: .45rem; }
+}
+
+@media (min-width: 1024px) {
+  #screen-shop { align-items: center; }
+  .shop-grid { width: min(520px, 56vw); }
+  .shop-section-title { width: min(520px, 56vw); }
+}

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anmelden — PIXELZONE</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #f0f7ff;
+  --s1:     #ffffff;
+  --s2:     #f4f9ff;
+  --s3:     #dceeff;
+  --border: #dceeff;
+  --border2:#b0ccf0;
+  --accent: #ff5722;
+  --acch:   #ff7043;
+  --glow:   rgba(255,87,34,0.18);
+  --text:   #0a1f44;
+  --text2:  #5a7aaa;
+  --text3:  #9ab0cc;
+  --ok:     #16a34a;
+  --err:    #dc2626;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+}
+
+/* ── Subtiler Hintergrund ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 20%, rgba(58,134,255,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 85% 80%, rgba(255,87,34,0.04) 0%, transparent 70%);
+}
+
+/* ── Layout ── */
+.page {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px 16px;
+  position: relative; z-index: 1;
+}
+
+/* ── Back link ── */
+.back-link {
+  position: fixed; top: 20px; left: 20px;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 0.85rem; font-weight: 700; color: var(--text2);
+  text-decoration: none; transition: color .15s;
+  z-index: 10;
+}
+.back-link:hover { color: var(--text); }
+.back-link svg { flex-shrink: 0; }
+
+/* ── Logo ── */
+.logo-wrap {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 36px; text-decoration: none;
+}
+.logo-mark {
+  width: 38px; height: 38px;
+  background: var(--accent); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; box-shadow: 0 4px 18px var(--glow);
+}
+.logo-name {
+  font-size: 1.4rem; font-weight: 900;
+  color: var(--text); letter-spacing: -0.03em;
+}
+
+/* ── Card ── */
+.card {
+  width: 100%; max-width: 420px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 36px 36px 32px;
+  box-shadow: 0 8px 32px rgba(58,134,255,0.10);
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  background: var(--s2);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 32px;
+  gap: 4px;
+}
+.tab {
+  flex: 1; padding: 11px;
+  border-radius: 9px; border: none;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.92rem; font-weight: 800;
+  cursor: pointer; transition: all .18s;
+  color: var(--text2); background: transparent;
+}
+.tab.active {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 4px 14px var(--glow);
+}
+.tab:not(.active):hover { color: var(--text); background: var(--s3); }
+
+/* ── Form ── */
+.form-section { display: none; }
+.form-section.active { display: block; }
+
+.field { margin-bottom: 18px; }
+.field label {
+  display: block;
+  font-size: 0.78rem; font-weight: 800;
+  color: var(--text2); letter-spacing: 0.07em;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.input-wrap { position: relative; }
+.input-wrap svg {
+  position: absolute; left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text3); pointer-events: none;
+}
+.inp {
+  width: 100%;
+  background: var(--s2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px 12px 42px;
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.95rem; font-weight: 600;
+  outline: none;
+  transition: border-color .15s, background .15s;
+}
+.inp::placeholder { color: var(--text3); font-weight: 500; }
+.inp:focus { border-color: #3a86ff; background: rgba(58,134,255,0.04); }
+.inp.error { border-color: var(--err); }
+.inp.ok    { border-color: var(--ok); }
+
+/* Password toggle */
+.pw-toggle {
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 44px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text3);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2; line-height: 0;
+  transition: color .15s;
+  pointer-events: all;
+}
+.pw-toggle:hover { color: var(--text2); }
+.inp-pw { padding-right: 48px; }
+
+/* Helper text */
+.field-hint {
+  font-size: 0.74rem; font-weight: 600;
+  color: var(--text3); margin-top: 6px;
+}
+
+/* ── Error / Success banner ── */
+.banner {
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 0.85rem; font-weight: 700;
+  margin-bottom: 20px; display: none;
+  align-items: flex-start; gap: 10px;
+  line-height: 1.45;
+}
+.banner.show { display: flex; }
+.banner.err  { background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); color: var(--err); }
+.banner.ok   { background: rgba(22,163,74,0.08); border: 1px solid rgba(22,163,74,0.2); color: var(--ok); }
+
+/* ── Submit button ── */
+.btn-submit {
+  width: 100%; padding: 14px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 11px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem; font-weight: 900;
+  cursor: pointer; letter-spacing: 0.01em;
+  transition: background .15s, transform .15s, box-shadow .15s;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; min-height: 50px;
+}
+.btn-submit:hover:not(:disabled) {
+  background: var(--acch);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px var(--glow);
+}
+.btn-submit:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* ── Spinner ── */
+.spin {
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Divider ── */
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 22px 0;
+  color: var(--text3); font-size: 0.78rem; font-weight: 700;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border2);
+}
+
+/* ── Switch link ── */
+.switch-text {
+  text-align: center; font-size: 0.85rem;
+  font-weight: 600; color: var(--text2);
+}
+.switch-text a { color: var(--accent); text-decoration: none; font-weight: 800; }
+.switch-text a:hover { color: var(--acch); }
+
+/* ── Password strength bar ── */
+.pw-strength { margin-top: 7px; }
+.strength-bar-bg {
+  height: 3px; background: var(--s3);
+  border-radius: 2px; overflow: hidden;
+}
+.strength-bar {
+  height: 100%; border-radius: 2px;
+  width: 0; transition: width .3s, background .3s;
+}
+.strength-label {
+  font-size: 0.7rem; font-weight: 700;
+  color: var(--text3); margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .card { padding: 28px 22px 24px; }
+}
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-link">
+  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+  Zurück
+</a>
+
+<div class="page">
+
+  <a href="index.html" class="logo-wrap">
+    <div class="logo-mark">🕹</div>
+    <span class="logo-name">PIXELZONE</span>
+  </a>
+
+  <div class="card">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" id="tabLogin"    onclick="switchTab('login')">Anmelden</button>
+      <button class="tab"        id="tabRegister" onclick="switchTab('register')">Registrieren</button>
+    </div>
+
+    <!-- ── LOGIN ── -->
+    <div class="form-section active" id="secLogin">
+      <div class="banner" id="loginBanner"></div>
+
+      <div class="field">
+        <label for="loginUser">Benutzername</label>
+        <div class="input-wrap">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <input class="inp" id="loginUser" type="text" placeholder="Dein Benutzername" autocomplete="username" autocapitalize="none">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="loginPw">Passwort</label>
+        <div class="input-wrap">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input class="inp inp-pw" id="loginPw" type="password" placeholder="Passwort" autocomplete="current-password">
+          <button class="pw-toggle" type="button" onclick="togglePw('loginPw', this)" aria-label="Passwort anzeigen">
+            <svg id="eyeLogin" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="btnLogin" onclick="doLogin()">
+        <span id="btnLoginTxt">Anmelden</span>
+      </button>
+
+      <div class="divider">oder</div>
+      <div class="switch-text">
+        Noch kein Account? <a href="#" onclick="switchTab('register');return false">Jetzt registrieren</a>
+      </div>
+    </div>
+
+    <!-- ── REGISTER ── -->
+    <div class="form-section" id="secRegister">
+      <div class="banner" id="regBanner"></div>
+
+      <div class="field">
+        <label for="regUser">Benutzername</label>
+        <div class="input-wrap">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <input class="inp" id="regUser" type="text" placeholder="z.B. PixelKing42" autocomplete="username" autocapitalize="none" maxlength="20" oninput="checkUsername(this)">
+        </div>
+        <div class="field-hint">3–20 Zeichen · Buchstaben, Zahlen, Unterstrich</div>
+      </div>
+
+      <div class="field">
+        <label for="regPw">Passwort</label>
+        <div class="input-wrap">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input class="inp inp-pw" id="regPw" type="password" placeholder="Min. 6 Zeichen" autocomplete="new-password" oninput="checkStrength(this)">
+          <button class="pw-toggle" type="button" onclick="togglePw('regPw', this)" aria-label="Passwort anzeigen">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="pw-strength">
+          <div class="strength-bar-bg"><div class="strength-bar" id="strengthBar"></div></div>
+          <div class="strength-label" id="strengthLabel"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="regPw2">Passwort bestätigen</label>
+        <div class="input-wrap">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input class="inp inp-pw" id="regPw2" type="password" placeholder="Passwort wiederholen" autocomplete="new-password">
+          <button class="pw-toggle" type="button" onclick="togglePw('regPw2', this)" aria-label="Passwort anzeigen">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="btnReg" onclick="doRegister()">
+        <span id="btnRegTxt">Account erstellen</span>
+      </button>
+
+      <div class="divider">oder</div>
+      <div class="switch-text">
+        Bereits registriert? <a href="#" onclick="switchTab('login');return false">Anmelden</a>
+      </div>
+    </div>
+
+  </div><!-- /card -->
+
+</div><!-- /page -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+<script>
+// ── Tab-Switch ─────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('secLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('secRegister').classList.toggle('active', tab === 'register');
+  document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+  clearBanners();
+}
+
+function clearBanners() {
+  ['loginBanner','regBanner'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'banner'; el.textContent = '';
+  });
+}
+
+function showBanner(id, msg, type='err') {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = `banner show ${type}`;
+}
+
+// ── Password toggle ────────────────────────────────────────
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.innerHTML = show
+    ? `<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+    : `<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+}
+
+// ── Username live validation ───────────────────────────────
+function checkUsername(inp) {
+  const ok = /^[a-zA-Z0-9_]{3,20}$/.test(inp.value);
+  inp.className = 'inp' + (inp.value.length < 3 ? '' : ok ? ' ok' : ' error');
+}
+
+// ── Password strength ──────────────────────────────────────
+function checkStrength(inp) {
+  const v = inp.value;
+  const bar = document.getElementById('strengthBar');
+  const lbl = document.getElementById('strengthLabel');
+  if (!v) { bar.style.width='0'; lbl.textContent=''; return; }
+  let score = 0;
+  if (v.length >= 6)  score++;
+  if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^a-zA-Z0-9]/.test(v)) score++;
+  const levels = [
+    { w:'18%', bg:'#f87171', t:'Sehr schwach' },
+    { w:'35%', bg:'#fb923c', t:'Schwach' },
+    { w:'55%', bg:'#facc15', t:'Mittel' },
+    { w:'78%', bg:'#4ade80', t:'Stark' },
+    { w:'100%',bg:'#34d399', t:'Sehr stark' },
+  ];
+  const lvl = levels[Math.min(score, 4)];
+  bar.style.width = lvl.w; bar.style.background = lvl.bg;
+  lbl.textContent = lvl.t; lbl.style.color = lvl.bg;
+}
+
+// ── Loading state ──────────────────────────────────────────
+function setLoading(btnId, txtId, loading) {
+  const btn = document.getElementById(btnId);
+  const txt = document.getElementById(txtId);
+  btn.disabled = loading;
+  txt.innerHTML = loading ? '<div class="spin"></div>' : (btnId === 'btnLogin' ? 'Anmelden' : 'Account erstellen');
+}
+
+// ── LOGIN ─────────────────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPw').value;
+
+  if (!username || !password) {
+    showBanner('loginBanner', '⚠️ Bitte alle Felder ausfüllen.'); return;
+  }
+
+  setLoading('btnLogin','btnLoginTxt', true);
+  clearBanners();
+
+  const result = await PZ.login(username, password);
+
+  setLoading('btnLogin','btnLoginTxt', false);
+
+  if (result.error) {
+    showBanner('loginBanner', '❌ ' + result.error);
+    document.getElementById('loginPw').value = '';
+    return;
+  }
+
+  // Success → redirect
+  showBanner('loginBanner', '✅ Willkommen zurück, ' + username + '!', 'ok');
+  const back = new URLSearchParams(window.location.search).get('back') || 'index.html';
+  setTimeout(() => { window.location.href = back; }, 700);
+}
+
+// ── REGISTER ──────────────────────────────────────────────
+async function doRegister() {
+  const username = document.getElementById('regUser').value.trim();
+  const pw1 = document.getElementById('regPw').value;
+  const pw2 = document.getElementById('regPw2').value;
+
+  if (!username || !pw1 || !pw2) {
+    showBanner('regBanner', '⚠️ Bitte alle Felder ausfüllen.'); return;
+  }
+  if (pw1 !== pw2) {
+    showBanner('regBanner', '❌ Passwörter stimmen nicht überein.'); return;
+  }
+
+  setLoading('btnReg','btnRegTxt', true);
+  clearBanners();
+
+  const result = await PZ.register(username, pw1);
+
+  setLoading('btnReg','btnRegTxt', false);
+
+  if (result.error) {
+    showBanner('regBanner', '❌ ' + result.error); return;
+  }
+
+  showBanner('regBanner', '✅ Account erstellt! Du wirst weitergeleitet…', 'ok');
+  setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+}
+
+// ── Enter key ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const sec = document.querySelector('.form-section.active');
+  if (sec.id === 'secLogin')    doLogin();
+  if (sec.id === 'secRegister') doRegister();
+});
+
+// ── Already logged in → redirect ──────────────────────────
+(async function() {
+  const session = await PZ.getSession();
+  if (session) window.location.href = 'index.html';
+})();
+</script>
+</body>
+</html>

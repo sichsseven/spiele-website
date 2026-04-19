@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wordle – PIXELZONE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<header>
+  <a href="../../index.html" class="logo">
+    <span class="logo-mark" aria-hidden="true">🕹</span>
+    <span class="logo-name">PIXELZONE</span>
+  </a>
+  <div id="navAuth"></div>
+</header>
+
+<main>
+  <h1 class="spiel-titel">Wordle</h1>
+
+  <!-- Fehlermeldung / Hinweis -->
+  <div id="meldung" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- 6 × 5 Spielfeld (wird per JS befüllt) -->
+  <div id="spielfeld"></div>
+
+  <!-- Virtuelle Tastatur (wird per JS befüllt) -->
+  <div id="tastatur"></div>
+</main>
+
+<!-- ── ENDSCREEN-MODAL ─────────────────────── -->
+<div id="endscreen" class="versteckt" role="dialog" aria-modal="true" aria-labelledby="endscreen-titel">
+  <div id="endscreen-karte">
+
+    <h2 id="endscreen-titel"></h2>
+    <div id="endscreen-untertitel"></div>
+
+    <!-- Statistiken -->
+    <div id="endscreen-stats"></div>
+
+    <!-- Rangliste -->
+    <div id="endscreen-rangliste"></div>
+
+    <!-- Login-Hinweis für Gäste -->
+    <div id="endscreen-login" class="login-hinweis" style="display:none">
+      <strong>🔒 Kein Konto – Statistiken gehen verloren!</strong>
+      Melde dich an, um Serien und Statistiken zu speichern.
+      <a href="../../login.html">Anmelden / Registrieren</a>
+    </div>
+
+    <button id="naechstes-btn" type="button">Nächstes Wort ▶</button>
+
+  </div>
+</div>
+
+<!-- Supabase + Auth -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../auth.js"></script>
+<script>PZ.pruefeSpielStatus('wordle');</script>
+<script src="wordlists.js"></script>
+<script src="game.js"></script>
+
+</body>
+</html>

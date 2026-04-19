@@ -1,0 +1,418 @@
+/* ══════════════════════════════════════════════
+   PIXELZONE — Minesweeper
+   Chrome-Minesweeper-Stil, Mobile-first
+══════════════════════════════════════════════ */
+
+:root {
+  --gruen-hell:        #7ec942;
+  --gruen-dunkel:      #5aad28;
+  --beige-hell:        #e8c99a;
+  --beige-dunkel:      #ceaa72;
+  --hud-bg:            #3d6b1a;
+  --hud-text:          #fff;
+  --text:              #1a1a2e;
+  --primary:           #3a86ff;
+  --danger-bg:         #fee;
+  --danger-text:       #c0392b;
+  --zell-groesse:      26px;
+  --zahl-1:            #1565c0;
+  --zahl-2:            #2e7d32;
+  --zahl-3:            #c62828;
+  --zahl-4:            #283593;
+  --zahl-5:            #b71c1c;
+  --zahl-6:            #00695c;
+  --zahl-7:            #212121;
+  --zahl-8:            #757575;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+@keyframes bg-drift {
+  from { background-position: 0 0, 0 15px, 15px -15px, -15px 0; }
+  to   { background-position: 30px 30px, 30px 45px, 45px 15px, 15px 30px; }
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background-color: var(--gruen-hell);
+  background-image:
+    linear-gradient(45deg, var(--gruen-dunkel) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--gruen-dunkel) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--gruen-dunkel) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--gruen-dunkel) 75%);
+  background-size: 30px 30px;
+  background-position: 0 0, 0 15px, 15px -15px, -15px 0;
+  animation: bg-drift 10s linear infinite;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Vignette an den Rändern */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(20,50,5,.3) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Hintergrund-Overlay für lebende Zellen ─── */
+#bg-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+@keyframes bg-zelle-anim {
+  0%   { opacity: 0; transform: scale(.6); }
+  18%  { opacity: 1; transform: scale(1); }
+  75%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(.85); }
+}
+
+.bg-zelle {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background: rgba(232, 201, 154, .72);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  opacity: 0;
+  animation: bg-zelle-anim var(--dauer, 3s) ease-in-out forwards;
+  box-shadow: 0 1px 3px rgba(0,0,0,.18);
+}
+
+/* Alles über dem Hintergrund */
+header, #hud, main, .modal-overlay { position: relative; z-index: 1; }
+
+/* ── Header ─────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  height: 56px;
+  background: var(--hud-bg);
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.logo-mark { font-size: 1.4rem; }
+
+.nav-login-btn {
+  padding: .45rem 1rem;
+  background: #fff;
+  color: var(--hud-bg);
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: .9rem;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: .9rem;
+  color: #fff;
+}
+.nav-avatar   { font-size: 1.2rem; }
+.nav-username { font-weight: 700; }
+.nav-logout-btn {
+  padding: .35rem .8rem;
+  background: rgba(255,255,255,.2);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: .85rem;
+  cursor: pointer;
+}
+
+/* ── HUD ────────────────────────────────────── */
+#hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--hud-bg);
+  color: var(--hud-text);
+  padding: .5rem 1rem;
+  gap: .5rem;
+}
+
+.hud-links {
+  display: flex;
+  align-items: center;
+}
+
+#schwierigkeit-select {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 6px;
+  padding: .3rem .6rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: .9rem;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+#schwierigkeit-select option { background: #2e7d32; color: #fff; }
+
+.hud-mitte {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+}
+.hud-info {
+  font-size: 1rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.hud-rechts {
+  display: flex;
+  align-items: center;
+}
+#neustart-btn {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.2rem;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+}
+#neustart-btn:hover { background: rgba(255,255,255,.28); }
+
+/* ── Hauptbereich ───────────────────────────── */
+main {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1rem .25rem 2rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#spielfeld-wrap {
+  display: inline-block;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,.35), 0 1px 4px rgba(0,0,0,.2);
+  line-height: 0;
+}
+
+/* ── Spielfeld-Grid ─────────────────────────── */
+#spielfeld {
+  display: grid;
+  /* grid-template-columns wird per JS gesetzt */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* ── Zellen ─────────────────────────────────── */
+.zelle {
+  width: var(--zell-groesse);
+  height: var(--zell-groesse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--zell-groesse) * 0.55);
+  font-weight: 900;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: filter .1s;
+}
+
+/* Unaufgedeckt – Schachbrettmuster grün */
+.zelle.verdeckt.hell   { background: var(--gruen-hell); }
+.zelle.verdeckt.dunkel { background: var(--gruen-dunkel); }
+.zelle.verdeckt:hover  { filter: brightness(1.12); }
+.zelle.verdeckt:active { filter: brightness(.9); }
+
+/* Aufgedeckt – Schachbrettmuster beige */
+.zelle.aufgedeckt.aufgedeckt-hell   { background: var(--beige-hell); }
+.zelle.aufgedeckt.aufgedeckt-dunkel { background: var(--beige-dunkel); }
+.zelle.aufgedeckt { cursor: default; }
+
+/* Zahlenfarben */
+.zelle.zahl-1 { color: var(--zahl-1); }
+.zelle.zahl-2 { color: var(--zahl-2); }
+.zelle.zahl-3 { color: var(--zahl-3); }
+.zelle.zahl-4 { color: var(--zahl-4); }
+.zelle.zahl-5 { color: var(--zahl-5); }
+.zelle.zahl-6 { color: var(--zahl-6); }
+.zelle.zahl-7 { color: var(--zahl-7); }
+.zelle.zahl-8 { color: var(--zahl-8); }
+
+/* Mine aufgedeckt */
+.zelle.mine { background: #e53935 !important; }
+
+/* ── Explosion-Animation ────────────────────── */
+@keyframes explodieren {
+  0%   { transform: scale(1);   background: #e53935; }
+  30%  { transform: scale(1.5); background: #ff6f00; }
+  60%  { transform: scale(1.2); background: #e53935; }
+  100% { transform: scale(1);   background: #e53935; }
+}
+.zelle.explodiert {
+  animation: explodieren .5s ease forwards;
+  z-index: 2;
+  position: relative;
+}
+
+/* ── Sieg-Animation ─────────────────────────── */
+@keyframes sieg-blinken {
+  0%, 100% { filter: brightness(1); }
+  50%       { filter: brightness(1.4); }
+}
+.zelle.sieg-blinken {
+  animation: sieg-blinken .5s ease 3;
+}
+
+/* ── Modals ─────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+}
+.modal-overlay.versteckt { display: none; }
+
+.modal-karte {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0,0,0,.2);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: center;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-karte h2 { font-size: 1.6rem; font-weight: 900; }
+.modal-karte p  { font-size: 1rem; color: #555; }
+
+.modal-btn {
+  width: 100%;
+  padding: .9rem;
+  background: var(--gruen-hell);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background .2s;
+}
+.modal-btn:hover { background: var(--gruen-dunkel); }
+
+/* ── Rangliste im Sieg-Modal ────────────────── */
+.rl-titel {
+  font-size: .85rem;
+  font-weight: 800;
+  color: #444;
+  border-bottom: 2px solid #f0f7ff;
+  padding-bottom: .4rem;
+  text-align: left;
+}
+.rl-eintrag {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .82rem;
+  padding: .3rem .4rem;
+  border-radius: 6px;
+  text-align: left;
+}
+.rl-eintrag:nth-child(odd) { background: #f0f7ff; }
+.rl-rang  { font-weight: 900; width: 18px; color: #999; text-align: center; }
+.rl-name  { flex: 1; font-weight: 700; }
+.rl-zeit  { font-weight: 800; color: var(--gruen-dunkel); }
+.rl-leer  { font-size: .85rem; color: #888; text-align: center; padding: .5rem 0; }
+
+/* ── Login-Hinweis ───────────────────────────── */
+.login-hinweis {
+  background: #eef4ff;
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  padding: .65rem 1rem;
+  text-align: center;
+  font-size: .83rem;
+  color: #1a2e5a;
+  margin: .5rem 0 .7rem;
+}
+.login-hinweis strong { display: block; font-size: .88rem; margin-bottom: .2rem; color: #1d40af; }
+.login-hinweis a {
+  display: inline-block;
+  margin-top: .35rem;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  padding: .3rem .8rem;
+  border-radius: 8px;
+  font-size: .83rem;
+  transition: opacity .15s;
+}
+.login-hinweis a:hover { opacity: .85; }
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 400px) {
+  :root { --zell-groesse: 20px; }
+}
+
+@media (min-width: 480px) {
+  :root { --zell-groesse: 26px; }
+}
+
+@media (min-width: 700px) {
+  :root { --zell-groesse: 30px; }
+}
+
+@media (min-width: 1024px) {
+  :root { --zell-groesse: 34px; }
+}

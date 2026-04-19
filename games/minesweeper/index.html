@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minesweeper – PIXELZONE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HINTERGRUND-ANIMATION -->
+<div id="bg-overlay"></div>
+
+<!-- NAVIGATION -->
+<header>
+  <a href="../../index.html" class="logo">
+    <span class="logo-mark" aria-hidden="true">🕹</span>
+    <span class="logo-name">PIXELZONE</span>
+  </a>
+  <div id="navAuth"></div>
+</header>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-links">
+    <select id="schwierigkeit-select" aria-label="Schwierigkeitsgrad">
+      <option value="einfach">Einfach</option>
+      <option value="mittel">Mittel</option>
+      <option value="schwierig">Schwierig</option>
+    </select>
+  </div>
+  <div class="hud-mitte">
+    <span class="hud-info">🚩 <span id="flaggen-zaehler">10</span></span>
+    <span class="hud-info">⏱ <span id="timer">0</span>s</span>
+  </div>
+  <div class="hud-rechts">
+    <button id="neustart-btn" title="Neu starten" aria-label="Neu starten">🔄</button>
+  </div>
+</div>
+
+<!-- SPIELFELD -->
+<main>
+  <div id="spielfeld-wrap">
+    <div id="spielfeld"></div>
+  </div>
+</main>
+
+<!-- GAME OVER MODAL -->
+<div id="modal-gameover" class="modal-overlay versteckt" role="dialog" aria-modal="true" aria-labelledby="gameover-titel">
+  <div class="modal-karte">
+    <h2 id="gameover-titel">💥 Mine getroffen!</h2>
+    <p>Zeit: <strong><span id="gameover-zeit">0</span>s</strong></p>
+    <button id="modal-neustart" class="modal-btn">Nochmal spielen</button>
+  </div>
+</div>
+
+<!-- SIEG MODAL -->
+<div id="modal-sieg" class="modal-overlay versteckt" role="dialog" aria-modal="true" aria-labelledby="sieg-titel">
+  <div class="modal-karte">
+    <h2 id="sieg-titel">🎉 Gewonnen!</h2>
+    <p>Zeit: <strong><span id="sieg-zeit">0</span>s</strong></p>
+    <div id="sieg-rangliste"></div>
+    <div id="sieg-login" class="login-hinweis" style="display:none">
+      <strong>🔒 Kein Konto – Score geht verloren!</strong>
+      Melde dich an, um Zeiten zu speichern und in der Rangliste zu erscheinen.
+      <a href="../../login.html">Anmelden / Registrieren</a>
+    </div>
+    <button id="modal-neustart-sieg" class="modal-btn">Nochmal spielen</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../auth.js"></script>
+<script>PZ.pruefeSpielStatus('minesweeper');</script>
+<script src="game.js"></script>
+</body>
+</html>

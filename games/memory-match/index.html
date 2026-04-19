@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Match — PIXELZONE</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Figtree:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+  <a href="../../index.html" class="back">PIXELZONE</a>
+  <div class="coin-display">🪙 <span id="coin-total">0</span></div>
+</nav>
+
+<main>
+<section class="screen" id="title-screen">
+  <div class="logo">MEMORY<br><span>MATCH</span></div>
+  <div class="sub">// Pixelzone Arcade</div>
+  <button class="btn btn-primary" onclick="startGame()">Spielen</button>
+  <button class="btn btn-secondary" onclick="showLB()">Rangliste</button>
+  <button class="btn btn-secondary" onclick="showShop()">Shop</button>
+</section>
+
+<section class="screen hidden" id="game-screen">
+  <div class="game-hud">
+    <div class="hud-item"><div class="hud-label">Punkte</div><div class="hud-val hud-score" id="hud-score">0</div></div>
+    <div class="hud-item"><div class="hud-label">Level</div><div class="hud-val hud-level" id="hud-level">1</div></div>
+    <div class="hud-item"><div class="hud-label">Münzen</div><div class="hud-val hud-coins" id="hud-coins">0</div></div>
+    <div class="hud-item"><div class="hud-label">Streak</div><div class="hud-val hud-streak" id="hud-streak">x1</div></div>
+  </div>
+  <div class="timer-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+  <div id="combo-text"></div>
+  <div id="card-grid"></div>
+</section>
+
+<section id="level-complete" class="hidden">
+  <div class="lc-title">Level geschafft! 🎉</div>
+  <div class="lc-sub" id="lc-bonus">Zeitbonus: +0</div>
+</section>
+
+<section class="screen hidden" id="gameover-screen">
+  <div class="go-title">Zeit abgelaufen!</div>
+  <div class="result-box">
+    <div class="result-row"><span class="rl">Punkte</span><span class="rv" id="res-score">0</span></div>
+    <div class="result-row"><span class="rl">Level erreicht</span><span class="rv" id="res-level">1</span></div>
+    <div class="result-row"><span class="rl">Münzen</span><span class="rv" id="res-coins">0</span></div>
+  </div>
+  <div id="login-hint" style="display:none">
+    <strong>🔒 Kein Konto – Score geht verloren!</strong>
+    Melde dich an, um Highscores zu speichern und in der Rangliste zu erscheinen.
+    <a href="../../login.html">Anmelden / Registrieren</a>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="startGame()">Nochmal</button>
+    <button class="btn btn-secondary" onclick="showLB()">Rangliste</button>
+    <button class="btn btn-secondary" onclick="showShop()">Shop</button>
+  </div>
+</section>
+
+<section class="screen hidden" id="lb-screen">
+  <div class="lb-title">🏆 Rangliste</div>
+  <div id="lb-content"><div style="color:var(--text3);font-size:0.85rem">Lade...</div></div>
+  <button class="btn btn-secondary" style="margin-top:18px" onclick="showScreen('title-screen')">← Zurück</button>
+</section>
+
+<section class="screen hidden" id="shop-screen">
+  <div class="shop-title">Shop</div>
+  <div class="shop-coins">🪙 <span id="shop-coins">0</span> Münzen verfügbar</div>
+  <div class="themes-grid" id="themes-grid"></div>
+  <button class="btn btn-secondary" onclick="showScreen('title-screen')">← Zurück</button>
+</section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../auth.js"></script>
+<script>PZ.pruefeSpielStatus('memory-match');</script>
+<script src="game.js"></script>
+</body>
+</html>

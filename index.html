@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PIXELZONE – Kostenlose Browser-Spiele online spielen</title>
+
+<!-- SEO -->
+<meta name="description" content="PIXELZONE – kostenlose Browser-Spiele direkt online spielen. Pixel Factory, Pixel Jump, Pixel Phone, Space Blaster, Wordle, Minesweeper und mehr. Kein Download, gratis zocken!">
+<meta name="keywords" content="pixelzone, playpixelzone, pixel zone, browser spiele, kostenlose spiele online, pixel factory, pixel jump, space blaster, wordle, minesweeper, gratis spielen">
+<meta name="author" content="PIXELZONE">
+<meta name="robots" content="index, follow">
+<meta name="google-site-verification" content="-cRWeYa0yre1w8Lg9Ba3s9PP4v7oKELLIa4oYdJSFxA">
+<link rel="canonical" href="https://playpixelzone.github.io/pixelzone/">
+
+<!-- Open Graph (für Social Media & Google-Vorschau) -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://playpixelzone.github.io/pixelzone/">
+<meta property="og:title" content="PIXELZONE – Kostenlose Browser-Spiele">
+<meta property="og:description" content="Kostenlose Browser-Spiele – Pixel Factory, Pixel Jump, Pixel Phone, Space Blaster und mehr. Jetzt auf PIXELZONE spielen!">
+<meta property="og:site_name" content="PIXELZONE">
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<header>
+  <a href="#" class="logo">
+    <div class="logo-mark">🕹</div>
+    <span class="logo-name">PIXELZONE</span>
+  </a>
+  <div id="navAuth"><a href="login.html" class="nav-login-btn">Anmelden</a></div>
+</header>
+
+<main>
+
+  <section class="home-news" aria-label="News und Updates">
+    <div class="home-news-top">
+      <div class="home-news-badge" id="homeNewsBadge">News</div>
+      <button class="home-news-edit-btn hidden" id="homeNewsEditBtn" type="button">Bearbeiten</button>
+    </div>
+    <h2 class="home-news-title" id="homeNewsTitle">PIXELZONE News</h2>
+    <p class="home-news-body" id="homeNewsBody">News werden geladen...</p>
+    <div class="home-news-meta" id="homeNewsMeta"></div>
+
+    <div class="home-news-poll hidden" id="homeNewsPoll">
+      <h3 id="homeNewsPollQuestion"></h3>
+      <ul id="homeNewsPollOptions"></ul>
+    </div>
+
+    <div class="home-news-editor hidden" id="homeNewsEditor">
+      <p class="home-news-editor-info" id="homeNewsEditorInfo"></p>
+      <div class="home-news-editor-grid">
+        <label>
+          Typ
+          <select id="homeNewsKind">
+            <option value="news">News</option>
+            <option value="poll">Abstimmung</option>
+          </select>
+        </label>
+        <label>
+          Titel
+          <input id="homeNewsTitleInput" type="text" maxlength="120">
+        </label>
+      </div>
+      <label>
+        Text
+        <textarea id="homeNewsBodyInput" rows="4" maxlength="2500"></textarea>
+        <span class="home-news-format-hint">Zeilenumbruch mit Enter. Fettdruck: <code>**Wörter**</code></span>
+      </label>
+
+      <div class="home-news-poll-fields hidden" id="homeNewsPollFields">
+        <label>
+          Abstimmungsfrage
+          <input id="homeNewsPollQuestionInput" type="text" maxlength="200">
+        </label>
+        <label>
+          Optionen (eine Zeile = eine Option)
+          <textarea id="homeNewsPollOptionsInput" rows="4" maxlength="800"></textarea>
+        </label>
+      </div>
+
+      <div class="home-news-editor-actions">
+        <button class="news-btn secondary" id="homeNewsCancelBtn" type="button">Abbrechen</button>
+        <button class="news-btn" id="homeNewsSaveBtn" type="button">News speichern</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPIELEÜBERSICHT -->
+  <section class="section" id="games">
+    <div class="section-head">
+      <h2 class="section-title">Alle Spiele</h2>
+      <div class="section-pill">10 Spiele</div>
+    </div>
+
+    <div class="games-grid">
+
+      <!-- Pixel Jump — Featured (große Karte) -->
+      <div class="game-card" onclick="window.location.href='games/pixel-jump/info.html'">
+        <div class="card-thumb t-pixel">
+          <div class="card-overlay">
+            <div class="play-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <span class="thumb-art" aria-hidden="true">🐸</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-tag tag-arcade">Arcade</span>
+            <span class="card-live"><span class="live-dot"></span>Spielbar</span>
+          </div>
+          <div class="card-title">Pixel Jump</div>
+          <div class="card-desc">Spring hoch, weiche Feinden aus, klettere auf die Rangliste.</div>
+        </div>
+      </div>
+
+      <!-- Space Blaster -->
+      <div class="game-card" onclick="window.location.href='games/space-blaster/info.html'">
+        <div class="card-thumb t-space">
+          <div class="card-overlay">
+            <div class="play-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <span class="thumb-art" aria-hidden="true">🚀</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-tag tag-action">Action</span>
+            <span class="card-live"><span class="live-dot"></span>Spielbar</span>
+          </div>
+          <div class="card-title">Space Blaster</div>
+          <div class="card-desc">Verteidige die Galaxis in diesem Weltraum-Shoot'em'up.</div>
+        </div>
+      </div>
+
+      <!-- Memory Match -->
+      <div class="game-card" onclick="window.location.href='games/memory-match/info.html'">
+        <div class="card-thumb t-memory">
+          <div class="card-overlay">
+            <div class="play-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <span class="thumb-art" aria-hidden="true">🃏</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-tag tag-memory">Memory</span>
+            <span class="card-live"><span class="live-dot"></span>Spielbar</span>
+          </div>
+          <div class="card-title">Memory Match</div>
+          <div class="card-desc">Finde alle Paare bevor die Zeit abläuft.</div>
+        </div>
+      </div>
+
+      <!-- Wordle -->
+      <div class="game-card" onclick="window.location.href='games/wordle/info.html'">
+        <div class="card-thumb t-wordle">
+          <div class="card-overlay">
+            <div class="play-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <span class="thumb-art" aria-hidden="true">🔤</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-tag tag-puzzle">Wörter</span>
+            <span class="card-live"><span class="live-dot"></span>Spielbar</span>
+          </div>
+          <div class="card-title">Wordle</div>
+          <div class="card-desc">Errate das deutsche 5-Buchstaben-Wort in 6 Versuchen.</div>
+        </div>
+      </div>
+
+      <!-- Minesweeper -->
+      <div class="game-card" onclick="window.location.href='games/minesweeper/info.html'">
+        <div class="card-thumb t-minesweeper">
+          <div class="card-overlay">
+            <div class="play-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <span class="thumb-art" aria-hidden="true">💣</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-tag tag-puzzle">Puzzle</span>
+            <span class="card-live"><span class="live-dot"></span>Spielbar</span>
+          </div>
+          <div class="card-title">Minesweeper</div>
+          <div class="card-desc">Decke alle sicheren Felder auf ohne eine Mine zu treffen.</div>
+        </div>
+      </div>
+
+      <!-- Pixel Drop -->
+      <div class="game-card" onclick="window.location.href='games/pixel-drop/info.html'">
+        <div class="card-thumb t-pixeldrop">
+          <div class="card-overlay">
+            <div class="play-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <span class="thumb-art" aria-hidden="true">🧩</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-tag tag-puzzle">Puzzle</span>
+            <span class="card-live"><span class="live-dot"></span>Spielbar</span>
+          </div>
+          <div class="card-title">Pixel Drop</div>
+          <div class="card-desc">Block-Physik-Puzzle mit Farb-Verbindungen.</div>
+        </div>
+      </div>
+
+      <!-- Pixel Factory -->
+      <div class="game-card" onclick="window.location.href='games/pixel-factory/info.html'">
+        <div class="card-thumb t-factory">
+          <div class="card-overlay">
+            <div class="play-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <span class="thumb-art" aria-hidden="true">🏭</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-tag tag-idle">Idle</span>
+            <span class="card-live"><span class="live-dot"></span>Spielbar</span>
+          </div>
+          <div class="card-title">Pixel Factory</div>
+          <div class="card-desc">Klicke Pixel, baue Fabriken, erforsche Prestige-Upgrades.</div>
+        </div>
+      </div>
+
+      <!-- Block Blast -->
+      <div class="game-card" onclick="window.location.href='games/block-blast/info.html'">
+        <div class="card-thumb t-blockblast">
+          <div class="card-overlay">
+            <div class="play-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <span class="thumb-art" aria-hidden="true">🟪</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-tag tag-puzzle">Puzzle</span>
+            <span class="card-live"><span class="live-dot"></span>Spielbar</span>
+          </div>
+          <div class="card-title">Block Blast</div>
+          <div class="card-desc">Fülle Reihen und Spalten mit bunten Blöcken für Combo-Punkte.</div>
+        </div>
+      </div>
+
+      <!-- Pixel Phone -->
+      <div class="game-card" onclick="window.location.href='games/pixel-phone/info.html'">
+        <div class="card-thumb t-pixelphone">
+          <div class="card-overlay">
+            <div class="play-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <span class="thumb-art" aria-hidden="true">📞</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-tag tag-puzzle">Multiplayer</span>
+            <span class="card-live"><span class="live-dot"></span>Spielbar</span>
+          </div>
+          <div class="card-title">Pixel Phone</div>
+          <div class="card-desc">Stille Post mit Zeichnen und Schreiben — 2 bis 12 Spieler, Echtzeit.</div>
+        </div>
+      </div>
+
+      <!-- Pong -->
+      <div class="game-card" onclick="window.location.href='games/pong/info.html'">
+        <div class="card-thumb t-pong">
+          <div class="card-overlay">
+            <div class="play-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <span class="thumb-art" aria-hidden="true">🏓</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-tag tag-arcade">Arcade</span>
+            <span class="card-live"><span class="live-dot"></span>Spielbar</span>
+          </div>
+          <div class="card-title">Pong</div>
+          <div class="card-desc">Klassisches Pong mit KI-Stufen, Ranglisten und Online-Multiplayer per Raum-Code.</div>
+        </div>
+      </div>
+
+    </div><!-- /games-grid -->
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-brand">
+    <div class="logo-mark">🕹</div>
+    PIXELZONE
+  </div>
+  <div class="footer-text">10 Spiele · Kostenlos · Im Browser spielbar · 2026 · <a href="phaser-sandbox.html" style="color:inherit;text-decoration:underline;">Phaser&nbsp;+&nbsp;Vite</a></div>
+</footer>
+
+<!-- ── FEEDBACK BUTTON ─────────────────────────────── -->
+<button class="fb-btn" id="fbBtn" onclick="fbOpen()">
+  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+  Feedback
+</button>
+
+<!-- ── FEEDBACK MODAL ─────────────────────────────── -->
+<div class="fb-overlay" id="fbOverlay" onclick="fbOverlayClick(event)">
+  <div class="fb-modal">
+
+    <!-- Header -->
+    <div class="fb-header">
+      <h2>Feedback geben</h2>
+      <button class="fb-close" onclick="fbClose()" aria-label="Schließen">✕</button>
+    </div>
+
+    <!-- Formular -->
+    <form id="fbForm" onsubmit="fbSubmit(event)" novalidate>
+
+      <!-- Kategorie (Pflichtfeld) -->
+      <div class="fb-field">
+        <label for="fbKategorie">Kategorie</label>
+        <div class="fb-select-wrap">
+          <select class="fb-select" id="fbKategorie" onchange="fbKatChange()" required>
+            <option value="">Bitte wählen…</option>
+            <option value="bug">Bug melden</option>
+            <option value="verbesserung">Verbesserungsvorschlag</option>
+            <option value="spielwunsch">Spielwunsch</option>
+            <option value="allgemein">Allgemeines Feedback</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Nachricht (Pflichtfeld, min. 10 Zeichen) -->
+      <div class="fb-field">
+        <label for="fbNachricht">Nachricht</label>
+        <textarea class="fb-textarea" id="fbNachricht" placeholder="Beschreibe dein Anliegen…"
+          oninput="fbCharCount(this)" required></textarea>
+        <div class="fb-charcount" id="fbCharCount">Mindestens 10 Zeichen</div>
+      </div>
+
+      <!-- Betroffenes Spiel (nur bei Bug-Meldung) -->
+      <div class="fb-field" id="fbSpielWrap" style="display:none">
+        <label for="fbSpiel">Betroffenes Spiel</label>
+        <div class="fb-select-wrap">
+          <select class="fb-select" id="fbSpiel">
+            <option value="">Bitte wählen…</option>
+            <option value="pixel-jump">Pixel Jump</option>
+            <option value="space-blaster">Space Blaster</option>
+            <option value="memory-match">Memory Match</option>
+            <option value="wordle">Wordle</option>
+            <option value="minesweeper">Minesweeper</option>
+            <option value="pixel-drop">Pixel Drop</option>
+            <option value="pixel-factory">Pixel Factory</option>
+            <option value="block-blast">Block Blast</option>
+            <option value="pixel-phone">Pixel Phone</option>
+            <option value="pong">Pong</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Screenshot-Upload (Bug + Verbesserung, optional) -->
+      <div class="fb-field" id="fbScreenshotWrap">
+        <label>Screenshot <span class="fb-optional">(optional · JPG/PNG · max. 1 Bild)</span></label>
+        <div class="fb-upload" id="fbUploadArea" onclick="document.getElementById('fbFileInput').click()">
+          <input type="file" id="fbFileInput" accept=".jpg,.jpeg,.png" style="display:none"
+            onchange="fbFileSelect(this)">
+          <!-- Hinweistext (wird ausgeblendet nach Auswahl) -->
+          <div id="fbDropText">
+            <div class="fb-upload-icon">🖼</div>
+            <div class="fb-upload-text">Bild hierher ziehen oder klicken</div>
+            <div class="fb-upload-hint">JPG oder PNG · max. 5 MB</div>
+          </div>
+          <!-- Vorschau nach Auswahl -->
+          <img id="fbPreview" alt="Vorschau">
+          <div class="fb-file-info" id="fbFileInfo">
+            <span id="fbFileName"></span>
+            <button type="button" class="fb-file-remove" onclick="fbFileRemove(event)">✕ Entfernen</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fehlerbox -->
+      <div class="fb-error" id="fbError"></div>
+
+      <!-- Absenden -->
+      <button type="submit" class="fb-submit" id="fbSubmitBtn">Absenden</button>
+
+    </form>
+
+    <!-- Erfolgs-Ansicht (nach dem Absenden) -->
+    <div class="fb-success" id="fbSuccess">
+      <div class="fb-success-icon">✓</div>
+      <div class="fb-success-msg">Danke für dein Feedback!</div>
+      <div class="fb-success-sub">Wir schauen uns das an.</div>
+    </div>
+
+  </div><!-- /fb-modal -->
+</div><!-- /fb-overlay -->
+
+<!-- Supabase + Auth -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+<script src="home-news.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => { PZ.updateNavbar(); });
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  FEEDBACK MODAL
+// ══════════════════════════════════════════════════════
+
+let fbSelectedFile = null; // Aktuell ausgewählte Bild-Datei
+
+// Modal öffnen
+function fbOpen() {
+  document.getElementById('fbOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// Modal schließen
+function fbClose() {
+  document.getElementById('fbOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Klick auf Overlay-Hintergrund (nicht auf die Karte) schließt Modal
+function fbOverlayClick(e) {
+  if (e.target === document.getElementById('fbOverlay')) fbClose();
+}
+
+// ESC schließt das Feedback-Modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('fbOverlay').classList.contains('open')) {
+    fbClose();
+  }
+});
+
+// Kategorie geändert → bedingte Felder ein-/ausblenden
+function fbKatChange() {
+  const kat = document.getElementById('fbKategorie').value;
+  document.getElementById('fbSpielWrap').style.display      = kat === 'bug' ? 'block' : 'none';
+  document.getElementById('fbScreenshotWrap').style.display = 'block';
+  // Spiel-Auswahl zurücksetzen wenn ausgeblendet
+  if (kat !== 'bug') document.getElementById('fbSpiel').value = '';
+}
+
+// Zeichenzähler unter der Textarea aktualisieren
+function fbCharCount(el) {
+  const n   = el.value.length;
+  const lbl = document.getElementById('fbCharCount');
+  if (n === 0) {
+    lbl.textContent = 'Mindestens 10 Zeichen';
+    lbl.className   = 'fb-charcount';
+  } else if (n < 10) {
+    lbl.textContent = `Noch ${10 - n} Zeichen nötig`;
+    lbl.className   = 'fb-charcount';
+  } else {
+    lbl.textContent = `${n} Zeichen`;
+    lbl.className   = 'fb-charcount ok';
+  }
+}
+
+// Datei ausgewählt (per Klick oder Drag & Drop)
+function fbFileSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // Nur JPG und PNG erlaubt
+  if (!['image/jpeg', 'image/png'].includes(file.type)) {
+    fbShowError('Nur JPG und PNG-Bilder sind erlaubt.');
+    input.value = '';
+    return;
+  }
+  // Maximal 5 MB
+  if (file.size > 5 * 1024 * 1024) {
+    fbShowError('Das Bild darf maximal 5 MB groß sein.');
+    input.value = '';
+    return;
+  }
+
+  fbSelectedFile = file;
+
+  // Vorschau anzeigen
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('fbPreview').src     = e.target.result;
+    document.getElementById('fbPreview').style.display = 'block';
+    document.getElementById('fbDropText').style.display = 'none';
+    document.getElementById('fbFileInfo').style.display = 'flex';
+    document.getElementById('fbFileName').textContent   = file.name;
+  };
+  reader.readAsDataURL(file);
+
+  fbHideError();
+}
+
+// Ausgewählte Datei entfernen
+function fbFileRemove(e) {
+  e.stopPropagation(); // Verhindert, dass der Upload-Bereich neu öffnet
+  fbSelectedFile = null;
+  const input = document.getElementById('fbFileInput');
+  input.value = '';
+  document.getElementById('fbPreview').style.display      = 'none';
+  document.getElementById('fbPreview').src                = '';
+  document.getElementById('fbDropText').style.display     = 'block';
+  document.getElementById('fbFileInfo').style.display     = 'none';
+  document.getElementById('fbFileName').textContent       = '';
+}
+
+// Fehlermeldung anzeigen / verbergen
+function fbShowError(msg) {
+  const el = document.getElementById('fbError');
+  el.textContent    = msg;
+  el.style.display  = 'block';
+}
+function fbHideError() {
+  document.getElementById('fbError').style.display = 'none';
+}
+
+// Drag & Drop auf den Upload-Bereich
+document.addEventListener('DOMContentLoaded', () => {
+  const area = document.getElementById('fbUploadArea');
+
+  area.addEventListener('dragover', e => {
+    e.preventDefault();
+    area.classList.add('drag');
+  });
+  area.addEventListener('dragleave', () => {
+    area.classList.remove('drag');
+  });
+  area.addEventListener('drop', e => {
+    e.preventDefault();
+    area.classList.remove('drag');
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    // DataTransfer in das versteckte Input übertragen
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    const input = document.getElementById('fbFileInput');
+    input.files  = dt.files;
+    fbFileSelect(input);
+  });
+});
+
+// Formular absenden
+async function fbSubmit(e) {
+  e.preventDefault();
+  fbHideError();
+
+  const kat      = document.getElementById('fbKategorie').value;
+  const nachricht = document.getElementById('fbNachricht').value.trim();
+  const spiel    = document.getElementById('fbSpiel').value;
+
+  // Validierung
+  if (!kat)                    { fbShowError('Bitte wähle eine Kategorie.');                      return; }
+  if (nachricht.length < 10)   { fbShowError('Die Nachricht muss mindestens 10 Zeichen haben.');  return; }
+  if (kat === 'bug' && !spiel) { fbShowError('Bitte wähle das betroffene Spiel.');                return; }
+
+  // Lade-Status aktivieren
+  const btn = document.getElementById('fbSubmitBtn');
+  btn.disabled  = true;
+  btn.innerHTML = '<div class="fb-spin"></div>';
+
+  // Aktuell eingeloggten Nutzer laden (optional)
+  const session    = await PZ.getSession();
+  let userId       = null;
+  let benutzername = null;
+  if (session) {
+    userId       = session.user.id;
+    benutzername = await PZ.getUsername(userId);
+  }
+
+  // Screenshot hochladen (falls vorhanden)
+  let screenshotUrl = null;
+  if (fbSelectedFile) {
+    const ext  = fbSelectedFile.name.split('.').pop().toLowerCase();
+    const pfad = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error: uploadErr } = await PZ.db.storage
+      .from('feedback-screenshots')
+      .upload(pfad, fbSelectedFile, { cacheControl: '3600', upsert: false });
+
+    if (uploadErr) {
+      fbShowError('Bild konnte nicht hochgeladen werden: ' + uploadErr.message);
+      btn.disabled  = false;
+      btn.textContent = 'Absenden';
+      return;
+    }
+
+    const { data: urlData } = PZ.db.storage
+      .from('feedback-screenshots')
+      .getPublicUrl(pfad);
+    screenshotUrl = urlData.publicUrl;
+  }
+
+  // Feedback in Supabase speichern
+  const { error } = await PZ.db.from('feedback').insert({
+    user_id:        userId,
+    benutzername:   benutzername,
+    kategorie:      kat,
+    nachricht:      nachricht,
+    spiel_name:     kat === 'bug' ? (spiel || null) : null,
+    screenshot_url: screenshotUrl,
+  });
+
+  if (error) {
+    fbShowError('Fehler beim Speichern: ' + error.message);
+    btn.disabled    = false;
+    btn.textContent = 'Absenden';
+    return;
+  }
+
+  // Erfolg anzeigen
+  document.getElementById('fbForm').style.display    = 'none';
+  document.getElementById('fbSuccess').style.display = 'block';
+
+  // Nach 2 Sekunden Modal schließen und zurücksetzen
+  setTimeout(() => {
+    fbClose();
+    // Kurz warten bis Übergang fertig, dann alles zurücksetzen
+    setTimeout(() => {
+      document.getElementById('fbForm').reset();
+      document.getElementById('fbForm').style.display    = 'block';
+      document.getElementById('fbSuccess').style.display = 'none';
+      fbSelectedFile = null;
+      document.getElementById('fbSpielWrap').style.display      = 'none';
+      document.getElementById('fbScreenshotWrap').style.display = '';
+      document.getElementById('fbPreview').style.display        = 'none';
+      document.getElementById('fbPreview').src                  = '';
+      document.getElementById('fbDropText').style.display       = 'block';
+      document.getElementById('fbFileInfo').style.display       = 'none';
+      document.getElementById('fbCharCount').textContent        = 'Mindestens 10 Zeichen';
+      document.getElementById('fbCharCount').className          = 'fb-charcount';
+      btn.disabled    = false;
+      btn.textContent = 'Absenden';
+      fbHideError();
+    }, 300);
+  }, 2000);
+}
+</script>
+
+</body>
+</html>
