@@ -164,6 +164,11 @@
       </div>
     </div>
 
-    <script type="module" src="/src/main.ts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="./auth.js"></script>
+    <script>
+      if (typeof PZ !== "undefined" && PZ.pruefeSpielStatus) PZ.pruefeSpielStatus("pixel-factory");
+    </script>
+    <script type="module" src="./src/main.ts"></script>
   </body>
 </html>

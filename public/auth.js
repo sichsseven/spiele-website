@@ -274,7 +274,7 @@ const PZ = {
           <h2>⚙ Admin-Panel</h2>
           <p class="pz-admin-hint">Spiel im Test-Modus öffnen (kein echtes Speichern):</p>
           <div class="pz-admin-games">
-            <a href="${base}games/pixel-factory/?admin=1" class="pz-admin-btn">🏭 Pixel Factory</a>
+            <a href="${base}games/pixel-factory-vite/dist/?admin=1" class="pz-admin-btn">🏭 Pixel Factory</a>
             <a href="${base}games/pixel-jump/?admin=1" class="pz-admin-btn">🐸 Pixel Jump</a>
             <a href="${base}games/space-blaster/?admin=1" class="pz-admin-btn">🚀 Space Blaster</a>
             <a href="${base}games/minesweeper/?admin=1" class="pz-admin-btn">💣 Minesweeper</a>
