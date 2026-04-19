@@ -16,12 +16,31 @@ import { initExpeditionSystem } from './ExpeditionSystem.js';
 import { initSkillTreeUI } from './SkillTreeUI.js';
 import { AudioManager } from './AudioManager.js';
 
-function initTabNavigation() {
+/** Muss mit `PZ_ADMIN_ID` in `public/auth.js` übereinstimmen (Site-Admin = Unterwelt-Tab). */
+const PIXELZONE_SITE_ADMIN_USER_ID = '1dcb3181-9132-4cd0-b3ef-550742a5309d';
+
+async function isUnterweltUnlockedForCurrentUser() {
+  const pz = globalThis.PZ;
+  if (!pz || typeof pz.getUser !== 'function') return false;
+  const user = await pz.getUser().catch(() => null);
+  return !!user && user.id === PIXELZONE_SITE_ADMIN_USER_ID;
+}
+
+/**
+ * @param {{ showUnterwelt?: boolean }} [opts]
+ */
+function initTabNavigation(opts = {}) {
+  const showUnterwelt = opts.showUnterwelt !== false;
   const tabs = [
     { btn: document.getElementById('tab-friedhof'), panel: document.getElementById('panel-friedhof') },
     { btn: document.getElementById('tab-expedition'), panel: document.getElementById('panel-expedition') },
-    { btn: document.getElementById('tab-unterwelt'), panel: document.getElementById('panel-unterwelt') },
   ];
+  if (showUnterwelt) {
+    tabs.push({
+      btn: document.getElementById('tab-unterwelt'),
+      panel: document.getElementById('panel-unterwelt'),
+    });
+  }
 
   const activate = (index) => {
     tabs.forEach((t, i) => {
@@ -71,6 +90,12 @@ void (async function bootstrap() {
 
   await loadGameAsync();
 
+  const unterweltUnlocked = await isUnterweltUnlockedForCurrentUser();
+  if (!unterweltUnlocked) {
+    document.getElementById('tab-unterwelt')?.setAttribute('hidden', '');
+    document.getElementById('panel-unterwelt')?.setAttribute('hidden', '');
+  }
+
   new Phaser.Game(config);
 
   const audio = new AudioManager();
@@ -78,8 +103,10 @@ void (async function bootstrap() {
   startPassiveLoop();
   initShopUI(audio);
   initExpeditionSystem();
-  initSkillTreeUI();
-  initTabNavigation();
+  if (unterweltUnlocked) {
+    initSkillTreeUI();
+  }
+  initTabNavigation({ showUnterwelt: unterweltUnlocked });
 
   let saveToastTimer = 0;
   document.addEventListener('necro-game-saved', () => {

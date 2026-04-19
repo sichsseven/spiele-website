@@ -322,6 +322,10 @@ body {
   flex-shrink: 0;
 }
 
+.tab-btn[hidden] {
+  display: none !important;
+}
+
 .tab-btn {
   position: relative;
   font-family: inherit;
