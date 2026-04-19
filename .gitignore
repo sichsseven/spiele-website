@@ -2,6 +2,8 @@
 docs/superpowers/
 node_modules/
 dist/
+!games/pixel-factory-vite/dist/
+!games/pixel-factory-vite/dist/**
 .next/
 ssr-content/
 
