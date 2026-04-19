@@ -405,19 +405,44 @@
   min-height: 200px;
 }
 
+/* Eine Spalte, PPS/PPC abwechselnd */
+.pf-shop-upgrades-list__head {
+  margin-bottom: 14px;
+}
+
+.pf-shop-upgrades-list__title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--pf-shop-text);
+}
+
+.pf-shop-upgrades-list__sub {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--pf-shop-muted);
+}
+
+.pf-shop-upgrades-list__meta {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--pf-shop-muted);
+}
+
+.pf-shop-upgrades-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
 .pf-shop-upgrades-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
   width: 100%;
-}
-
-@media (min-width: 640px) {
-  .pf-shop-upgrades-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 16px 20px;
-    align-items: start;
-  }
 }
 
 .pf-shop-col__header {
@@ -479,6 +504,7 @@
 }
 
 .pf-shop-card {
+  position: relative;
   border: 1px solid var(--pf-shop-border);
   border-radius: 14px;
   padding: 12px 14px 14px;
@@ -488,6 +514,43 @@
     transform 0.18s ease,
     box-shadow 0.22s ease,
     border-color 0.18s ease;
+}
+
+/* Level-Kreis (wie Gebäude-Badge): PPC violett, PPS grün */
+.pf-shop-card__lvl-badge {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 2;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 7px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.pf-shop-card__lvl-badge--ppc {
+  background: linear-gradient(145deg, #8b5cf6, #6d28d9);
+  color: #f5f3ff;
+  border: 1px solid rgba(167, 139, 250, 0.6);
+}
+
+.pf-shop-card__lvl-badge--pps {
+  background: linear-gradient(145deg, #22c55e, #15803d);
+  color: #ecfdf5;
+  border: 1px solid rgba(74, 222, 128, 0.45);
+}
+
+.pf-shop-card--locked .pf-shop-card__lvl-badge--ppc,
+.pf-shop-card--locked .pf-shop-card__lvl-badge--pps {
+  opacity: 0.65;
+  filter: grayscale(0.2);
 }
 
 .pf-shop-card--pps.pf-shop-card--afford {
@@ -500,7 +563,7 @@
   box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
 }
 
-.pf-shop-card--afford:hover {
+.pf-shop-card--afford:hover:not(.pf-shop-card--bought) {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
@@ -556,8 +619,9 @@
   border: 1px solid rgba(59, 130, 246, 0.35);
 }
 
-.pf-shop-card__title {
+.pf-shop-card .pf-shop-card__title {
   margin: 0 0 6px;
+  padding-right: 2.5rem;
   font-size: 0.95rem;
   font-weight: 900;
   color: var(--pf-shop-text);
@@ -631,6 +695,12 @@
   font-weight: 900;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.pf-shop-card__btn-pixel {
+  font-weight: 700;
+  font-size: 0.78rem;
+  opacity: 0.88;
 }
 
 .pf-shop-card--pps .pf-shop-card__btn:not(:disabled) {

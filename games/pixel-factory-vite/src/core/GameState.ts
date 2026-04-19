@@ -5,7 +5,7 @@ import {
   PPS_SHOP_UPGRADES,
   SHOP_UPGRADE_IDS,
   SHOP_UPGRADES_ALL,
-  shopUpgradePriceAtLevel,
+  shopUpgradePrice,
   type BuildingDef,
 } from "../data/buildings";
 import {
@@ -60,26 +60,22 @@ function naechsterMissionenWechselZeitpunkt(): number {
   return Date.now() + msBisNaechsteHalbeStunde();
 }
 
-/** Migriert alte `boughtUpgrades: string[]` → Stufen (je Eintrag = 1 Stufe). */
-function migrateShopUpgradeLevels(e: Record<string, unknown>): Record<string, number> {
-  const raw = e.shopUpgradeLevels;
-  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-    const out: Record<string, number> = {};
-    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
-      if (!SHOP_UPGRADE_IDS.has(k)) continue;
-      const n = Math.max(0, Math.floor(Number(v) || 0));
-      if (n > 0) out[k] = n;
-    }
-    return out;
-  }
-  const out: Record<string, number> = {};
+/** Migriert Saves: `boughtUpgrades[]` und alte `shopUpgradeLevels` (Stufe ≥1 → einmal gekauft). */
+function migrateBoughtUpgrades(e: Record<string, unknown>): string[] {
+  const set = new Set<string>();
   if (Array.isArray(e.boughtUpgrades)) {
     for (const id of e.boughtUpgrades as string[]) {
-      if (!SHOP_UPGRADE_IDS.has(id)) continue;
-      out[id] = (out[id] ?? 0) + 1;
+      if (SHOP_UPGRADE_IDS.has(id)) set.add(id);
     }
   }
-  return out;
+  const raw = e.shopUpgradeLevels;
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+      if (!SHOP_UPGRADE_IDS.has(k)) continue;
+      if (Math.max(0, Math.floor(Number(v) || 0)) >= 1) set.add(k);
+    }
+  }
+  return [...set];
 }
 
 function ipadTouchPpcBonus(): number {
@@ -104,7 +100,7 @@ export function makeDefaultState(): GameSnapshot {
       comboWindowBonus: 0,
       offlineEff: 0.3,
       buildings: Object.fromEntries(BUILDINGS.map((b) => [b.id, 0])),
-      shopUpgradeLevels: {},
+      boughtUpgrades: [],
       bulk: 1,
       discountBuys: 0,
     },
@@ -149,7 +145,7 @@ export function migrateSaveToCurrent(raw: unknown): GameSnapshot {
 
   const r = raw as Record<string, unknown>;
   const e = (r.economy ?? {}) as Record<string, unknown>;
-  const shopUpgradeLevels = migrateShopUpgradeLevels(e);
+  const boughtUpgrades = migrateBoughtUpgrades(e);
 
   const metaRaw = (r.meta ?? {}) as Record<string, unknown>;
   const skillRaw = metaRaw.skillLevels;
@@ -168,7 +164,7 @@ export function migrateSaveToCurrent(raw: unknown): GameSnapshot {
       lifetimePixel: Number(e.lifetimePixel) || 0,
       clickBase: Number(e.clickBase) || 1,
       buildings: { ...fresh.economy.buildings, ...((e.buildings ?? {}) as Record<string, number>) },
-      shopUpgradeLevels: { ...fresh.economy.shopUpgradeLevels, ...shopUpgradeLevels },
+      boughtUpgrades,
       bulk: Number(e.bulk) || 1,
       discountBuys: Number(e.discountBuys) || 0,
       comboBonus: Number(e.comboBonus) || 0,
@@ -328,20 +324,15 @@ export class GameStateManager {
     return pps;
   }
 
-  /** Flacher Klick-Bonus aus PPC-Upgrades: Σ Stufen × floor(Anteil × Basis-PPS). */
+  /** Flacher Klick-Bonus aus PPC-Upgrades (je Linie einmalig): Σ floor(Anteil × Basis-PPS). */
   private shopPpcFlatBonus(): number {
     const base = this.baseProductionPps();
     let add = 0;
-    for (const c of PPC_SHOP_UPGRADES) {
-      const lv = this.shopUpgradeLevel(c.id);
-      if (lv > 0) add += lv * Math.floor(c.ppcShare * base);
+    for (const id of this.state.economy.boughtUpgrades) {
+      const c = PPC_SHOP_UPGRADES.find((x) => x.id === id);
+      if (c) add += Math.floor(c.ppcShare * base);
     }
     return add;
-  }
-
-  /** Gekaufte Stufen für ein Shop-Upgrade (0 = noch nie gekauft). */
-  shopUpgradeLevel(id: string): number {
-    return Math.max(0, Math.floor(this.state.economy.shopUpgradeLevels[id] ?? 0));
   }
 
   currentPps(): number {
@@ -426,19 +417,19 @@ export class GameStateManager {
   buyShopUpgrade(id: string): void {
     const u = SHOP_UPGRADES_ALL.find((x) => x.id === id);
     if (!u || !this.state.session.discoveredUpgrades[id]) return;
-    const lv = this.shopUpgradeLevel(id);
-    const price = shopUpgradePriceAtLevel(u, lv);
+    if (this.state.economy.boughtUpgrades.includes(id)) return;
+    const price = shopUpgradePrice(u);
     if (this.state.economy.pixel < price) return;
     this.state.economy.pixel -= price;
-    this.state.economy.shopUpgradeLevels[id] = lv + 1;
+    this.state.economy.boughtUpgrades.push(id);
     this.recomputeUpgradeBonuses();
   }
 
   recomputeUpgradeBonuses(): void {
     let pps = 0;
-    for (const p of PPS_SHOP_UPGRADES) {
-      const lv = this.shopUpgradeLevel(p.id);
-      if (lv > 0) pps += lv * p.pps;
+    for (const id of this.state.economy.boughtUpgrades) {
+      const p = PPS_SHOP_UPGRADES.find((x) => x.id === id);
+      if (p) pps += p.pps;
     }
     this.state.economy.ppsBonusFlat = pps;
     this.state.economy.clickBonusFlat = 0;
@@ -608,7 +599,7 @@ export class GameStateManager {
         ...fresh.economy,
         ...migrated.economy,
         buildings: { ...fresh.economy.buildings, ...migrated.economy.buildings },
-        shopUpgradeLevels: { ...fresh.economy.shopUpgradeLevels, ...migrated.economy.shopUpgradeLevels },
+        boughtUpgrades: [...new Set([...fresh.economy.boughtUpgrades, ...migrated.economy.boughtUpgrades])],
       };
       this.state.meta = { ...fresh.meta, ...migrated.meta, skillLevels: { ...fresh.meta.skillLevels, ...migrated.meta.skillLevels } };
       this.state.session = {

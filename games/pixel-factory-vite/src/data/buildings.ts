@@ -28,10 +28,15 @@ export const BUILDINGS: BuildingDef[] = [
 ];
 
 /**
- * Kosten für den **nächsten** Kauf, wenn bereits `ownedLevel` Stufen dieser Linie gekauft sind
- * (0 = noch keiner). Preis = floor(costBase × 1.15^(tier + ownedLevel)).
+ * Shop-Upgrades (PPS/PPC): **einmalig** kaufbar pro Linie. Preis =
+ * `floor(costBase × 1.15^0) = costBase` (keine Mehrfach-Stufen).
  */
 export const SHOP_COST_GROWTH = 1.15;
+
+/** Wie `buildingCost`: Basispreis × Wachstum hoch Anzahl bereits gekauft. */
+export function shopLineNextPrice(costBase: number, ownedLevel: number, growth = SHOP_COST_GROWTH): number {
+  return Math.floor(costBase * Math.pow(growth, Math.max(0, ownedLevel)));
+}
 
 export interface PpsShopUpgradeDef {
   id: string;
@@ -39,22 +44,19 @@ export interface PpsShopUpgradeDef {
   /** Kurzbeschreibung (fx. Bonus). */
   desc: string;
   pps: number;
-  /** Stufe 0–4 für Kostenformel und UI. */
+  /** Zeilenindex 0–4 (nur UI / Reihenfolge). */
   tier: number;
+  /** Kaufpreis (einmalig). */
   costBase: number;
   unlockAt: number;
 }
 
-/**
- * Preis = floor(costBase × 1.15^tier). `costBase` so gewählt, dass die effektiven Preise
- * der vorherigen Balance nahe bleiben (Zielwerte ca. 580 / 4.800 / 39.500 / 365k / 2,95M).
- */
 export const PPS_SHOP_UPGRADES: PpsShopUpgradeDef[] = [
   { id: "ps_1", name: "Schichtplan", desc: "+18 px/s", pps: 18, tier: 0, costBase: 580, unlockAt: 280 },
-  { id: "ps_2", name: "Qualitätskette", desc: "+85 px/s", pps: 85, tier: 1, costBase: 4174, unlockAt: 2600 },
-  { id: "ps_3", name: "Fließband-KI", desc: "+420 px/s", pps: 420, tier: 2, costBase: 29868, unlockAt: 20000 },
-  { id: "ps_4", name: "Takt-Optimierung", desc: "+3.800 px/s", pps: 3800, tier: 3, costBase: 239993, unlockAt: 180000 },
-  { id: "ps_5", name: "Parallel-Layer", desc: "+32.000 px/s", pps: 32000, tier: 4, costBase: 1686677, unlockAt: 1900000 },
+  { id: "ps_2", name: "Qualitätskette", desc: "+85 px/s", pps: 85, tier: 1, costBase: 4800, unlockAt: 2600 },
+  { id: "ps_3", name: "Fließband-KI", desc: "+420 px/s", pps: 420, tier: 2, costBase: 39500, unlockAt: 20000 },
+  { id: "ps_4", name: "Takt-Optimierung", desc: "+3.800 px/s", pps: 3800, tier: 3, costBase: 365000, unlockAt: 180000 },
+  { id: "ps_5", name: "Parallel-Layer", desc: "+32.000 px/s", pps: 32000, tier: 4, costBase: 2950000, unlockAt: 1900000 },
 ];
 
 /**
@@ -73,10 +75,10 @@ export interface PpcShopUpgradeDef {
 
 export const PPC_SHOP_UPGRADES: PpcShopUpgradeDef[] = [
   { id: "pc_1", name: "Präzisions-Klick", desc: "+10% der Basis-PPS", ppcShare: 0.1, tier: 0, costBase: 52, unlockAt: 32 },
-  { id: "pc_2", name: "Servo-Hand", desc: "+11% der Basis-PPS", ppcShare: 0.11, tier: 1, costBase: 365, unlockAt: 200 },
-  { id: "pc_3", name: "Impuls-Handschuh", desc: "+12% der Basis-PPS", ppcShare: 0.12, tier: 2, costBase: 2420, unlockAt: 1500 },
-  { id: "pc_4", name: "Hyperfinger", desc: "+13% der Basis-PPS", ppcShare: 0.13, tier: 3, costBase: 14465, unlockAt: 10000 },
-  { id: "pc_5", name: "Neural-Link", desc: "+14% der Basis-PPS", ppcShare: 0.14, tier: 4, costBase: 111493, unlockAt: 120000 },
+  { id: "pc_2", name: "Servo-Hand", desc: "+11% der Basis-PPS", ppcShare: 0.11, tier: 1, costBase: 420, unlockAt: 200 },
+  { id: "pc_3", name: "Impuls-Handschuh", desc: "+12% der Basis-PPS", ppcShare: 0.12, tier: 2, costBase: 3200, unlockAt: 1500 },
+  { id: "pc_4", name: "Hyperfinger", desc: "+13% der Basis-PPS", ppcShare: 0.13, tier: 3, costBase: 22000, unlockAt: 10000 },
+  { id: "pc_5", name: "Neural-Link", desc: "+14% der Basis-PPS", ppcShare: 0.14, tier: 4, costBase: 195000, unlockAt: 120000 },
 ];
 
 export const SHOP_TIER_COUNT = 5;
@@ -88,16 +90,21 @@ export const SHOP_UPGRADES_ALL: ShopUpgradeDef[] = [...PPS_SHOP_UPGRADES, ...PPC
 export const SHOP_UPGRADE_IDS = new Set(SHOP_UPGRADES_ALL.map((u) => u.id));
 
 export function shopPpsUpgradeCostAtLevel(u: PpsShopUpgradeDef, ownedLevel: number): number {
-  return Math.floor(u.costBase * Math.pow(SHOP_COST_GROWTH, u.tier + Math.max(0, ownedLevel)));
+  return shopLineNextPrice(u.costBase, ownedLevel, SHOP_COST_GROWTH);
 }
 
 export function shopPpcUpgradeCostAtLevel(u: PpcShopUpgradeDef, ownedLevel: number): number {
-  return Math.floor(u.costBase * Math.pow(SHOP_COST_GROWTH, u.tier + Math.max(0, ownedLevel)));
+  return shopLineNextPrice(u.costBase, ownedLevel, SHOP_COST_GROWTH);
 }
 
 export function shopUpgradePriceAtLevel(u: ShopUpgradeDef, ownedLevel: number): number {
   if ("pps" in u) return shopPpsUpgradeCostAtLevel(u, ownedLevel);
   return shopPpcUpgradeCostAtLevel(u, ownedLevel);
+}
+
+/** Einmal-Kauf: fester Preis (erster Kauf = Stufe 0). */
+export function shopUpgradePrice(u: ShopUpgradeDef): number {
+  return shopUpgradePriceAtLevel(u, 0);
 }
 
 export interface MissionDef {

@@ -3,7 +3,7 @@ import {
   PPC_SHOP_UPGRADES,
   PPS_SHOP_UPGRADES,
   SHOP_TIER_COUNT,
-  shopUpgradePriceAtLevel,
+  shopUpgradePrice,
 } from "../../data/buildings";
 import { gameState } from "../../core/GameState";
 import { fmtNumber, fmtPps } from "../../core/format";
@@ -50,37 +50,30 @@ function renderBuildings(container: HTMLElement): void {
   });
 }
 
-function sumLevels(defs: { id: string }[], levels: Record<string, number>): number {
-  return defs.reduce((acc, u) => acc + Math.max(0, Math.floor(levels[u.id] ?? 0)), 0);
-}
-
-function columnProgressHtml(totalLevels: number): string {
-  const pct = Math.min(100, totalLevels === 0 ? 0 : 8 + Math.min(92, totalLevels * 4));
-  return `
-    <div class="pf-shop-col__progress" aria-hidden="true">
-      <div class="pf-shop-col__progress-label">Σ Stufen: ${totalLevels}</div>
-      <div class="pf-shop-col__track">
-        <div class="pf-shop-col__fill" style="width:${pct}%"></div>
-      </div>
-    </div>`;
+/** 0 = nicht gekauft, 1 = einmal gekauft (einmalige Upgrades). */
+function levelBadgeHtml(count: 0 | 1, kind: "pps" | "ppc", locked: boolean): string {
+  const cls = kind === "pps" ? "pf-shop-card__lvl-badge--pps" : "pf-shop-card__lvl-badge--ppc";
+  const label = locked ? "?" : String(count);
+  return `<span class="pf-shop-card__lvl-badge ${cls}" aria-label="${locked ? "Gesperrt" : count === 1 ? "Gekauft" : "Verfügbar"}">${label}</span>`;
 }
 
 function renderUpgrades(container: HTMLElement): void {
   const s = gameState.snapshot;
-  const lv = s.economy.shopUpgradeLevels;
+  const bought = s.economy.boughtUpgrades;
   const basePps = gameState.baseProductionPps();
 
   const ppsCard = (u: (typeof PPS_SHOP_UPGRADES)[number]): string => {
     const discovered = !!s.session.discoveredUpgrades[u.id];
-    const level = Math.max(0, Math.floor(lv[u.id] ?? 0));
-    const cost = shopUpgradePriceAtLevel(u, level);
+    const own = bought.includes(u.id);
+    const cost = shopUpgradePrice(u);
     const canAfford = s.economy.pixel >= cost;
     if (!discovered) {
       return `
         <div class="pf-shop-card pf-shop-card--pps pf-shop-card--locked" aria-disabled="true">
+          ${levelBadgeHtml(0, "pps", true)}
           <div class="pf-shop-card__head">
-            <span class="pf-shop-card__step">Linie ${u.tier + 1}/${SHOP_TIER_COUNT}</span>
-            <span class="pf-shop-card__tag pf-shop-card__tag--pps">PPS</span>
+            <span class="pf-shop-card__step">PPS</span>
+            <span class="pf-shop-card__tag pf-shop-card__tag--pps">Linie ${u.tier + 1}/${SHOP_TIER_COUNT}</span>
           </div>
           <h3 class="pf-shop-card__title">???</h3>
           <p class="pf-shop-card__meta">Noch nicht entdeckt</p>
@@ -88,45 +81,44 @@ function renderUpgrades(container: HTMLElement): void {
           <button type="button" class="pf-shop-card__btn" disabled>???</button>
         </div>`;
     }
-    const stateClass = canAfford ? "pf-shop-card--afford" : "pf-shop-card--blocked";
-    const barPct = Math.min(100, level === 0 ? 0 : 12 + Math.min(88, level * 10));
-    const totalPps = level * u.pps;
-    const detail =
-      level > 0
-        ? `<p class="pf-shop-card__detail">Stufe <b>${level}</b> · gesamt <span class="pf-shop-card__effect pf-shop-card__effect--pps">+${fmtPps(totalPps)} PPS</span> <span class="pf-shop-card__hint">(pro Stufe ${u.desc.replace("+", "")})</span></p>`
-        : `<p class="pf-shop-card__detail">Noch nicht gekauft · ${u.desc} pro Stufe</p>`;
-    const btnDisabled = !canAfford;
+    const stateClass = own ? "pf-shop-card--bought" : canAfford ? "pf-shop-card--afford" : "pf-shop-card--blocked";
+    const barPct = own ? 100 : 0;
+    const btnDisabled = own || !canAfford;
+    const detail = own
+      ? `<p class="pf-shop-card__detail">Aktiv: <span class="pf-shop-card__effect pf-shop-card__effect--pps">+${fmtPps(u.pps)} PPS</span></p>`
+      : `<p class="pf-shop-card__detail">${u.desc}</p>`;
     return `
       <div class="pf-shop-card pf-shop-card--pps ${stateClass}">
+        ${levelBadgeHtml(own ? 1 : 0, "pps", false)}
         <div class="pf-shop-card__head">
-          <span class="pf-shop-card__step">Linie ${u.tier + 1}/${SHOP_TIER_COUNT}</span>
-          <span class="pf-shop-card__tag pf-shop-card__tag--pps">PPS</span>
+          <span class="pf-shop-card__step">PPS</span>
+          <span class="pf-shop-card__tag pf-shop-card__tag--pps">Linie ${u.tier + 1}/${SHOP_TIER_COUNT}</span>
         </div>
         <h3 class="pf-shop-card__title">${u.name}</h3>
-        <p class="pf-shop-card__effect pf-shop-card__effect--pps">${u.desc} <small>pro Stufe</small></p>
+        <p class="pf-shop-card__effect pf-shop-card__effect--pps">${u.desc}</p>
         ${detail}
         <div class="pf-shop-card__meter" role="presentation">
           <div class="pf-shop-card__meter-fill pf-shop-card__meter-fill--pps" style="width:${barPct}%"></div>
         </div>
         <button type="button" class="pf-shop-card__btn" data-buy-upgrade="${u.id}" ${btnDisabled ? "disabled" : ""}>
-          Nächster Kauf: ${fmtNumber(cost)} Pixel
+          ${own ? "Gekauft" : `${fmtNumber(cost)} <span class="pf-shop-card__btn-pixel">Pixel</span>`}
         </button>
       </div>`;
   };
 
   const ppcCard = (u: (typeof PPC_SHOP_UPGRADES)[number]): string => {
     const discovered = !!s.session.discoveredUpgrades[u.id];
-    const level = Math.max(0, Math.floor(lv[u.id] ?? 0));
-    const cost = shopUpgradePriceAtLevel(u, level);
+    const own = bought.includes(u.id);
+    const cost = shopUpgradePrice(u);
     const canAfford = s.economy.pixel >= cost;
     const chunk = Math.floor(u.ppcShare * basePps);
-    const totalFlat = level * chunk;
     if (!discovered) {
       return `
         <div class="pf-shop-card pf-shop-card--ppc pf-shop-card--locked" aria-disabled="true">
+          ${levelBadgeHtml(0, "ppc", true)}
           <div class="pf-shop-card__head">
-            <span class="pf-shop-card__step">Linie ${u.tier + 1}/${SHOP_TIER_COUNT}</span>
-            <span class="pf-shop-card__tag pf-shop-card__tag--ppc">PPC</span>
+            <span class="pf-shop-card__step">PPC</span>
+            <span class="pf-shop-card__tag pf-shop-card__tag--ppc">Linie ${u.tier + 1}/${SHOP_TIER_COUNT}</span>
           </div>
           <h3 class="pf-shop-card__title">???</h3>
           <p class="pf-shop-card__meta">Noch nicht entdeckt</p>
@@ -134,57 +126,48 @@ function renderUpgrades(container: HTMLElement): void {
           <button type="button" class="pf-shop-card__btn" disabled>???</button>
         </div>`;
     }
-    const stateClass = canAfford ? "pf-shop-card--afford" : "pf-shop-card--blocked";
-    const barPct = Math.min(100, level === 0 ? 0 : 12 + Math.min(88, level * 10));
-    const detail =
-      level > 0
-        ? `<p class="pf-shop-card__detail">Stufe <b>${level}</b> · gesamt <b>+${fmtNumber(totalFlat)}</b> Klickkraft <span class="pf-shop-card__hint">(Basis-PPS · ${u.desc})</span></p>`
-        : `<p class="pf-shop-card__detail">Nächste Stufe ≈ <b>+${fmtNumber(chunk)}</b> Klickkraft · ${u.desc} pro Stufe</p>`;
-    const btnDisabled = !canAfford;
+    const stateClass = own ? "pf-shop-card--bought" : canAfford ? "pf-shop-card--afford" : "pf-shop-card--blocked";
+    const barPct = own ? 100 : 0;
+    const btnDisabled = own || !canAfford;
+    const detail = own
+      ? `<p class="pf-shop-card__detail">Aktiv: <b>+${fmtNumber(chunk)}</b> Klickkraft <span class="pf-shop-card__hint">(${u.desc})</span></p>`
+      : `<p class="pf-shop-card__detail">ca. <b>+${fmtNumber(chunk)}</b> Klickkraft · ${u.desc}</p>`;
     return `
       <div class="pf-shop-card pf-shop-card--ppc ${stateClass}">
+        ${levelBadgeHtml(own ? 1 : 0, "ppc", false)}
         <div class="pf-shop-card__head">
-          <span class="pf-shop-card__step">Linie ${u.tier + 1}/${SHOP_TIER_COUNT}</span>
-          <span class="pf-shop-card__tag pf-shop-card__tag--ppc">PPC</span>
+          <span class="pf-shop-card__step">PPC</span>
+          <span class="pf-shop-card__tag pf-shop-card__tag--ppc">Linie ${u.tier + 1}/${SHOP_TIER_COUNT}</span>
         </div>
         <h3 class="pf-shop-card__title">${u.name}</h3>
-        <p class="pf-shop-card__effect pf-shop-card__effect--ppc">${u.desc} <small>pro Stufe</small></p>
+        <p class="pf-shop-card__effect pf-shop-card__effect--ppc">${u.desc}</p>
         ${detail}
         <div class="pf-shop-card__meter" role="presentation">
           <div class="pf-shop-card__meter-fill pf-shop-card__meter-fill--ppc" style="width:${barPct}%"></div>
         </div>
         <button type="button" class="pf-shop-card__btn" data-buy-upgrade="${u.id}" ${btnDisabled ? "disabled" : ""}>
-          Nächster Kauf: ${fmtNumber(cost)} Pixel
+          ${own ? "Gekauft" : `${fmtNumber(cost)} <span class="pf-shop-card__btn-pixel">Pixel</span>`}
         </button>
       </div>`;
   };
 
-  const ppsTotal = sumLevels(PPS_SHOP_UPGRADES, lv);
-  const ppcTotal = sumLevels(PPC_SHOP_UPGRADES, lv);
+  const rows: string[] = [];
+  for (let i = 0; i < SHOP_TIER_COUNT; i += 1) {
+    rows.push(ppsCard(PPS_SHOP_UPGRADES[i]!));
+    rows.push(ppcCard(PPC_SHOP_UPGRADES[i]!));
+  }
 
-  const colPps = PPS_SHOP_UPGRADES.map((u) => ppsCard(u)).join("");
-  const colPpc = PPC_SHOP_UPGRADES.map((u) => ppcCard(u)).join("");
+  const n = bought.length;
+  const max = SHOP_TIER_COUNT * 2;
 
   container.innerHTML = `
     <div class="pf-shop-upgrades-dark">
-      <div class="pf-shop-upgrades-grid">
-        <section class="pf-shop-col pf-shop-col--pps" aria-labelledby="pf-shop-prod-title">
-          <header class="pf-shop-col__header">
-            <h4 id="pf-shop-prod-title" class="pf-shop-col__title">Produktion</h4>
-            <p class="pf-shop-col__subtitle">Pixel pro Sekunde (PPS) · mehrfach kaufbar</p>
-            ${columnProgressHtml(ppsTotal)}
-          </header>
-          <div class="pf-shop-col__cards">${colPps}</div>
-        </section>
-        <section class="pf-shop-col pf-shop-col--ppc" aria-labelledby="pf-shop-click-title">
-          <header class="pf-shop-col__header">
-            <h4 id="pf-shop-click-title" class="pf-shop-col__title">Manuelle Kraft</h4>
-            <p class="pf-shop-col__subtitle">Pixel pro Klick (PPC) · mehrfach kaufbar</p>
-            ${columnProgressHtml(ppcTotal)}
-          </header>
-          <div class="pf-shop-col__cards">${colPpc}</div>
-        </section>
-      </div>
+      <header class="pf-shop-upgrades-list__head">
+        <h4 class="pf-shop-upgrades-list__title">Upgrades</h4>
+        <p class="pf-shop-upgrades-list__sub">Abwechselnd: PPS → PPC · einmalig kaufbar</p>
+        <p class="pf-shop-upgrades-list__meta" aria-hidden="true">${n}/${max} gekauft</p>
+      </header>
+      <div class="pf-shop-upgrades-list">${rows.join("")}</div>
     </div>`;
 
   container.querySelectorAll<HTMLButtonElement>("[data-buy-upgrade]").forEach((btn) => {
@@ -193,8 +176,8 @@ function renderUpgrades(container: HTMLElement): void {
       const snap = gameState.snapshot;
       const u = [...PPS_SHOP_UPGRADES, ...PPC_SHOP_UPGRADES].find((x) => x.id === id);
       if (!u || !snap.session.discoveredUpgrades[id]) return;
-      const cur = Math.max(0, Math.floor(snap.economy.shopUpgradeLevels[id] ?? 0));
-      if (snap.economy.pixel < shopUpgradePriceAtLevel(u, cur)) return;
+      if (snap.economy.boughtUpgrades.includes(id)) return;
+      if (snap.economy.pixel < shopUpgradePrice(u)) return;
       gameState.buyShopUpgrade(id);
       gameState.saveToLocalStorage();
       renderUpgrades(container);
