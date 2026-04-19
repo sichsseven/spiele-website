@@ -464,10 +464,113 @@ const PZ = {
   },
 };
 
+/**
+ * Volllayer: erscheint auf allen Seiten mit auth.js außer Login — bis zur Anmeldung.
+ * Schließen nur durch erfolgreiche Session (Anmelden/Registrieren).
+ */
+function pzShouldSkipGlobalAuthGate() {
+  const p = window.location.pathname || '';
+  if (p.includes('login.html')) return true;
+  if (p.endsWith('/admin.html') || p.includes('/admin.html')) return true;
+  if (document.documentElement.getAttribute('data-pz-no-auth-gate') === '1') return true;
+  return false;
+}
+
+function pzAuthGateBasePath() {
+  return window.location.pathname.includes('/games/') ? '../../' : '';
+}
+
+function pzInstallGlobalAuthGate() {
+  if (pzShouldSkipGlobalAuthGate()) return;
+  if (typeof document === 'undefined' || !document.body) return;
+
+  const blocker = document.createElement('div');
+  blocker.id = 'pz-auth-gate-blocker';
+  blocker.setAttribute('aria-hidden', 'true');
+  blocker.style.cssText =
+    'position:fixed;inset:0;z-index:2147483640;background:#0a1628;pointer-events:all;';
+  document.body.appendChild(blocker);
+
+  if (!document.getElementById('pzAuthGateCss')) {
+    const s = document.createElement('style');
+    s.id = 'pzAuthGateCss';
+    s.textContent = `
+#pz-auth-gate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;background:linear-gradient(160deg,#0a1628 0%,#152238 45%,#0d1a2c 100%);font-family:'Nunito',system-ui,sans-serif;}
+#pz-auth-gate *{box-sizing:border-box;}
+.pz-ag-card{max-width:420px;width:100%;background:#fff;border-radius:18px;padding:28px 26px 24px;box-shadow:0 16px 48px rgba(0,0,0,.35);text-align:center;}
+.pz-ag-card h1{margin:0 0 10px;font-size:1.35rem;font-weight:900;color:#0a1f44;letter-spacing:-.02em;}
+.pz-ag-card p{margin:0 0 22px;font-size:.92rem;line-height:1.55;color:#5a7aaa;font-weight:600;}
+.pz-ag-actions{display:flex;flex-direction:column;gap:10px;}
+.pz-ag-actions a{display:block;width:100%;padding:14px 16px;border-radius:12px;font-size:.95rem;font-weight:900;text-decoration:none;text-align:center;transition:transform .12s,box-shadow .12s;}
+.pz-ag-login{background:#ff5722;color:#fff;border:none;box-shadow:0 6px 20px rgba(255,87,34,.35);}
+.pz-ag-login:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(255,87,34,.45);}
+.pz-ag-register{background:#f4f9ff;color:#0a1f44;border:2px solid #b0ccf0;}
+.pz-ag-register:hover{background:#e8f2ff;}
+.pz-ag-logo{font-size:2rem;margin-bottom:6px;}`;
+    document.head.appendChild(s);
+  }
+
+  (async () => {
+    try {
+      const session = await PZ.getSession();
+      if (session) {
+        blocker.remove();
+        return;
+      }
+    } catch (e) {
+      console.warn('[PZ] Auth-Gate Session', e);
+    }
+
+    blocker.remove();
+
+    const root = pzAuthGateBasePath();
+    const back = encodeURIComponent(
+      window.location.pathname + window.location.search + window.location.hash,
+    );
+    const loginHref = `${root}login.html?back=${back}`;
+    const registerHref = `${root}login.html?tab=register&back=${back}`;
+
+    const gate = document.createElement('div');
+    gate.id = 'pz-auth-gate';
+    gate.setAttribute('role', 'dialog');
+    gate.setAttribute('aria-modal', 'true');
+    gate.setAttribute('aria-labelledby', 'pz-ag-title');
+    gate.innerHTML = `
+      <div class="pz-ag-card">
+        <div class="pz-ag-logo" aria-hidden="true">🕹</div>
+        <h1 id="pz-ag-title">Willkommen bei PIXELZONE</h1>
+        <p>Mit einem kostenlosen Konto sicherst du dir Speicherstände, Ranglisten und alle Spiele — ohne Download. Dieses Fenster verschwindet automatisch, sobald du dich anmeldest oder registriert hast.</p>
+        <div class="pz-ag-actions">
+          <a class="pz-ag-login" href="${loginHref}">Anmelden</a>
+          <a class="pz-ag-register" href="${registerHref}">Registrieren</a>
+        </div>
+      </div>`;
+    document.body.appendChild(gate);
+    document.body.style.overflow = 'hidden';
+
+    let authSub = null;
+    const { data: authGateListener } = PZ.db.auth.onAuthStateChange((event, sess) => {
+      if (sess?.user) {
+        try {
+          authSub?.unsubscribe();
+        } catch (_) {
+          /* ignore */
+        }
+        gate.remove();
+        document.body.style.overflow = '';
+        if (typeof PZ.updateNavbar === 'function') PZ.updateNavbar();
+        document.dispatchEvent(new CustomEvent('pz-auth-ready', { detail: { user: sess.user } }));
+      }
+    });
+    authSub = authGateListener?.subscription;
+  })();
+}
+
 // Auto-Init
 (function () {
   if (typeof supabase !== 'undefined') {
     PZ.init();
+    pzInstallGlobalAuthGate();
   } else {
     console.error('[PIXELZONE] Supabase JS nicht geladen. Bitte CDN-Script vor auth.js einbinden.');
   }

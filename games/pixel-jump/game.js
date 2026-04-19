@@ -960,10 +960,6 @@ function endGame(){
       for(let ri=0;ri<lb.length;ri++){if(lb[ri].benutzername===playerName){rank=ri+1;break;}}
       document.getElementById('ovi').innerHTML='Score: <b>'+score+'</b><br>Münzen: <b>+'+sesCo+'</b><br>Gesamt: <b>'+pd.coins+'</b><br>Rang: <b>'+(rank?'#'+rank:'–')+'</b>';
     }).catch(function(){});
-    PZ.getUser().then(function(u){
-      const hint=document.getElementById('login-hint');
-      if(hint)hint.style.display=u?'none':'flex';
-    }).catch(function(){});
   }
 }
 

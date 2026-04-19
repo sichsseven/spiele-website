@@ -474,8 +474,19 @@ async function doRegister() {
   }
 
   showBanner('regBanner', '✅ Account erstellt! Du wirst weitergeleitet…', 'ok');
-  setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+  const backReg = new URLSearchParams(window.location.search).get('back') || 'index.html';
+  setTimeout(() => { window.location.href = backReg; }, 1000);
 }
+
+// ── Tab per URL (?tab=register) ───────────────────────────
+(function () {
+  try {
+    const t = new URLSearchParams(window.location.search).get('tab');
+    if (t === 'register') switchTab('register');
+  } catch (e) {
+    /* ignore */
+  }
+})();
 
 // ── Enter key ─────────────────────────────────────────────
 document.addEventListener('keydown', e => {

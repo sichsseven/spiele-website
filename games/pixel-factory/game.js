@@ -2055,7 +2055,6 @@ async function spielstandSpeichern(mitToast = true) {
   if (adminModus) { if (mitToast) toastZeigen('⚙ Test-Modus – kein Speichern'); return; }
   const user = await PZ.getUser();
   if (!user) {
-    if (mitToast) toastZeigen('⚠ Nicht eingeloggt – Spielstand nicht gespeichert');
     return;
   }
 

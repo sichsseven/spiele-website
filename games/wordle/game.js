@@ -363,10 +363,6 @@ async function endscreenAnzeigen(gewonnen) {
   const rlEl = document.getElementById('endscreen-rangliste');
   rlEl.innerHTML = await ranglisteHTML();
 
-  // Login-Hinweis für Gäste
-  const user = await PZ.getUser();
-  document.getElementById('endscreen-login').style.display = user ? 'none' : 'block';
-
   // "Nächstes Wort"-Button verdrahten
   document.getElementById('naechstes-btn').onclick = neuesSpiel;
 

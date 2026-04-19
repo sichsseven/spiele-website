@@ -931,7 +931,7 @@ async function renderLeaderboard(mode) {
   else sorted.sort((a, b) => (b.punkte || 0) - (a.punkte || 0));
 
   if (sorted.length === 0) {
-    ui.rankContent.innerHTML = `<div style="padding:14px;text-align:center;color:var(--text-muted)">Noch keine Einträge. Nach dem Anmelden wird der Spielstand automatisch gespeichert.</div>`;
+    ui.rankContent.innerHTML = `<div style="padding:14px;text-align:center;color:var(--text-muted)">Noch keine Einträge.</div>`;
     return;
   }
   ui.rankContent.innerHTML = `

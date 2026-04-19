@@ -87,7 +87,7 @@ function createBaseGameState() {
 }
 
 function showScreen(id) {
-  ['screen-gate', 'screen-home', 'screen-single', 'screen-leaderboard', 'screen-multi', 'screen-lobby', 'screen-game', 'screen-finish'].forEach((screenId) => {
+  ['screen-home', 'screen-single', 'screen-leaderboard', 'screen-multi', 'screen-lobby', 'screen-game', 'screen-finish'].forEach((screenId) => {
     $(screenId).classList.toggle('hidden', screenId !== id);
   });
 }
@@ -1055,13 +1055,7 @@ async function init() {
   const session = await PZ.getSession();
   state.userId = session?.user?.id || null;
   state.username = state.userId ? (await PZ.getUsername(state.userId)) : null;
-  if (!state.userId) {
-    showScreen('screen-gate');
-    const back = encodeURIComponent(location.href);
-    $('login-link').href = `../../login.html?back=${back}`;
-  } else {
-    showScreen('screen-home');
-  }
+  showScreen('screen-home');
 
   setDifficulty('easy');
   bindEvents();

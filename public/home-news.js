@@ -118,8 +118,8 @@
 
       const hint = currentUser
         ? (myVote ? "Deine Stimme ist markiert. Du kannst sie ändern." : "Wähle eine Option und stimme ab.")
-        : "Zum Abstimmen bitte einloggen.";
-      meta.textContent = `${meta.textContent ? `${meta.textContent} · ` : ""}${totalVotes} Stimmen · ${hint}`;
+        : "";
+      meta.textContent = `${meta.textContent ? `${meta.textContent} · ` : ""}${totalVotes} Stimmen${hint ? ` · ${hint}` : ""}`;
 
       pollOps.querySelectorAll("[data-poll-option]").forEach((btn) => {
         btn.addEventListener("click", async () => {

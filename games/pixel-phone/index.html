@@ -163,11 +163,6 @@
     <a href="../../index.html">PIXELZONE</a><span>›</span><a href="info.html">Infos &amp; Spielregeln</a>
   </nav>
 
-  <section id="pp-gate" class="panel hidden">
-    <p>Bitte melde dich an, um Pixel Phone zu spielen.</p>
-    <a class="btn btn-primary" id="pp-login-link" href="../../login.html">Zur Anmeldung</a>
-  </section>
-
   <section id="pp-home" class="panel hidden">
     <div class="row" style="margin-bottom:16px;">
       <button type="button" class="btn btn-primary" id="pp-btn-create">Raum erstellen (Host)</button>
@@ -314,16 +309,11 @@ async function initAuth() {
   PP.db = PZ.db;
   const session = await PZ.getSession();
   if (!session) {
-    show('pp-gate', true);
-    show('pp-home', false);
-    const back = encodeURIComponent(location.href);
-    $('pp-login-link').href = '../../login.html?back=' + back;
     await PZ.updateNavbar();
     return false;
   }
   PP.userId = session.user.id;
   PP.username = await PZ.getUsername(session.user.id) || 'Spieler';
-  show('pp-gate', false);
   show('pp-home', true);
   await PZ.updateNavbar();
   return true;

@@ -398,10 +398,8 @@ async function scoreSpeichern() {
   try {
     const user = await PZ.getUser();
     if (!user) {
-      document.getElementById('sieg-login').style.display = 'block';
       return;
     }
-    document.getElementById('sieg-login').style.display = 'none';
     await PZ.saveGameData(spielName(), -sekunden, 1, { sekunden });
   } catch (err) {
     console.warn('[Minesweeper] Score konnte nicht gespeichert werden:', err);

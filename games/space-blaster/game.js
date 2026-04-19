@@ -1041,12 +1041,8 @@ async function spielEnde() {
 
   // Score + Münzen in Supabase speichern
   const user = await PZ.getUser().catch(() => null);
-  const loginHint = document.getElementById('go-login-hint');
   if (user) {
-    if (loginHint) loginHint.style.display = 'none';
     spielerDatenSpeichern();
-  } else {
-    if (loginHint) loginHint.style.display = 'block';
   }
 
   // Titel-Münzanzeige aktualisieren

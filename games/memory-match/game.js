@@ -218,7 +218,6 @@ function endGame(){
   // Supabase speichern (asynchron)
   if(typeof PZ!=='undefined'){
     if(!adminModus)PZ.saveGameData('memory-match',score,level,{coins:pdata.coins,owned:pdata.owned,sel:pdata.sel}).catch(()=>{});
-    PZ.getUser().then((u)=>{const h=document.getElementById('login-hint');if(h)h.style.display=u?'none':'flex';}).catch(()=>{});
   }
   document.getElementById('res-score').textContent=score;
   document.getElementById('res-level').textContent=level;

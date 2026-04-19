@@ -914,17 +914,13 @@ async function spielEnde() {
 
   // Supabase speichern
   const user = await PZ.getUser().catch(() => null);
-  const loginHint = document.getElementById('go-login-hint');
   if (user && !adminModus) {
-    if (loginHint) loginHint.style.display = 'none';
     try {
       const r = await PZ.saveGameData('pixel-drop', score, spielerLevel, {
         exp: spielerExp,
       });
       if (r?.error) console.error('[Pixel Drop] Speichern fehlgeschlagen:', r.error);
     } catch (err) { console.error('[Pixel Drop] spielEnde Fehler:', err); }
-  } else {
-    if (loginHint) loginHint.style.display = 'block';
   }
 
   document.getElementById('res-score').textContent     = score;
