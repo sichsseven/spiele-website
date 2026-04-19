@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://playpixelzone.github.io/pixelzone/sitemap.xml
