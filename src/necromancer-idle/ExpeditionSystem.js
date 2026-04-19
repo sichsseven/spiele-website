@@ -6,6 +6,14 @@ import {
 } from './GameState.js';
 import { ARTIFACT_DEFS, ELITE_UNITS, EXPEDITION_DURATION_SEC } from './expeditionData.js';
 
+/** @param {number} secondsLeft */
+function formatCountdownMMSS(secondsLeft) {
+  const s = Math.max(0, Math.ceil(secondsLeft));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+}
+
 function renderArtifacts(listEl) {
   if (!listEl) return;
   listEl.replaceChildren();
@@ -58,9 +66,11 @@ export function initExpeditionSystem() {
     if (barWrap) barWrap.setAttribute('aria-valuenow', String(Math.round(p)));
     if (statusEl) {
       if (es.running) {
-        statusEl.textContent = `Plünderung… ${p.toFixed(0)} % (${EXPEDITION_DURATION_SEC}s)`;
+        const remainingSec = (EXPEDITION_DURATION_SEC * (100 - p)) / 100;
+        const mmss = formatCountdownMMSS(remainingSec);
+        statusEl.textContent = `Plünderung… ${mmss} verbleibend`;
       } else {
-        statusEl.textContent = 'Bereit zum Zug.';
+        statusEl.textContent = `Bereit zum Zug. (Dauer pro Plünderung ${formatCountdownMMSS(EXPEDITION_DURATION_SEC)})`;
       }
     }
   }

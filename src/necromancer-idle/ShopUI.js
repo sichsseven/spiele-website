@@ -150,9 +150,11 @@ export function initShopUI(audio) {
   function refreshStats() {
     const bonesEl = document.getElementById('stat-bones');
     const bpsEl = document.getElementById('stat-bps');
+    const bpcEl = document.getElementById('stat-bpc');
     const essEl = document.getElementById('stat-essence');
     if (bonesEl) bonesEl.textContent = formatGameNumber(GameState.bones);
     if (bpsEl) bpsEl.textContent = formatRate(getBonesPerSecond());
+    if (bpcEl) bpcEl.textContent = formatGameNumber(getBonesPerClick());
     if (essEl) essEl.textContent = formatGameNumber(GameState.worldEssence);
   }
 

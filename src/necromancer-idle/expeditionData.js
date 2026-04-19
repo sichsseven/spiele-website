@@ -37,8 +37,8 @@ export function getArtifactDefById(id) {
   return ARTIFACT_DEFS.find((a) => a.id === id);
 }
 
-/** Dauer einer Plünderung (Fortschrittsbalken) */
-export const EXPEDITION_DURATION_SEC = 10;
+/** Dauer einer Plünderung: 5 Minuten */
+export const EXPEDITION_DURATION_SEC = 300;
 
 export const ARTIFACT_DROP_CHANCE = 0.05;
 
