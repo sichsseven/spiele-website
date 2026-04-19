@@ -16,10 +16,10 @@ import { initExpeditionSystem } from './ExpeditionSystem.js';
 import { initSkillTreeUI } from './SkillTreeUI.js';
 import { AudioManager } from './AudioManager.js';
 
-/** Muss mit `PZ_ADMIN_ID` in `public/auth.js` übereinstimmen (Site-Admin = Unterwelt-Tab). */
+/** Muss mit `PZ_ADMIN_ID` in `public/auth.js` übereinstimmen (Expedition + Unterwelt nur für diesen Account). */
 const PIXELZONE_SITE_ADMIN_USER_ID = '1dcb3181-9132-4cd0-b3ef-550742a5309d';
 
-async function isUnterweltUnlockedForCurrentUser() {
+async function isSiteAdminSession() {
   const pz = globalThis.PZ;
   if (!pz || typeof pz.getUser !== 'function') return false;
   const user = await pz.getUser().catch(() => null);
@@ -27,14 +27,20 @@ async function isUnterweltUnlockedForCurrentUser() {
 }
 
 /**
- * @param {{ showUnterwelt?: boolean }} [opts]
+ * @param {{ showExpedition?: boolean; showUnterwelt?: boolean }} [opts]
  */
 function initTabNavigation(opts = {}) {
+  const showExpedition = opts.showExpedition !== false;
   const showUnterwelt = opts.showUnterwelt !== false;
   const tabs = [
     { btn: document.getElementById('tab-friedhof'), panel: document.getElementById('panel-friedhof') },
-    { btn: document.getElementById('tab-expedition'), panel: document.getElementById('panel-expedition') },
   ];
+  if (showExpedition) {
+    tabs.push({
+      btn: document.getElementById('tab-expedition'),
+      panel: document.getElementById('panel-expedition'),
+    });
+  }
   if (showUnterwelt) {
     tabs.push({
       btn: document.getElementById('tab-unterwelt'),
@@ -90,8 +96,10 @@ void (async function bootstrap() {
 
   await loadGameAsync();
 
-  const unterweltUnlocked = await isUnterweltUnlockedForCurrentUser();
-  if (!unterweltUnlocked) {
+  const siteAdmin = await isSiteAdminSession();
+  if (!siteAdmin) {
+    document.getElementById('tab-expedition')?.setAttribute('hidden', '');
+    document.getElementById('panel-expedition')?.setAttribute('hidden', '');
     document.getElementById('tab-unterwelt')?.setAttribute('hidden', '');
     document.getElementById('panel-unterwelt')?.setAttribute('hidden', '');
   }
@@ -102,11 +110,11 @@ void (async function bootstrap() {
 
   startPassiveLoop();
   initShopUI(audio);
-  initExpeditionSystem();
-  if (unterweltUnlocked) {
+  if (siteAdmin) {
+    initExpeditionSystem();
     initSkillTreeUI();
   }
-  initTabNavigation({ showUnterwelt: unterweltUnlocked });
+  initTabNavigation({ showExpedition: siteAdmin, showUnterwelt: siteAdmin });
 
   let saveToastTimer = 0;
   document.addEventListener('necro-game-saved', () => {
