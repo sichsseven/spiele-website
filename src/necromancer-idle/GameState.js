@@ -1,13 +1,24 @@
 import { UPGRADE_DEFINITIONS, getDefinitionById, priceAtLevel } from './upgrades.js';
 import {
+  ARTIFACT_DEFS,
+  ARTIFACT_DROP_CHANCE,
+  ELITE_UNITS,
+  ENCOUNTER_INTERVAL_SEC,
+  EXPEDITION_DURATION_SEC,
+  EXPEDITION_MAPS,
+  VILLAGER_BASE_HP,
+  getArtifactDefById,
+  getEliteUnitById,
+} from './expeditionData.js';
+import {
   fetchUserProgress,
   getCurrentUserId,
   upsertUserProgress,
 } from './necroSupabase.js';
 
 const BASE_BONES_PER_CLICK = 1;
-const SAVE_KEY = 'necromancer-idle-save-v2';
-const SAVE_VERSION = 2;
+const SAVE_KEY = 'necromancer-idle-save-v3';
+const SAVE_VERSION = 3;
 
 const MAX_CLICKS_PER_SEC = 15;
 
@@ -35,9 +46,129 @@ export const GameState = {
   lifetimeBonesThisRun: 0,
   /** Level je Gebäude-ID */
   upgrades: initialUpgrades(),
+  /** Expedition / Auto-Battler */
+  expeditionState: {
+    currentMap: 'menschendorf',
+    /** @type {Record<string, number>} */
+    activeUnits: { skeletonWarrior: 0 },
+    explorationProgress: 0,
+    running: false,
+    encounterCooldown: ENCOUNTER_INTERVAL_SEC,
+    lastEncounterWon: true,
+  },
+  /** Artefakt-Id → Anzahl (permanente Buffs) */
+  /** @type {Record<string, number>} */
+  artifactsOwned: {},
 };
 
 let passiveRemainder = 0;
+let expeditionSyncAccum = 0;
+
+function getCurrentMapDef() {
+  const id = GameState.expeditionState.currentMap;
+  return EXPEDITION_MAPS.find((m) => m.id === id) ?? EXPEDITION_MAPS[0];
+}
+
+function dispatchExpeditionSync(extra = {}) {
+  document.dispatchEvent(
+    new CustomEvent('necro-expedition-sync', {
+      detail: {
+        running: GameState.expeditionState.running,
+        progress: GameState.expeditionState.explorationProgress,
+        combatPower: getCombatPower(),
+        mapName: getCurrentMapDef().name,
+        ...extra,
+      },
+    }),
+  );
+}
+
+/** Nach Laden oder UI-Init: Mini-Phaser & Balken synchronisieren. */
+export function emitExpeditionSyncNow(extra = {}) {
+  dispatchExpeditionSync(extra);
+}
+
+function rollArtifactDrop() {
+  const def = ARTIFACT_DEFS[0];
+  if (!def) return;
+  if (Math.random() >= ARTIFACT_DROP_CHANCE) return;
+  GameState.artifactsOwned[def.id] = (GameState.artifactsOwned[def.id] ?? 0) + 1;
+  dispatchExpeditionSync({ artifactDrop: def.id });
+}
+
+function resolveEncounter() {
+  const map = getCurrentMapDef();
+  const villagerHp = VILLAGER_BASE_HP * map.villagerHpScale;
+  const kp = getCombatPower();
+  const won = kp >= villagerHp;
+  GameState.expeditionState.lastEncounterWon = won;
+  dispatchExpeditionSync({
+    encounter: { won, villagerHp, kp },
+  });
+  if (won) {
+    rollArtifactDrop();
+    dispatchStateChanged();
+  }
+}
+
+/**
+ * Elite-Krieger anwerben (Knochen).
+ * @param {string} unitId
+ */
+export function recruitEliteUnit(unitId) {
+  const u = getEliteUnitById(unitId);
+  if (!u) return false;
+  if (GameState.bones < u.boneCost) return false;
+  GameState.bones -= u.boneCost;
+  GameState.expeditionState.activeUnits[unitId] =
+    Math.max(0, Math.floor(GameState.expeditionState.activeUnits[unitId] ?? 0)) + 1;
+  dispatchStateChanged();
+  dispatchExpeditionSync();
+  return true;
+}
+
+/** Expedition starten (läuft bis Fortschritt 100 %). */
+export function startExpedition() {
+  const es = GameState.expeditionState;
+  if (es.running) return false;
+  if (getCombatPower() <= 0) return false;
+  es.running = true;
+  es.explorationProgress = 0;
+  es.encounterCooldown = Math.min(2, ENCOUNTER_INTERVAL_SEC);
+  es.lastEncounterWon = true;
+  dispatchStateChanged();
+  dispatchExpeditionSync({ started: true });
+  return true;
+}
+
+export function tickExpedition(deltaSeconds) {
+  const es = GameState.expeditionState;
+  if (!es.running || deltaSeconds <= 0) return;
+
+  const progressDelta = (deltaSeconds / EXPEDITION_DURATION_SEC) * 100;
+  es.explorationProgress = Math.min(100, es.explorationProgress + progressDelta);
+
+  if (es.explorationProgress >= 100) {
+    es.running = false;
+    es.explorationProgress = 0;
+    es.encounterCooldown = ENCOUNTER_INTERVAL_SEC;
+    dispatchExpeditionSync({ completed: true });
+    dispatchStateChanged();
+    return;
+  }
+
+  es.encounterCooldown -= deltaSeconds;
+  if (es.encounterCooldown <= 0) {
+    resolveEncounter();
+    es.encounterCooldown = ENCOUNTER_INTERVAL_SEC;
+  }
+
+  expeditionSyncAccum += deltaSeconds;
+  if (expeditionSyncAccum >= 0.08) {
+    expeditionSyncAccum = 0;
+    dispatchExpeditionSync();
+  }
+}
 
 /** @type {ReturnType<typeof createNumberFormatter>} */
 let bonesFormatter;
@@ -102,8 +233,28 @@ export function getBonesPerSecond() {
   return baseBonesPerSecond() * GameState.dimensionMultiplier;
 }
 
+export function getArtifactClickMultiplier() {
+  let bonus = 0;
+  for (const [id, n] of Object.entries(GameState.artifactsOwned)) {
+    const def = getArtifactDefById(id);
+    const c = Math.max(0, Math.floor(Number(n) || 0));
+    if (!def || c <= 0) continue;
+    bonus += def.clickPowerBonus * c;
+  }
+  return 1 + bonus;
+}
+
+export function getCombatPower() {
+  let p = 0;
+  for (const u of ELITE_UNITS) {
+    const n = Math.max(0, Math.floor(GameState.expeditionState.activeUnits[u.id] ?? 0));
+    p += n * u.combatPowerPerUnit;
+  }
+  return p;
+}
+
 export function getBonesPerClick() {
-  return baseBonesPerClick() * GameState.dimensionMultiplier;
+  return baseBonesPerClick() * GameState.dimensionMultiplier * getArtifactClickMultiplier();
 }
 
 /**
@@ -149,6 +300,15 @@ export function performPrestige() {
   GameState.lifetimeBonesThisRun = 0;
   passiveRemainder = 0;
 
+  GameState.expeditionState = {
+    currentMap: 'menschendorf',
+    activeUnits: { skeletonWarrior: 0 },
+    explorationProgress: 0,
+    running: false,
+    encounterCooldown: ENCOUNTER_INTERVAL_SEC,
+    lastEncounterWon: true,
+  };
+
   dispatchStateChanged();
   return true;
 }
@@ -163,8 +323,10 @@ export function addBones(amount) {
 }
 
 export function tickPassive(deltaSeconds) {
+  if (deltaSeconds <= 0) return;
+  tickExpedition(deltaSeconds);
   const bps = getBonesPerSecond();
-  if (bps <= 0 || deltaSeconds <= 0) return;
+  if (bps <= 0) return;
   passiveRemainder += bps * deltaSeconds;
   const whole = Math.floor(passiveRemainder);
   passiveRemainder -= whole;
@@ -254,6 +416,62 @@ function applyLoadedState(data) {
   }
   GameState.upgrades = next;
   passiveRemainder = 0;
+  expeditionSyncAccum = 0;
+
+  const defExp = {
+    currentMap: 'menschendorf',
+    activeUnits: { skeletonWarrior: 0 },
+    explorationProgress: 0,
+    running: false,
+    encounterCooldown: ENCOUNTER_INTERVAL_SEC,
+    lastEncounterWon: true,
+  };
+  const ex = data.expedition_state ?? data.expeditionState;
+  if (ex && typeof ex === 'object') {
+    const au = ex.active_units ?? ex.activeUnits;
+    const mergedUnits = { ...defExp.activeUnits };
+    if (au && typeof au === 'object') {
+      for (const u of ELITE_UNITS) {
+        const n = au[u.id];
+        if (n !== undefined) mergedUnits[u.id] = Math.max(0, Math.floor(Number(n) || 0));
+      }
+    }
+    GameState.expeditionState = {
+      ...defExp,
+      currentMap:
+        typeof ex.current_map === 'string'
+          ? ex.current_map
+          : typeof ex.currentMap === 'string'
+            ? ex.currentMap
+            : defExp.currentMap,
+      activeUnits: mergedUnits,
+      explorationProgress: Math.max(
+        0,
+        Math.min(100, Number(ex.exploration_progress ?? ex.explorationProgress) || 0),
+      ),
+      running: Boolean(ex.running),
+      encounterCooldown: Number(ex.encounter_cooldown ?? ex.encounterCooldown) || ENCOUNTER_INTERVAL_SEC,
+      lastEncounterWon:
+        ex.last_encounter_won !== undefined
+          ? Boolean(ex.last_encounter_won)
+          : Boolean(ex.lastEncounterWon ?? true),
+    };
+  } else {
+    GameState.expeditionState = { ...defExp };
+  }
+
+  const art = data.artifacts_owned ?? data.artifactsOwned;
+  if (art && typeof art === 'object') {
+    /** @type {Record<string, number>} */
+    const nextArt = {};
+    for (const [k, v] of Object.entries(art)) {
+      nextArt[k] = Math.max(0, Math.floor(Number(v) || 0));
+    }
+    GameState.artifactsOwned = nextArt;
+  } else {
+    GameState.artifactsOwned = {};
+  }
+
   dispatchStateChanged();
 }
 
@@ -280,6 +498,15 @@ function buildPersistPayload() {
     dimension_multiplier: GameState.dimensionMultiplier,
     lifetime_bones_this_run: GameState.lifetimeBonesThisRun,
     upgrades: { ...GameState.upgrades },
+    expedition_state: {
+      current_map: GameState.expeditionState.currentMap,
+      active_units: { ...GameState.expeditionState.activeUnits },
+      exploration_progress: GameState.expeditionState.explorationProgress,
+      running: GameState.expeditionState.running,
+      encounter_cooldown: GameState.expeditionState.encounterCooldown,
+      last_encounter_won: GameState.expeditionState.lastEncounterWon,
+    },
+    artifacts_owned: { ...GameState.artifactsOwned },
   };
 }
 
@@ -300,6 +527,15 @@ export function saveGameLocal() {
       dimensionsCompleted: GameState.dimensionsCompleted,
       dimensionMultiplier: GameState.dimensionMultiplier,
       lifetimeBonesThisRun: GameState.lifetimeBonesThisRun,
+      expeditionState: {
+        currentMap: GameState.expeditionState.currentMap,
+        activeUnits: { ...GameState.expeditionState.activeUnits },
+        explorationProgress: GameState.expeditionState.explorationProgress,
+        running: GameState.expeditionState.running,
+        encounterCooldown: GameState.expeditionState.encounterCooldown,
+        lastEncounterWon: GameState.expeditionState.lastEncounterWon,
+      },
+      artifactsOwned: { ...GameState.artifactsOwned },
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
     document.dispatchEvent(new CustomEvent('necro-game-saved'));
@@ -320,14 +556,31 @@ export async function saveGame() {
   return true;
 }
 
+const SAVE_KEY_LEGACY = 'necromancer-idle-save-v2';
+
 export function loadGameLocal() {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    let raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY);
     if (!raw) return false;
     const data = JSON.parse(raw);
     if (typeof data.upgrades !== 'object') return false;
 
     if (data.v === SAVE_VERSION) {
+      applyLoadedState({
+        bones: data.bones,
+        grave_goods: data.graveGoods,
+        world_essence: data.worldEssence,
+        dimensions_completed: data.dimensionsCompleted,
+        dimension_multiplier: data.dimensionMultiplier,
+        lifetime_bones_this_run: data.lifetimeBonesThisRun,
+        upgrades: data.upgrades,
+        expedition_state: data.expeditionState,
+        artifacts_owned: data.artifactsOwned,
+      });
+      return true;
+    }
+    if (data.v === 2) {
       applyLoadedState({
         bones: data.bones,
         grave_goods: data.graveGoods,
@@ -371,6 +624,8 @@ export async function loadFromSupabase() {
     dimension_multiplier: row.dimension_multiplier,
     lifetime_bones_this_run: row.lifetime_bones_this_run,
     upgrades: row.upgrades,
+    expedition_state: row.expedition_state,
+    artifacts_owned: row.artifacts_owned,
   });
   return true;
 }

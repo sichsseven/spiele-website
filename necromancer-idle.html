@@ -67,9 +67,25 @@
       <aside class="col-underworld" aria-labelledby="expedition-heading">
         <div class="panel expedition-panel">
           <h2 id="expedition-heading">Expedition</h2>
-          <div class="expedition-slot" id="expedition-phaser-host">
-            <span class="label-mini">Auto-Battler</span>
-            <span class="sub">Hier später Mini-Phaser oder eingebettete Szene</span>
+          <p class="expedition-map-line" id="expedition-map-line">Karte: <strong>Menschendorf</strong></p>
+          <div class="expedition-slot" id="expedition-phaser-host" aria-label="Expeditions-Szene"></div>
+          <div class="expedition-run">
+            <div class="expedition-status" id="expedition-status-text">Bereit — Menschendorf</div>
+            <div class="expedition-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="expedition-bar-wrap">
+              <div id="expedition-bar-fill" class="expedition-bar-fill"></div>
+            </div>
+            <div class="expedition-stats">
+              <span>Kampfkraft: <strong id="expedition-kp">0</strong></span>
+              <span id="expedition-unit-count">Skelett-Krieger: 0</span>
+            </div>
+            <div class="expedition-actions">
+              <button type="button" class="btn-elite" id="btn-recruit-elite">Skelett-Krieger — 400 🦴</button>
+              <button type="button" class="btn-expedition-start" id="btn-expedition-start">Plünderung starten</button>
+            </div>
+          </div>
+          <div class="artifact-panel">
+            <h3 class="artifact-heading">Artefakte</h3>
+            <ul class="artifact-list" id="artifact-list"></ul>
           </div>
         </div>
         <div class="panel portal-panel">
