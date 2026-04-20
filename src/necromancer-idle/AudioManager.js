@@ -19,6 +19,14 @@ export class AudioManager {
     setTimeout(() => this.#beep(784, 0.05, 0.02), 40);
   }
 
+  /** Meilenstein-Bonus ausgelöst. */
+  playMilestoneSound() {
+    if (!this._enabled) return;
+    this.#beep(392, 0.07, 0.03);
+    setTimeout(() => this.#beep(523, 0.07, 0.03), 60);
+    setTimeout(() => this.#beep(784, 0.1, 0.035), 140);
+  }
+
   /**
    * Minimaler Web-Audio-Ton (keine externen Assets).
    * @param {number} freq

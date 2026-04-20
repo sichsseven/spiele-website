@@ -47,11 +47,26 @@ const initialUpgrades = () => {
   return o;
 };
 
+const NECRO_BASE_STAT_CONFIG = {
+  atk: { level: 1, base: 10, cost: 50, costMultiplier: 1.1, statMultiplier: 1.5 },
+  hp: { level: 1, base: 100, cost: 50, costMultiplier: 1.1, statMultiplier: 1.5 },
+  hpRegen: { level: 0, base: 0, cost: 100, costMultiplier: 1.2, statMultiplier: 2 },
+};
+
+function initialNecroBaseStats() {
+  return {
+    atk: { ...NECRO_BASE_STAT_CONFIG.atk },
+    hp: { ...NECRO_BASE_STAT_CONFIG.hp },
+    hpRegen: { ...NECRO_BASE_STAT_CONFIG.hpRegen },
+  };
+}
+
 /**
  * Zentraler Spielzustand — Knochen, Upgrade-Level, Prestige, Dimensionen.
  */
 export const GameState = {
   bones: 0,
+  soulstones: 0,
   graveGoods: 0,
   worldEssence: 0,
   /** Abgeschlossene Dimensionen (Prestige-Zähler) */
@@ -78,6 +93,7 @@ export const GameState = {
   /** Freigeschaltete Skilltree-Knoten (Welten-Essenz); „center“ muss gekauft werden */
   /** @type {string[]} */
   unlockedSkills: [],
+  necroBaseStats: initialNecroBaseStats(),
 };
 
 let passiveRemainder = 0;
@@ -270,16 +286,6 @@ export function isUpgradeDiscovered(id) {
   return getUpgradeLevel(chain[idx - 1].id) >= 1;
 }
 
-function baseBonesPerSecond() {
-  let total = 0;
-  for (const def of UPGRADE_DEFINITIONS) {
-    if (def.type !== 'PPS') continue;
-    const lv = getUpgradeLevel(def.id);
-    total += lv * def.perLevel;
-  }
-  return total;
-}
-
 function baseBonesPerClick() {
   let fromUpgrades = 0;
   for (const def of UPGRADE_DEFINITIONS) {
@@ -292,7 +298,7 @@ function baseBonesPerClick() {
 
 export function getBonesPerSecond() {
   const { passiveBonus } = sumUnlockedSkillBonuses();
-  return baseBonesPerSecond() * GameState.dimensionMultiplier * (1 + passiveBonus);
+  return calculateTotalBPS() * GameState.dimensionMultiplier * (1 + passiveBonus);
 }
 
 export function getArtifactClickMultiplier() {
@@ -323,6 +329,36 @@ export function getBonesPerClick() {
     getArtifactClickMultiplier() *
     (1 + clickBonus)
   );
+}
+
+export function getNecroBaseStat(statId) {
+  const stat = GameState.necroBaseStats[statId];
+  return stat ? { ...stat } : null;
+}
+
+export function getNecroStatValue(statId) {
+  const stat = GameState.necroBaseStats[statId];
+  if (!stat) return 0;
+  if (stat.base === 0) {
+    return stat.level * stat.statMultiplier;
+  }
+  return stat.base * Math.pow(stat.statMultiplier, Math.max(0, stat.level - 1));
+}
+
+export function upgradeStat(statId) {
+  const stat = GameState.necroBaseStats[statId];
+  if (!stat) return false;
+  if (GameState.bones < stat.cost) return false;
+  GameState.bones -= stat.cost;
+  stat.level += 1;
+  stat.cost = Math.max(1, Math.ceil(stat.cost * stat.costMultiplier));
+  dispatchStateChanged();
+  document.dispatchEvent(
+    new CustomEvent('necro-base-stat-upgraded', {
+      detail: { statId, level: stat.level, value: getNecroStatValue(statId), nextCost: stat.cost },
+    }),
+  );
+  return true;
 }
 
 /**
@@ -420,10 +456,25 @@ export function buyUpgrade(id) {
   if (!isUpgradeDiscovered(id)) return false;
   const price = getUpgradeCurrentPrice(id);
   if (GameState.bones < price) return false;
+  const prevLevel = getUpgradeLevel(id);
   GameState.bones -= price;
-  GameState.upgrades[id] = getUpgradeLevel(id) + 1;
+  GameState.upgrades[id] = prevLevel + 1;
+  const nextLevel = GameState.upgrades[id];
+  const reachedMilestone = getReachedMilestoneLevel(nextLevel);
   dispatchStateChanged();
   document.dispatchEvent(new CustomEvent('necro-upgrade-bought', { detail: { id } }));
+  if (reachedMilestone !== null) {
+    document.dispatchEvent(
+      new CustomEvent('necro-milestone-reached', {
+        detail: {
+          id,
+          level: nextLevel,
+          milestoneLevel: reachedMilestone,
+          bpsMultiplier: getUpgradeBpsMultiplier(id),
+        },
+      }),
+    );
+  }
   return true;
 }
 
@@ -438,6 +489,7 @@ function dispatchStateChanged() {
       new CustomEvent('necro-state-changed', {
         detail: {
           bones: GameState.bones,
+          soulstones: GameState.soulstones,
           bps: getBonesPerSecond(),
           bpc: getBonesPerClick(),
         },
@@ -474,6 +526,7 @@ export function adminFinishExpeditionNow() {
  */
 function applyLoadedState(data, opts = {}) {
   GameState.bones = Math.max(0, Number(data.bones) || 0);
+  GameState.soulstones = Math.max(0, Math.floor(Number(data.soulstones) || 0));
   GameState.graveGoods = Math.max(0, Number(data.grave_goods ?? data.graveGoods) || 0);
   let essence = Math.max(0, Math.floor(Number(data.world_essence ?? data.worldEssence) || 0));
   if (opts.resetWorldEssenceBalance) {
@@ -565,6 +618,28 @@ function applyLoadedState(data, opts = {}) {
   }
   skills = skills.map((s) => (s === 'center_node' ? 'center' : s)).filter((s) => knownIds.has(s));
   GameState.unlockedSkills = skills;
+  const rawNecroStats = data.necro_base_stats ?? data.necroBaseStats;
+  const nextStats = initialNecroBaseStats();
+  if (rawNecroStats && typeof rawNecroStats === 'object') {
+    for (const statId of Object.keys(nextStats)) {
+      const incoming = rawNecroStats[statId];
+      if (!incoming || typeof incoming !== 'object') continue;
+      nextStats[statId] = {
+        level: Math.max(0, Math.floor(Number(incoming.level) || nextStats[statId].level)),
+        base: Math.max(0, Number(incoming.base) || nextStats[statId].base),
+        cost: Math.max(1, Math.ceil(Number(incoming.cost) || nextStats[statId].cost)),
+        costMultiplier: Math.max(
+          1,
+          Number(incoming.costMultiplier) || Number(incoming.cost_multiplier) || nextStats[statId].costMultiplier,
+        ),
+        statMultiplier: Math.max(
+          1,
+          Number(incoming.statMultiplier) || Number(incoming.stat_multiplier) || nextStats[statId].statMultiplier,
+        ),
+      };
+    }
+  }
+  GameState.necroBaseStats = nextStats;
 
   dispatchStateChanged();
 }
@@ -584,8 +659,10 @@ export function tryRegisterClick() {
  * @returns {object}
  */
 function buildPersistPayload() {
+  const lastSavedTime = new Date().toISOString();
   return {
     bones: GameState.bones,
+    soulstones: GameState.soulstones,
     grave_goods: GameState.graveGoods,
     world_essence: GameState.worldEssence,
     dimensions_completed: GameState.dimensionsCompleted,
@@ -601,6 +678,8 @@ function buildPersistPayload() {
     },
     artifacts_owned: { ...GameState.artifactsOwned },
     unlocked_skills: [...GameState.unlockedSkills],
+    necro_base_stats: { ...GameState.necroBaseStats },
+    last_saved_time: lastSavedTime,
     save_version: SAVE_VERSION,
   };
 }
@@ -619,9 +698,11 @@ export async function saveToSupabase() {
 
 export function saveGameLocal() {
   try {
+    const lastSavedTime = new Date().toISOString();
     const data = {
       v: SAVE_VERSION,
       bones: GameState.bones,
+      soulstones: GameState.soulstones,
       upgrades: { ...GameState.upgrades },
       graveGoods: GameState.graveGoods,
       worldEssence: GameState.worldEssence,
@@ -637,6 +718,8 @@ export function saveGameLocal() {
       },
       artifactsOwned: { ...GameState.artifactsOwned },
       unlockedSkills: [...GameState.unlockedSkills],
+      necroBaseStats: { ...GameState.necroBaseStats },
+      lastSavedTime,
     };
     localStorage.setItem(activeSaveKey(), JSON.stringify(data));
     document.dispatchEvent(new CustomEvent('necro-game-saved'));
@@ -670,6 +753,88 @@ export async function saveGame() {
 const SAVE_KEY_LEGACY = 'necromancer-idle-save-v2';
 const SAVE_KEY_LEGACY_V3 = 'necromancer-idle-save-v3';
 const SAVE_KEY_LEGACY_V4 = 'necromancer-idle-save-v4';
+const OFFLINE_PROGRESS_MAX_SECONDS = 2 * 60 * 60;
+export const BUILDING_MILESTONE_LEVELS = [10, 25, 50, 100, 250, 500, 1000];
+
+let pendingOfflineBones = 0;
+let pendingOfflineSeconds = 0;
+
+function parseSaveTimestamp(value) {
+  if (typeof value !== 'string' || !value) return NaN;
+  const ms = Date.parse(value);
+  return Number.isFinite(ms) ? ms : NaN;
+}
+
+function calculateOfflineBonesFromTimestamp(lastSavedTime) {
+  const savedAtMs = parseSaveTimestamp(lastSavedTime);
+  if (!Number.isFinite(savedAtMs)) return { seconds: 0, bones: 0 };
+  const nowMs = Date.now();
+  if (!Number.isFinite(nowMs) || nowMs <= savedAtMs) return { seconds: 0, bones: 0 };
+  const elapsedSeconds = Math.max(0, Math.floor((nowMs - savedAtMs) / 1000));
+  if (elapsedSeconds <= 0) return { seconds: 0, bones: 0 };
+  const secondsCapped = Math.min(OFFLINE_PROGRESS_MAX_SECONDS, elapsedSeconds);
+  const bps = getBonesPerSecond();
+  if (!Number.isFinite(bps) || bps <= 0) return { seconds: 0, bones: 0 };
+  return {
+    seconds: secondsCapped,
+    bones: Math.max(0, Math.floor(bps * secondsCapped)),
+  };
+}
+
+function setupOfflineProgress(lastSavedTime) {
+  const result = calculateOfflineBonesFromTimestamp(lastSavedTime);
+  pendingOfflineSeconds = result.seconds;
+  pendingOfflineBones = result.bones;
+}
+
+function getMilestonesReached(level) {
+  if (!Number.isFinite(level) || level <= 0) return 0;
+  let reached = 0;
+  for (const threshold of BUILDING_MILESTONE_LEVELS) {
+    if (level >= threshold) reached += 1;
+  }
+  return reached;
+}
+
+function getReachedMilestoneLevel(level) {
+  for (const threshold of BUILDING_MILESTONE_LEVELS) {
+    if (level === threshold) return threshold;
+  }
+  return null;
+}
+
+export function getUpgradeBpsMultiplier(id) {
+  const def = getDefinitionById(id);
+  if (!def || def.type !== 'PPS') return 1;
+  const lv = getUpgradeLevel(id);
+  return Math.pow(2, getMilestonesReached(lv));
+}
+
+export function calculateTotalBPS() {
+  let total = 0;
+  for (const def of UPGRADE_DEFINITIONS) {
+    if (def.type !== 'PPS') continue;
+    const lv = getUpgradeLevel(def.id);
+    if (lv <= 0) continue;
+    total += lv * def.perLevel * getUpgradeBpsMultiplier(def.id);
+  }
+  return total;
+}
+
+export function getPendingOfflineProgress() {
+  return {
+    bones: pendingOfflineBones,
+    seconds: pendingOfflineSeconds,
+  };
+}
+
+export function collectPendingOfflineProgress() {
+  const bones = pendingOfflineBones;
+  pendingOfflineBones = 0;
+  pendingOfflineSeconds = 0;
+  if (bones > 0) addBones(bones);
+  return bones;
+}
 
 export function loadGameLocal() {
   try {
@@ -685,6 +850,7 @@ export function loadGameLocal() {
 
     const payloadV5 = {
       bones: data.bones,
+      soulstones: data.soulstones,
       grave_goods: data.graveGoods,
       world_essence: data.worldEssence,
       dimensions_completed: data.dimensionsCompleted,
@@ -694,10 +860,13 @@ export function loadGameLocal() {
       expedition_state: data.expeditionState,
       artifacts_owned: data.artifactsOwned,
       unlocked_skills: data.unlockedSkills,
+      necro_base_stats: data.necroBaseStats,
+      last_saved_time: data.lastSavedTime,
     };
 
     if (data.v === SAVE_VERSION) {
       applyLoadedState(payloadV5);
+      setupOfflineProgress(data.lastSavedTime);
       return true;
     }
 
@@ -706,6 +875,7 @@ export function loadGameLocal() {
 
     if (data.v === 4) {
       applyLoadedState(payloadV5, legacyOpts);
+      setupOfflineProgress(data.lastSavedTime);
       saveGameLocal();
       try {
         localStorage.removeItem(SAVE_KEY_LEGACY_V4);
@@ -718,6 +888,7 @@ export function loadGameLocal() {
       applyLoadedState(
         {
           bones: data.bones,
+          soulstones: data.soulstones,
           grave_goods: data.graveGoods,
           world_essence: data.worldEssence,
           dimensions_completed: data.dimensionsCompleted,
@@ -727,9 +898,12 @@ export function loadGameLocal() {
           expedition_state: data.expeditionState,
           artifacts_owned: data.artifactsOwned,
           unlocked_skills: data.unlockedSkills,
+          necro_base_stats: data.necroBaseStats,
+          last_saved_time: data.lastSavedTime,
         },
         legacyOpts,
       );
+      setupOfflineProgress(data.lastSavedTime);
       saveGameLocal();
       return true;
     }
@@ -737,15 +911,19 @@ export function loadGameLocal() {
       applyLoadedState(
         {
           bones: data.bones,
+          soulstones: data.soulstones,
           grave_goods: data.graveGoods,
           world_essence: data.worldEssence,
           dimensions_completed: data.dimensionsCompleted,
           dimension_multiplier: data.dimensionMultiplier,
           lifetime_bones_this_run: data.lifetimeBonesThisRun,
           upgrades: data.upgrades,
+          necro_base_stats: data.necroBaseStats,
+          last_saved_time: data.lastSavedTime,
         },
         legacyOpts,
       );
+      setupOfflineProgress(data.lastSavedTime);
       saveGameLocal();
       return true;
     }
@@ -753,15 +931,19 @@ export function loadGameLocal() {
       applyLoadedState(
         {
           bones: data.bones,
+          soulstones: data.soulstones,
           grave_goods: data.graveGoods,
           world_essence: data.worldEssence,
           dimensions_completed: 0,
           dimension_multiplier: 1,
           lifetime_bones_this_run: 0,
           upgrades: data.upgrades,
+          necro_base_stats: data.necroBaseStats,
+          last_saved_time: data.lastSavedTime,
         },
         legacyOpts,
       );
+      setupOfflineProgress(data.lastSavedTime);
       saveGameLocal();
       return true;
     }
@@ -791,6 +973,7 @@ export async function loadFromSupabase() {
   applyLoadedState(
     {
       bones: row.bones,
+      soulstones: row.soulstones,
       grave_goods: row.grave_goods,
       world_essence: row.world_essence,
       dimensions_completed: row.dimensions_completed,
@@ -800,9 +983,12 @@ export async function loadFromSupabase() {
       expedition_state: row.expedition_state,
       artifacts_owned: row.artifacts_owned,
       unlocked_skills: row.unlocked_skills,
+      necro_base_stats: row.necro_base_stats,
+      last_saved_time: row.last_saved_time,
     },
     { resetWorldEssenceBalance: needsEssenceReset },
   );
+  setupOfflineProgress(row.last_saved_time);
 
   if (needsEssenceReset) {
     localStorage.setItem(flagKey, '1');
@@ -817,6 +1003,8 @@ export async function loadFromSupabase() {
 
 /** Supabase zuerst (wenn eingeloggt + Zeile), sonst localStorage. Admin-Sandbox: nur lokal. */
 export async function loadGameAsync() {
+  pendingOfflineBones = 0;
+  pendingOfflineSeconds = 0;
   if (necromancerAdminSandbox) {
     return loadGameLocal();
   }

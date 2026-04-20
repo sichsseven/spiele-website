@@ -6,12 +6,15 @@
 create table if not exists public.user_progress (
   user_id uuid primary key references auth.users (id) on delete cascade,
   bones bigint not null default 0,
+  soulstones bigint not null default 0,
   grave_goods bigint not null default 0,
   world_essence bigint not null default 0,
   dimensions_completed int not null default 0,
   dimension_multiplier numeric not null default 1,
   lifetime_bones_this_run bigint not null default 0,
   upgrades jsonb not null default '{}'::jsonb,
+  necro_base_stats jsonb not null default '{}'::jsonb,
+  last_saved_time timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
@@ -24,6 +27,15 @@ alter table public.user_progress
 
 alter table public.user_progress
   add column if not exists unlocked_skills jsonb not null default '["center_node"]'::jsonb;
+
+alter table public.user_progress
+  add column if not exists last_saved_time timestamptz not null default now();
+
+alter table public.user_progress
+  add column if not exists soulstones bigint not null default 0;
+
+alter table public.user_progress
+  add column if not exists necro_base_stats jsonb not null default '{}'::jsonb;
 
 -- 3) Index
 create index if not exists user_progress_updated_at_idx on public.user_progress (updated_at desc);

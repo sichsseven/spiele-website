@@ -4,12 +4,15 @@
 create table if not exists public.user_progress (
   user_id uuid primary key references auth.users (id) on delete cascade,
   bones bigint not null default 0,
+  soulstones bigint not null default 0,
   grave_goods bigint not null default 0,
   world_essence bigint not null default 0,
   dimensions_completed int not null default 0,
   dimension_multiplier numeric not null default 1,
   lifetime_bones_this_run bigint not null default 0,
   upgrades jsonb not null default '{}'::jsonb,
+  necro_base_stats jsonb not null default '{}'::jsonb,
+  last_saved_time timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 

@@ -1,7 +1,9 @@
 import {
+  BUILDING_MILESTONE_LEVELS,
   GameState,
   addBones,
   buyUpgrade,
+  getUpgradeBpsMultiplier,
   canAffordUpgrade,
   canPrestigeNow,
   formatGameNumber,
@@ -22,6 +24,21 @@ export { UPGRADE_DEFINITIONS };
 
 const MYSTERY_SHOP_TOOLTIP =
   'Klicke ein anderes Gebäude, um dieses Geheimnis zu lüften.';
+
+function getNextMilestone(level) {
+  for (const threshold of BUILDING_MILESTONE_LEVELS) {
+    if (level < threshold) return threshold;
+  }
+  return null;
+}
+
+function getCurrentMilestoneFloor(level) {
+  let floor = 0;
+  for (const threshold of BUILDING_MILESTONE_LEVELS) {
+    if (level >= threshold) floor = threshold;
+  }
+  return floor;
+}
 
 /**
  * Statischer Basiswert aus den Daten (ohne Dimensionen, Skills, Artefakte).
@@ -61,6 +78,10 @@ export function initShopUI(audio) {
   const priceEls = new Map();
   /** @type {Map<string, HTMLElement>} */
   const iconEls = new Map();
+  /** @type {Map<string, HTMLElement>} */
+  const milestoneTextEls = new Map();
+  /** @type {Map<string, HTMLElement>} */
+  const milestoneFillEls = new Map();
 
   function positionTooltip(/** @type {MouseEvent} */ e) {
     if (!tooltipEl || tooltipEl.hidden) return;
@@ -84,6 +105,16 @@ export function initShopUI(audio) {
     row.addEventListener('animationend', done, { once: true });
   }
 
+  function flashMilestoneRow(id) {
+    const row = rows.get(id);
+    if (!row) return;
+    row.classList.remove('shop-item--milestone-glow');
+    void row.offsetWidth;
+    row.classList.add('shop-item--milestone-glow');
+    const done = () => row.classList.remove('shop-item--milestone-glow');
+    row.addEventListener('animationend', done, { once: true });
+  }
+
   function buildShop() {
     ppsHost.innerHTML = '';
     ppcHost.innerHTML = '';
@@ -94,6 +125,8 @@ export function initShopUI(audio) {
     baseEls.clear();
     priceEls.clear();
     iconEls.clear();
+    milestoneTextEls.clear();
+    milestoneFillEls.clear();
 
     for (const def of UPGRADE_DEFINITIONS) {
       const host = def.type === 'PPS' ? ppsHost : ppcHost;
@@ -131,8 +164,24 @@ export function initShopUI(audio) {
       const price = document.createElement('span');
       price.className = 'shop-item-price';
 
+      const milestone = document.createElement('div');
+      milestone.className = 'shop-item-milestone';
+
+      const milestoneText = document.createElement('span');
+      milestoneText.className = 'shop-item-milestone-text';
+
+      const milestoneTrack = document.createElement('span');
+      milestoneTrack.className = 'shop-item-milestone-track';
+      const milestoneFill = document.createElement('span');
+      milestoneFill.className = 'shop-item-milestone-fill';
+      milestoneTrack.appendChild(milestoneFill);
+
+      milestone.appendChild(milestoneText);
+      milestone.appendChild(milestoneTrack);
+
       meta.appendChild(base);
       meta.appendChild(price);
+      meta.appendChild(milestone);
       col.appendChild(title);
       col.appendChild(meta);
       btn.appendChild(icon);
@@ -148,6 +197,8 @@ export function initShopUI(audio) {
       baseEls.set(def.id, base);
       priceEls.set(def.id, price);
       iconEls.set(def.id, icon);
+      milestoneTextEls.set(def.id, milestoneText);
+      milestoneFillEls.set(def.id, milestoneFill);
 
       btn.addEventListener('click', () => {
         if (buyUpgrade(def.id)) {
@@ -207,6 +258,27 @@ export function initShopUI(audio) {
       }
       if (iconEl) iconEl.textContent = discovered ? '◆' : '?';
 
+      const milestoneTextEl = milestoneTextEls.get(def.id);
+      const milestoneFillEl = milestoneFillEls.get(def.id);
+      if (milestoneTextEl && milestoneFillEl) {
+        if (!discovered) {
+          milestoneTextEl.textContent = 'Nächster Bonus bei ???';
+          milestoneFillEl.style.width = '0%';
+        } else {
+          const nextMilestone = getNextMilestone(lv);
+          if (nextMilestone === null) {
+            milestoneTextEl.textContent = `Alle Meilensteine erreicht (${formatGameNumber(getUpgradeBpsMultiplier(def.id))}x)`;
+            milestoneFillEl.style.width = '100%';
+          } else {
+            milestoneTextEl.textContent = `Nächster Bonus bei Lv. ${nextMilestone}`;
+            const floor = getCurrentMilestoneFloor(lv);
+            const range = Math.max(1, nextMilestone - floor);
+            const progress = Math.max(0, Math.min(1, (lv - floor) / range));
+            milestoneFillEl.style.width = `${(progress * 100).toFixed(2)}%`;
+          }
+        }
+      }
+
       btn.classList.toggle('disabled', !afford);
       btn.disabled = !afford;
     }
@@ -251,6 +323,14 @@ export function initShopUI(audio) {
   buildShop();
 
   document.addEventListener('necro-state-changed', refreshAll);
+  document.addEventListener('necro-milestone-reached', (e) => {
+    const detail = /** @type {{ id?: string }} */ (e.detail ?? {});
+    if (!detail.id) return;
+    flashMilestoneRow(detail.id);
+    if (typeof audio.playMilestoneSound === 'function') {
+      audio.playMilestoneSound();
+    }
+  });
   setInterval(refreshAll, 1000);
 
   initAltar(audio);

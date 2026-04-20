@@ -2,67 +2,43 @@ import Phaser from 'phaser';
 import { GameScene } from './GameScene.js';
 import {
   GameState,
-  adminFinishExpeditionNow,
-  cheatGrantResources,
+  collectPendingOfflineProgress,
   loadGameAsync,
-  performPrestige,
+  getPendingOfflineProgress,
   saveGame,
   setNecromancerAdminSandbox,
   startPassiveLoop,
-  canPrestigeNow,
 } from './GameState.js';
-import { initShopUI } from './ShopUI.js';
-import { initExpeditionSystem } from './ExpeditionSystem.js';
-import { initSkillTreeUI } from './SkillTreeUI.js';
-import { AudioManager } from './AudioManager.js';
+import { initNecromantUI } from './NecromantUI.js';
 
-/** Muss mit `PZ_ADMIN_ID` in `public/auth.js` übereinstimmen (Expedition + Unterwelt nur für diesen Account). */
-const PIXELZONE_SITE_ADMIN_USER_ID = '1dcb3181-9132-4cd0-b3ef-550742a5309d';
+function initOfflineProgressModal() {
+  const modal = document.getElementById('offline-modal');
+  const bonesEl = document.getElementById('offline-modal-bones');
+  const textEl = document.getElementById('offline-modal-text');
+  const collectBtn = document.getElementById('offline-modal-collect');
+  if (!modal || !bonesEl || !collectBtn || !textEl) return;
 
-async function isSiteAdminSession() {
-  const pz = globalThis.PZ;
-  if (!pz || typeof pz.getUser !== 'function') return false;
-  const user = await pz.getUser().catch(() => null);
-  return !!user && user.id === PIXELZONE_SITE_ADMIN_USER_ID;
-}
+  const pending = getPendingOfflineProgress();
+  if (!pending || pending.bones <= 0) return;
 
-/**
- * @param {{ showExpedition?: boolean; showUnterwelt?: boolean }} [opts]
- */
-function initTabNavigation(opts = {}) {
-  const showExpedition = opts.showExpedition !== false;
-  const showUnterwelt = opts.showUnterwelt !== false;
-  const tabs = [
-    { btn: document.getElementById('tab-friedhof'), panel: document.getElementById('panel-friedhof') },
-  ];
-  if (showExpedition) {
-    tabs.push({
-      btn: document.getElementById('tab-expedition'),
-      panel: document.getElementById('panel-expedition'),
-    });
-  }
-  if (showUnterwelt) {
-    tabs.push({
-      btn: document.getElementById('tab-unterwelt'),
-      panel: document.getElementById('panel-unterwelt'),
-    });
-  }
+  bonesEl.textContent = Intl.NumberFormat('de-DE', {
+    notation: 'compact',
+    maximumFractionDigits: 2,
+  }).format(pending.bones);
+  textEl.innerHTML = `Eure Armee hat in eurer Abwesenheit geschuftet und <strong>${bonesEl.textContent}</strong> Knochen gesammelt.`;
+  modal.hidden = false;
 
-  const activate = (index) => {
-    tabs.forEach((t, i) => {
-      const on = i === index;
-      if (!t.btn || !t.panel) return;
-      t.btn.setAttribute('aria-selected', on ? 'true' : 'false');
-      t.btn.classList.toggle('tab-btn--active', on);
-      t.btn.tabIndex = on ? 0 : -1;
-      t.panel.hidden = !on;
-      t.panel.classList.toggle('tab-panel--hidden', !on);
-    });
-  };
-
-  tabs.forEach((t, i) => {
-    t.btn?.addEventListener('click', () => activate(i));
-  });
+  collectBtn.addEventListener(
+    'click',
+    () => {
+      const gained = collectPendingOfflineProgress();
+      modal.hidden = true;
+      if (gained > 0) {
+        void saveGame();
+      }
+    },
+    { once: true },
+  );
 }
 
 const mount = document.getElementById('phaser-mount');
@@ -96,25 +72,11 @@ void (async function bootstrap() {
 
   await loadGameAsync();
 
-  const siteAdmin = await isSiteAdminSession();
-  if (!siteAdmin) {
-    document.getElementById('tab-expedition')?.setAttribute('hidden', '');
-    document.getElementById('panel-expedition')?.setAttribute('hidden', '');
-    document.getElementById('tab-unterwelt')?.setAttribute('hidden', '');
-    document.getElementById('panel-unterwelt')?.setAttribute('hidden', '');
-  }
-
   new Phaser.Game(config);
 
-  const audio = new AudioManager();
-
   startPassiveLoop();
-  initShopUI(audio);
-  if (siteAdmin) {
-    initExpeditionSystem();
-    initSkillTreeUI();
-  }
-  initTabNavigation({ showExpedition: siteAdmin, showUnterwelt: siteAdmin });
+  initNecromantUI();
+  initOfflineProgressModal();
 
   let saveToastTimer = 0;
   document.addEventListener('necro-game-saved', () => {
@@ -128,74 +90,9 @@ void (async function bootstrap() {
     }, 2200);
   });
 
-  let prestigeBusy = false;
-  document.addEventListener('necro-prestige-start', () => {
-    if (prestigeBusy || !canPrestigeNow()) return;
-    prestigeBusy = true;
-    const ov = document.getElementById('prestige-overlay');
-    document.body.style.transition = 'opacity 0.55s ease, filter 0.55s ease';
-    document.body.style.filter = 'brightness(0.08)';
-    ov?.classList.add('prestige-overlay--visible');
-
-    window.setTimeout(() => {
-      void (async () => {
-        try {
-          if (canPrestigeNow()) {
-            performPrestige();
-          }
-        } catch (err) {
-          console.error('[Necro] performPrestige', err);
-        }
-        try {
-          await saveGame();
-        } catch (err) {
-          console.error('[Necro] saveGame', err);
-        } finally {
-          document.body.style.filter = '';
-          document.body.style.transition = '';
-          ov?.classList.remove('prestige-overlay--visible');
-          prestigeBusy = false;
-        }
-      })();
-    }, 780);
-  });
-
   window.setInterval(() => {
     saveGame();
   }, 30000);
-
-  if (PZ && typeof PZ.adminPanelErstellen === 'function') {
-    await PZ.adminPanelErstellen([
-      {
-        label: '+100.000 Knochen',
-        onClick: () => {
-          cheatGrantResources({ bones: 100000 });
-          void saveGame();
-        },
-      },
-      {
-        label: '+1 Mio. Knochen',
-        onClick: () => {
-          cheatGrantResources({ bones: 1_000_000 });
-          void saveGame();
-        },
-      },
-      {
-        label: '+500 Welten-Essenz',
-        onClick: () => {
-          cheatGrantResources({ worldEssence: 500 });
-          void saveGame();
-        },
-      },
-      {
-        label: 'Expedition sofort beenden',
-        onClick: () => {
-          adminFinishExpeditionNow();
-          void saveGame();
-        },
-      },
-    ]);
-  }
 })();
 
 export { GameState };
