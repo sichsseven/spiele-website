@@ -19,6 +19,7 @@ import {
   getNextRasereiPayoutMult,
 } from './GameState.js';
 import { UPGRADE_DEFINITIONS } from './upgrades.js';
+import { SHOP_ASSET_BASE, UPGRADE_ICON_PATHS } from './shopIcons.js';
 
 /** Shop-Definitionen (Re-Export, Daten liegen in upgrades.js). */
 export { UPGRADE_DEFINITIONS };
@@ -148,6 +149,21 @@ export function initShopUI(audio) {
       icon.className = 'shop-item-icon';
       icon.setAttribute('aria-hidden', 'true');
 
+      const iconImg = document.createElement('img');
+      iconImg.className = 'shop-item-icon-img';
+      iconImg.alt = '';
+      iconImg.decoding = 'async';
+      iconImg.width = 32;
+      iconImg.height = 32;
+      iconImg.src = `${SHOP_ASSET_BASE}/${UPGRADE_ICON_PATHS[def.id]}`;
+
+      const iconMystery = document.createElement('span');
+      iconMystery.className = 'shop-item-icon-mystery';
+      iconMystery.textContent = '?';
+
+      icon.appendChild(iconImg);
+      icon.appendChild(iconMystery);
+
       const col = document.createElement('div');
       col.className = 'shop-buy-btn__col';
 
@@ -241,7 +257,9 @@ export function initShopUI(audio) {
       const titleEl = titleEls.get(def.id);
       const baseEl = baseEls.get(def.id);
       const priceEl = priceEls.get(def.id);
-      const iconEl = iconEls.get(def.id);
+      const iconWrap = iconEls.get(def.id);
+      const iconImg = iconWrap?.querySelector('.shop-item-icon-img');
+      const iconMystery = iconWrap?.querySelector('.shop-item-icon-mystery');
       if (!btn) continue;
 
       const discovered = isUpgradeDiscovered(def.id);
@@ -257,7 +275,8 @@ export function initShopUI(audio) {
       if (priceEl) {
         priceEl.textContent = discovered ? `${formatGameNumber(price)} 🦴` : '???';
       }
-      if (iconEl) iconEl.textContent = discovered ? '◆' : '?';
+      if (iconImg) iconImg.hidden = !discovered;
+      if (iconMystery) iconMystery.hidden = discovered;
 
       const milestoneTextEl = milestoneTextEls.get(def.id);
       const milestoneFillEl = milestoneFillEls.get(def.id);
