@@ -776,3 +776,84 @@ footer {
   #fbForm { padding: 0 20px 20px; }
   .fb-success { padding: 36px 20px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Necromancer-Idle — gemeinsame Pixel-Blöcke (optional importierbar)
+═══════════════════════════════════════════════════════════ */
+
+/* Klobige 3D-Stein-Blöcke für die Karten */
+.generator-card,
+.upgrade-card {
+  background-color: #291d1d;
+  margin-bottom: 16px;
+  padding: 12px;
+  position: relative;
+  /* Der Pixel-Art Border Trick: Harte Schatten, keine runden Linien */
+  border: 2px solid #5e3a2c;
+  box-shadow:
+    4px 4px 0px #110d0d,
+    /* Äußerer harter Schlagschatten */
+    inset -4px -4px 0px rgba(0, 0, 0, 0.4),
+    /* Innerer dunkler Rand (3D Effekt unten rechts) */
+    inset 4px 4px 0px rgba(255, 255, 255, 0.05); /* Innerer heller Rand (3D Effekt oben links) */
+  transition: transform 0.1s;
+}
+
+.generator-card:hover,
+.upgrade-card:hover {
+  background-color: #332424;
+  transform: translate(-2px, -2px); /* Bewegt sich beim Hovern leicht nach oben */
+  box-shadow:
+    6px 6px 0px #110d0d,
+    inset -4px -4px 0px rgba(0, 0, 0, 0.4),
+    inset 4px 4px 0px rgba(255, 255, 255, 0.05);
+}
+
+/* Der massive Altar-Block */
+.pixel-altar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.altar-stone {
+  background-color: #1e1515;
+  border: 4px solid #5e3a2c;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow:
+    8px 8px 0px #0a0707,
+    inset -6px -6px 0px rgba(0, 0, 0, 0.6);
+  user-select: none;
+}
+
+.altar-stone:active {
+  transform: translate(4px, 4px);
+  box-shadow:
+    4px 4px 0px #0a0707,
+    inset -6px -6px 0px rgba(0, 0, 0, 0.6);
+}
+
+.pentagram-symbol {
+  font-size: 120px;
+  color: #d92e2e;
+  text-shadow: 0 0 15px #d92e2e, 0 0 30px #d92e2e;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.altar-title {
+  color: #d8caca;
+  font-size: 28px;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+.altar-subtitle {
+  color: #8c7373;
+  font-size: 18px;
+  margin-top: 10px;
+}

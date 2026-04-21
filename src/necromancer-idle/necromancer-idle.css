@@ -298,99 +298,82 @@ textarea {
   text-shadow: 0 0 5px rgba(217, 46, 46, 0.6);
 }
 
-/* Altar: Karte + leuchtendes Zentrum (CSS, kein HTML-Wechsel) */
-.altar {
+/* —— Massiver Altar-Block (pixel-altar-container / altar-stone) —— */
+.pixel-altar-container.altar {
   flex: 1;
   min-height: 200px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  border: 2px solid var(--px-border);
-  background: var(--px-card);
-  box-shadow:
-    inset -3px -3px 0 rgba(0, 0, 0, 0.6),
-    inset 2px 2px 0 rgba(255, 255, 255, 0.05);
+  align-items: center;
+  height: 100%;
+  padding: 20px;
   cursor: pointer;
   user-select: none;
-  position: relative;
-  overflow: hidden;
+  outline: none;
 }
 
-.altar:hover {
-  border-color: var(--px-accent);
-}
-
-.altar:active {
-  transform: translateY(2px);
-  box-shadow:
-    inset 2px 2px 0 rgba(0, 0, 0, 0.55),
-    inset -1px -1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.altar-inner {
+.altar-stone {
+  background-color: #1e1515;
+  border: 4px solid #5e3a2c;
+  padding: 40px;
   text-align: center;
-  position: relative;
-  z-index: 1;
-  padding: 0.5rem;
-}
-
-/* „Altar-Bild“-Fläche: roter Pentagramm-/Ritualschein */
-.altar-inner::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 38%;
-  transform: translate(-50%, -50%);
-  width: min(160px, 55vw);
-  aspect-ratio: 1;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(217, 46, 46, 0.55) 0%, rgba(217, 46, 46, 0.15) 45%, transparent 65%);
+  cursor: pointer;
   box-shadow:
-    0 0 32px rgba(217, 46, 46, 0.65),
-    inset 0 0 48px rgba(217, 46, 46, 0.35);
-  pointer-events: none;
-  z-index: 0;
+    8px 8px 0px #0a0707,
+    inset -6px -6px 0px rgba(0, 0, 0, 0.6);
+  user-select: none;
+  width: 100%;
+  max-width: 100%;
 }
 
-.altar-inner .glyph {
-  position: relative;
-  z-index: 2;
-  font-size: 3.25rem;
+.altar-stone:active {
+  transform: translate(4px, 4px);
+  box-shadow:
+    4px 4px 0px #0a0707,
+    inset -6px -6px 0px rgba(0, 0, 0, 0.6);
+}
+
+.pentagram-glow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pentagram-symbol {
+  font-size: clamp(3rem, 18vw, 120px);
   line-height: 1;
-  color: var(--px-accent);
-  text-shadow:
-    0 0 8px rgba(217, 46, 46, 0.9),
-    0 0 20px rgba(217, 46, 46, 0.5);
-  filter: none;
+  color: #d92e2e;
+  text-shadow: 0 0 15px #d92e2e, 0 0 30px #d92e2e;
+  display: block;
+  margin-bottom: 20px;
 }
 
-.altar--rate-warn {
-  border-color: #ff4444 !important;
-  box-shadow: 0 0 16px rgba(217, 46, 46, 0.55) !important;
-}
-
-.altar-inner .glyph--warn {
+.pentagram-symbol.glyph--warn {
   color: #ff6666;
-  text-shadow: 0 0 12px rgba(255, 80, 80, 1);
+  text-shadow: 0 0 20px #ff6666, 0 0 40px rgba(255, 80, 80, 0.8);
 }
 
-.altar-inner .title {
-  position: relative;
-  z-index: 2;
-  margin: 0.5rem 0 0;
-  font-size: 0.9rem;
+.altar-title {
+  color: #d8caca;
+  font-size: clamp(1.1rem, 4vw, 28px);
+  margin: 0;
+  letter-spacing: 2px;
   font-weight: 700;
-  color: var(--px-text);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
-.altar-inner .hint {
-  position: relative;
-  z-index: 2;
-  margin: 0.35rem 0 0;
-  font-size: 0.8rem;
-  color: var(--px-muted);
+.altar-subtitle {
+  color: #8c7373;
+  font-size: clamp(0.85rem, 2.5vw, 18px);
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.altar--rate-warn .altar-stone {
+  border-color: #ff4444 !important;
+  box-shadow:
+    8px 8px 0px #0a0707,
+    inset -6px -6px 0px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(217, 46, 46, 0.55) !important;
 }
 
 /* —— Tabs & Shop —— */
@@ -518,11 +501,35 @@ textarea {
   width: 100%;
 }
 
-/* Shop-Karten + Alias-Klassen aus Briefing */
-.shop-item,
+.shop-item {
+  position: relative;
+}
+
+/* Klobige 3D-Stein-Blöcke für die Karten (+ echte Shop-Buttons) */
+.shop-buy-btn,
 .generator-card,
 .upgrade-card {
+  background-color: #291d1d;
+  margin-bottom: 16px;
+  padding: 12px;
   position: relative;
+  border: 2px solid #5e3a2c;
+  box-shadow:
+    4px 4px 0px #110d0d,
+    inset -4px -4px 0px rgba(0, 0, 0, 0.4),
+    inset 4px 4px 0px rgba(255, 255, 255, 0.05);
+  transition: transform 0.1s;
+}
+
+.shop-buy-btn:hover:not(:disabled),
+.generator-card:hover,
+.upgrade-card:hover {
+  background-color: #332424;
+  transform: translate(-2px, -2px);
+  box-shadow:
+    6px 6px 0px #110d0d,
+    inset -4px -4px 0px rgba(0, 0, 0, 0.4),
+    inset 4px 4px 0px rgba(255, 255, 255, 0.05);
 }
 
 .shop-level-badge {
@@ -547,32 +554,20 @@ textarea {
   flex-direction: row;
   align-items: flex-start;
   gap: 0.5rem;
-  padding: 0.65rem 0.55rem 0.55rem 0.55rem;
   padding-top: 1.85rem;
   text-align: left;
   font-family: inherit !important;
   font-size: 0.82rem;
   color: var(--px-text);
-  background: var(--px-card);
-  border: 2px solid var(--px-border);
-  box-shadow:
-    inset -3px -3px 0 rgba(0, 0, 0, 0.6),
-    inset 2px 2px 0 rgba(255, 255, 255, 0.05);
   cursor: pointer;
-  transition:
-    border-color 0.12s ease,
-    transform 0.08s ease;
-}
-
-.shop-buy-btn:hover:not(:disabled) {
-  border-color: var(--px-accent);
 }
 
 .shop-buy-btn:active:not(:disabled) {
-  transform: translateY(2px);
+  transform: translate(2px, 2px);
   box-shadow:
-    inset 2px 2px 0 rgba(0, 0, 0, 0.55),
-    inset -1px -1px 0 rgba(255, 255, 255, 0.04);
+    2px 2px 0px #110d0d,
+    inset -4px -4px 0px rgba(0, 0, 0, 0.4),
+    inset 4px 4px 0px rgba(255, 255, 255, 0.05);
 }
 
 .shop-item-icon {
