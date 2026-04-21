@@ -1,8 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 /**
  * Supabase-Client (Vite: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY).
  * Fallback: gleiche Werte wie public/auth.js für lokale Builds ohne .env
+ * CDN-ESM: funktioniert auch ohne Bundler-Auflösung für @supabase/supabase-js.
  */
 const url =
   import.meta.env.VITE_SUPABASE_URL || 'https://mgvcxszzhxrvftqnizjm.supabase.co';
@@ -10,7 +11,7 @@ const anonKey =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ndmN4c3p6aHhydmZ0cW5pemptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NjYzMjIsImV4cCI6MjA5MDM0MjMyMn0.ccuwZQxMyuJC69i4rzFE2FyxvhcHQdAC5T9w0HhD2bg';
 
-/** @type {import('@supabase/supabase-js').SupabaseClient | null} */
+/** @type {import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm').SupabaseClient | null} */
 let client = null;
 
 export function getSupabaseClient() {

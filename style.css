@@ -785,6 +785,26 @@ footer {
    Unten nur Referenz-Duplikat für Karten/Altar.
 ═══════════════════════════════════════════════════════════ */
 
+/* Tab-Leiste (Necromancer): kein ui-tab-header-Bild mit Text — nur Flächenfarben */
+.tab-bar {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+.tab-btn {
+  background-image: none !important;
+  background-color: #291d1d !important;
+}
+
+.tab-btn:hover {
+  background-color: #352424 !important;
+}
+
+.tab-btn--active {
+  background-image: none !important;
+  background-color: #3d2a2a !important;
+}
+
 /* Klobige 3D-Stein-Blöcke — gleiche Werte wie necromancer-idle.css */
 .generator-card,
 .upgrade-card {
