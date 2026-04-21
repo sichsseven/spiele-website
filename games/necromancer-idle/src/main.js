@@ -17,6 +17,7 @@ import { initShopUI } from './ShopUI.js';
 import { initExpeditionSystem } from './ExpeditionSystem.js';
 import { initSkillTreeUI } from './SkillTreeUI.js';
 import { AudioManager } from './AudioManager.js';
+import { initLeaderboardTab, refreshLeaderboard } from './leaderboard.js';
 
 function initOfflineProgressModal() {
   const modal = document.getElementById('offline-modal');
@@ -64,6 +65,7 @@ function initTabNavigation() {
     { btn: document.getElementById('tab-friedhof'), panel: document.getElementById('panel-friedhof') },
     { btn: document.getElementById('tab-expedition'), panel: document.getElementById('panel-expedition') },
     { btn: document.getElementById('tab-unterwelt'), panel: document.getElementById('panel-unterwelt') },
+    { btn: document.getElementById('tab-leaderboard'), panel: document.getElementById('panel-leaderboard') },
   ];
 
   const activate = (index) => {
@@ -76,6 +78,7 @@ function initTabNavigation() {
       t.panel.hidden = !on;
       t.panel.classList.toggle('tab-panel--hidden', !on);
     });
+    if (index === 3) void refreshLeaderboard();
   };
 
   tabs.forEach((t, i) => {
@@ -101,6 +104,7 @@ void (async function bootstrap() {
   initShopUI(audio);
   initExpeditionSystem();
   initSkillTreeUI();
+  initLeaderboardTab();
   initTabNavigation();
   initOfflineProgressModal();
 

@@ -17,6 +17,7 @@ import {
   isUpgradeDiscovered,
   tryRegisterClick,
   getNextRasereiPayoutMult,
+  incrementLifetimeClick,
 } from './GameState.js';
 import { UPGRADE_DEFINITIONS } from './upgrades.js';
 import { SHOP_ASSET_BASE, UPGRADE_ICON_PATHS } from './shopIcons.js';
@@ -427,6 +428,7 @@ function initAltar(audio) {
       warnRateLimit();
       return;
     }
+    incrementLifetimeClick();
     const bpc = getBonesPerClick();
     const rMult = getNextRasereiPayoutMult();
     const gained = bpc * rMult;
@@ -445,6 +447,7 @@ function initAltar(audio) {
         warnRateLimit();
         return;
       }
+      incrementLifetimeClick();
       const bpc = getBonesPerClick();
       const rMult = getNextRasereiPayoutMult();
       const gained = bpc * rMult;

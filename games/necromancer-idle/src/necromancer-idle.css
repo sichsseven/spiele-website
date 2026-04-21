@@ -1536,3 +1536,130 @@ button:active:not(:disabled) {
     transform: translateY(-60px) scale(1.3);
   }
 }
+
+/* —— Ruhmeshalle (Leaderboard) —— */
+.leaderboard-tab {
+  font-family: 'VT323', monospace !important;
+}
+
+.leaderboard-login-hint {
+  margin: 0.5rem 0 0;
+  padding: 0.75rem 0.85rem;
+  color: var(--px-muted);
+  font-size: 0.95rem;
+  border: 2px dashed var(--px-border);
+  background: rgba(24, 19, 19, 0.65);
+}
+
+.leaderboard-cat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.leaderboard-cat-btn {
+  font-family: 'VT323', monospace !important;
+  font-size: 0.88rem;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  background-color: #291d1d !important;
+  border: 2px solid var(--px-border) !important;
+  color: var(--px-muted);
+}
+
+.leaderboard-cat-btn--active {
+  color: var(--px-text) !important;
+  border-color: var(--px-accent) !important;
+  box-shadow: 0 0 0 1px rgba(217, 46, 46, 0.35);
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: min(60vh, 520px);
+  overflow: auto;
+  padding: 0.65rem 0.75rem;
+  background-color: rgba(24, 19, 19, 0.92);
+  background-image: url('assets/stonewall_background_texture.png');
+  background-repeat: repeat;
+  background-size: auto;
+  border: 2px solid #5e3a2c;
+  box-shadow:
+    inset -2px -2px 0 rgba(0, 0, 0, 0.45),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.04);
+}
+
+.leaderboard-loading,
+.leaderboard-empty {
+  margin: 0;
+  color: var(--px-muted);
+  font-size: 0.92rem;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  border: 2px solid #5e3a2c;
+  background: rgba(41, 29, 29, 0.85);
+  color: var(--px-text);
+  font-size: 0.95rem;
+}
+
+.leaderboard-rank {
+  font-weight: 700;
+  color: var(--px-muted);
+}
+
+.leaderboard-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--px-text);
+}
+
+.leaderboard-row--gold {
+  border-color: #c9a227;
+  background: rgba(80, 60, 20, 0.55);
+}
+
+.leaderboard-row--gold .leaderboard-rank {
+  color: #ffd54f;
+}
+
+.leaderboard-row--silver {
+  border-color: #9e9e9e;
+  background: rgba(55, 55, 60, 0.5);
+}
+
+.leaderboard-row--silver .leaderboard-rank {
+  color: #e0e0e0;
+}
+
+.leaderboard-row--bronze {
+  border-color: #a1887f;
+  background: rgba(70, 45, 30, 0.55);
+}
+
+.leaderboard-row--bronze .leaderboard-rank {
+  color: #d7a574;
+}
+
+.leaderboard-row--self {
+  color: #d92e2e !important;
+  text-shadow: 0 0 10px rgba(217, 46, 46, 0.65);
+  box-shadow: 0 0 12px rgba(217, 46, 46, 0.25);
+}
+
+.leaderboard-row--self .leaderboard-value,
+.leaderboard-row--self .leaderboard-name {
+  color: #ff5555 !important;
+}

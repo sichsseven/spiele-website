@@ -80,6 +80,18 @@
           <button type="button" class="tab-btn tab-btn--active" role="tab" id="tab-friedhof" aria-selected="true" aria-controls="panel-friedhof" tabindex="0">Der Friedhof</button>
           <button type="button" class="tab-btn" role="tab" id="tab-expedition" aria-selected="false" aria-controls="panel-expedition" tabindex="-1">Expeditionen</button>
           <button type="button" class="tab-btn" role="tab" id="tab-unterwelt" aria-selected="false" aria-controls="panel-unterwelt" tabindex="-1">Unterwelt</button>
+          <button
+            type="button"
+            class="tab-btn"
+            role="tab"
+            id="tab-leaderboard"
+            aria-selected="false"
+            aria-controls="panel-leaderboard"
+            tabindex="-1"
+            data-tab="leaderboard-tab"
+          >
+            Rangliste
+          </button>
         </div>
 
         <div id="panel-friedhof" class="tab-panel" role="tabpanel" aria-labelledby="tab-friedhof" data-tab-panel="friedhof">
@@ -156,6 +168,37 @@
                 <g id="skilltree-lines"></g>
               </svg>
               <div class="skilltree-nodes" id="skilltree-nodes"></div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="panel-leaderboard"
+          class="tab-panel tab-panel--hidden"
+          role="tabpanel"
+          aria-labelledby="tab-leaderboard"
+          hidden
+          data-tab-panel="leaderboard"
+        >
+          <div id="leaderboard-tab" class="leaderboard-tab">
+            <h2 class="tab-panel-title">Ruhmeshalle</h2>
+            <p id="leaderboard-login-hint" class="leaderboard-login-hint" hidden>
+              Nur registrierte Nekromanten erscheinen in der Ruhmeshalle.
+            </p>
+            <div id="leaderboard-ui" class="leaderboard-ui">
+              <div class="leaderboard-cat" role="group" aria-label="Ranglisten-Kategorie">
+                <button
+                  type="button"
+                  class="leaderboard-cat-btn leaderboard-cat-btn--active"
+                  data-cat="bones"
+                >
+                  Reichste Nekromanten
+                </button>
+                <button type="button" class="leaderboard-cat-btn" data-cat="clicks">
+                  Altar-Schänder
+                </button>
+              </div>
+              <div id="leaderboard-list" class="leaderboard-list" aria-live="polite"></div>
             </div>
           </div>
         </div>

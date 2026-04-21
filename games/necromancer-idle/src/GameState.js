@@ -77,6 +77,8 @@ export const GameState = {
   dimensionMultiplier: 1,
   /** In dieser Runde insgesamt erspielte Knochen (für Prestige-Belohnung) */
   lifetimeBonesThisRun: 0,
+  /** Gesamte Altar-Klicks (Leaderboard „Altar-Schänder“) */
+  lifetimeClicks: 0,
   /** Level je Gebäude-ID */
   upgrades: initialUpgrades(),
   /** Expedition / Auto-Battler */
@@ -104,6 +106,27 @@ export const GameState = {
 let passiveRemainder = 0;
 
 let rasereiClickCount = 0;
+
+let leaderboardCloudSaveTimer = 0;
+
+/**
+ * Ein erfolgreicher Altar-Klick (Rate-Limit bestanden): +1 Lifetime-Klick, Cloud debounced.
+ */
+export function incrementLifetimeClick() {
+  GameState.lifetimeClicks = Math.max(0, Math.floor(GameState.lifetimeClicks || 0)) + 1;
+  dispatchStateChanged();
+  try {
+    saveGameLocal({ silent: true });
+  } catch (_) {
+    /* ignore */
+  }
+  if (necromancerAdminSandbox) return;
+  window.clearTimeout(leaderboardCloudSaveTimer);
+  leaderboardCloudSaveTimer = window.setTimeout(() => {
+    leaderboardCloudSaveTimer = 0;
+    void saveToSupabase();
+  }, 450);
+}
 
 /** Summe Skill-Bonuses inkl. Ghul-Modifikator, seltene Relikt-Würfe, Raserei */
 function sumUnlockedSkillBonuses() {
@@ -642,6 +665,10 @@ function applyLoadedState(data, opts = {}) {
     0,
     Math.floor(Number(data.lifetime_bones_this_run ?? data.lifetimeBonesThisRun) || 0),
   );
+  GameState.lifetimeClicks = Math.max(
+    0,
+    Math.floor(Number(data.lifetime_clicks ?? data.lifetimeClicks) || 0),
+  );
 
   const next = initialUpgrades();
   const rawUp = data.upgrades;
@@ -777,6 +804,7 @@ function buildPersistPayload() {
     dimensions_completed: GameState.dimensionsCompleted,
     dimension_multiplier: GameState.dimensionMultiplier,
     lifetime_bones_this_run: GameState.lifetimeBonesThisRun,
+    lifetime_clicks: GameState.lifetimeClicks,
     upgrades: { ...GameState.upgrades },
     expedition_state: {
       current_map: GameState.expeditionState.currentMap,
@@ -810,7 +838,10 @@ export async function saveToSupabase() {
   }
 }
 
-export function saveGameLocal() {
+/**
+ * @param {{ silent?: boolean }} [opts] — silent: kein „gespeichert“-Toast (z. B. bei jedem Klick)
+ */
+export function saveGameLocal(opts = {}) {
   try {
     const lastSavedTime = new Date().toISOString();
     const data = {
@@ -823,6 +854,7 @@ export function saveGameLocal() {
       dimensionsCompleted: GameState.dimensionsCompleted,
       dimensionMultiplier: GameState.dimensionMultiplier,
       lifetimeBonesThisRun: GameState.lifetimeBonesThisRun,
+      lifetimeClicks: GameState.lifetimeClicks,
       expeditionState: {
         currentMap: GameState.expeditionState.currentMap,
         activeUnits: { ...GameState.expeditionState.activeUnits },
@@ -837,7 +869,9 @@ export function saveGameLocal() {
       lastSavedTime,
     };
     localStorage.setItem(activeSaveKey(), JSON.stringify(data));
-    document.dispatchEvent(new CustomEvent('necro-game-saved'));
+    if (!opts.silent) {
+      document.dispatchEvent(new CustomEvent('necro-game-saved'));
+    }
     return true;
   } catch (e) {
     console.warn('saveGameLocal', e);
@@ -977,6 +1011,7 @@ export function loadGameLocal() {
       dimensions_completed: data.dimensionsCompleted,
       dimension_multiplier: data.dimensionMultiplier,
       lifetime_bones_this_run: data.lifetimeBonesThisRun,
+      lifetime_clicks: data.lifetimeClicks,
       upgrades: data.upgrades,
       expedition_state: data.expeditionState,
       artifacts_owned: data.artifactsOwned,
@@ -1105,6 +1140,7 @@ export async function loadFromSupabase() {
       dimensions_completed: row.dimensions_completed,
       dimension_multiplier: row.dimension_multiplier,
       lifetime_bones_this_run: row.lifetime_bones_this_run,
+      lifetime_clicks: row.lifetime_clicks,
       upgrades: row.upgrades,
       expedition_state: row.expedition_state,
       artifacts_owned: row.artifacts_owned,

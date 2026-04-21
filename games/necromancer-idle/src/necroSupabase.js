@@ -98,3 +98,28 @@ export async function upsertUserProgress(userId, row) {
   }
   return true;
 }
+
+/**
+ * @param {'bones' | 'clicks'} category
+ * @returns {Promise<Array<{ rank: number; benutzername: string; bones: number; lifetime_clicks: number; user_id: string }>>}
+ */
+export async function fetchLeaderboard(category) {
+  const sb = getSupabaseClient();
+  if (!sb) return [];
+  const cat = category === 'clicks' ? 'clicks' : 'bones';
+  const { data, error } = await sb.rpc('get_necromancer_leaderboard', {
+    p_category: cat,
+  });
+  if (error) {
+    console.warn('[Necro] fetchLeaderboard', error.message);
+    return [];
+  }
+  if (!Array.isArray(data)) return [];
+  return data.map((row) => ({
+    rank: Number(row.rank) || 0,
+    benutzername: String(row.benutzername ?? ''),
+    bones: Number(row.bones) || 0,
+    lifetime_clicks: Number(row.lifetime_clicks ?? row.lifetimeClicks) || 0,
+    user_id: String(row.user_id ?? row.userId ?? ''),
+  }));
+}
