@@ -807,19 +807,22 @@ footer {
     inset 2px 2px 0px rgba(255, 255, 255, 0.05);
 }
 
+/* Referenz: Spiel nutzt necromancer-idle.css — Altar ohne Kasten */
 #altar-click.click-altar {
-  width: 250px;
-  height: 250px;
   margin: 0 auto;
+  max-width: min(280px, 100%);
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  background-color: #1e1515;
-  border: 4px solid #5e3a2c;
-  box-shadow:
-    8px 8px 0px #0a0707,
-    inset -6px -6px 0px rgba(0, 0, 0, 0.6);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.altar-stone {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .pentagram-symbol {

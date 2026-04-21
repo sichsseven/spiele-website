@@ -50,16 +50,20 @@ body {
   font-smooth: never !important;
 }
 
-/* Steinwand-Textur (Asset) */
+/* Steinwand: global kacheln (nicht Tab-Header!) */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(24, 19, 19, 0.82) 0%, rgba(24, 19, 19, 0.9) 55%, rgba(24, 19, 19, 0.88) 100%),
-    url('assets/stonewall-background.png') center top / cover no-repeat;
+  background-color: #181313;
+  background-image:
+    linear-gradient(180deg, rgba(24, 19, 19, 0.78) 0%, rgba(24, 19, 19, 0.88) 100%),
+    url('assets/stonewall_background_texture.png');
+  background-repeat: no-repeat, repeat;
+  background-size: auto, auto;
+  background-position: 0 0, 0 0;
 }
 
 .sr-only {
@@ -313,6 +317,13 @@ button:active:not(:disabled) {
   text-transform: uppercase;
 }
 
+/* Rechte Spalte: kein undurchsichtiges Panel über Tab-Hintergrund / Steinwand */
+.col-main-tabs.panel {
+  background: transparent;
+  padding: 0 !important;
+  box-shadow: none;
+}
+
 /* —— Linke Spalte: Krypta —— */
 .col-crypta {
   grid-row: 2;
@@ -368,37 +379,40 @@ button:active:not(:disabled) {
   text-shadow: 0 0 10px #d92e2e;
 }
 
-/* —— Massiver Altar-Block (#altar-click = JS-Anker) —— */
+/* —— Altar (#altar-click = JS-Anker): PNG ohne Rahmen/Kasten, Text darunter —— */
 #altar-click.click-altar {
   position: relative;
-  overflow: hidden;
-  width: 250px;
-  height: 250px;
   margin: 0 auto;
+  max-width: min(280px, 100%);
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   align-items: center;
-  background-color: #1e1515;
-  border: 4px solid #5e3a2c;
-  box-shadow:
-    8px 8px 0px #0a0707,
-    inset -6px -6px 0px rgba(0, 0, 0, 0.6);
+  justify-content: flex-start;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0;
+  overflow: visible;
   cursor: pointer;
   user-select: none;
   outline: none;
-  padding: 0.35rem 0.5rem 0.5rem;
   text-align: center;
   flex-shrink: 0;
 }
 
-/* Dediziertes Altar-Asset (transparente Kanten) */
+/* Legacy-Klassen aus Referenz-HTML: ebenfalls „frei“ halten */
+.altar-stone {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
 #altar-click .altar-scene {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+  position: static;
+  display: block;
   width: 100%;
-  height: 100%;
+  max-width: 260px;
+  height: auto;
   object-fit: contain;
   object-position: center center;
   pointer-events: none;
@@ -407,15 +421,8 @@ button:active:not(:disabled) {
 }
 
 #altar-click.click-altar::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 45%;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(to top, rgba(10, 7, 7, 0.75) 0%, transparent 100%);
+  display: none;
+  content: none;
 }
 
 .pentagram-symbol {
@@ -450,7 +457,7 @@ button:active:not(:disabled) {
   z-index: 1;
   color: #d8caca;
   font-size: 0.95rem;
-  margin: 0;
+  margin: 0.65rem 0 0;
   letter-spacing: 0.12em;
   font-weight: 700;
   text-transform: uppercase;
@@ -462,16 +469,12 @@ button:active:not(:disabled) {
   z-index: 1;
   color: #9a8f8f;
   font-size: 0.82rem;
-  margin: 0.35rem 0 0;
+  margin: 0.4rem 0 0;
   text-shadow: 0 1px 0 #0a0707;
 }
 
-#altar-click.altar--rate-warn {
-  border-color: #ff4444 !important;
-  box-shadow:
-    8px 8px 0px #0a0707,
-    inset -6px -6px 0px rgba(0, 0, 0, 0.6),
-    0 0 20px rgba(217, 46, 46, 0.55) !important;
+#altar-click.altar--rate-warn .altar-scene {
+  filter: drop-shadow(0 0 12px rgba(255, 68, 68, 0.9));
 }
 
 /* —— Tabs & Shop —— */
@@ -485,6 +488,7 @@ button:active:not(:disabled) {
   overflow: hidden;
 }
 
+/* Tab-Header-Grafik nur hier — nicht auf .tab-panel / Body */
 .tab-bar {
   display: flex;
   flex-wrap: wrap;
@@ -495,6 +499,7 @@ button:active:not(:disabled) {
   background-image: url('assets/ui-tab-header.png');
   background-size: cover;
   background-position: center top;
+  background-repeat: no-repeat;
   padding: 0;
   margin: 0;
   flex-shrink: 0;
@@ -552,10 +557,11 @@ button:active:not(:disabled) {
   min-height: 0;
   overflow: auto;
   padding: 0.75rem 0.85rem 0.95rem;
-  background-color: rgba(24, 19, 19, 0.92);
-  background-image: linear-gradient(180deg, rgba(24, 19, 19, 0.88) 0%, rgba(24, 19, 19, 0.94) 100%),
-    url('assets/runestone-texture.png');
-  background-size: auto, 200px;
+  background-color: rgba(24, 19, 19, 0.9);
+  background-image: linear-gradient(180deg, rgba(24, 19, 19, 0.82) 0%, rgba(24, 19, 19, 0.92) 100%),
+    url('assets/stonewall_background_texture.png');
+  background-repeat: no-repeat, repeat;
+  background-size: auto, auto;
   border: 2px solid var(--px-border);
   border-top: none;
 }
@@ -654,7 +660,7 @@ button:active:not(:disabled) {
   cursor: pointer;
   background-color: #291d1d;
   background-image: linear-gradient(180deg, rgba(41, 29, 29, 0.97) 0%, rgba(41, 29, 29, 0.93) 100%),
-    url('assets/runestone-texture.png');
+    url('assets/runestone_texture.png');
   background-size: auto, 160px;
   border: 18px solid transparent;
   border-image: url('assets/ui-card-frame.png') 68 fill / 18px / 0 stretch;
@@ -678,7 +684,7 @@ button:active:not(:disabled) {
 .shop-buy-btn:hover:not(:disabled) {
   background-color: #332424;
   background-image: linear-gradient(180deg, rgba(51, 36, 36, 0.98) 0%, rgba(51, 36, 36, 0.94) 100%),
-    url('assets/runestone-texture.png');
+    url('assets/runestone_texture.png');
   background-size: auto, 160px;
   border-image: url('assets/ui-card-frame.png') 68 fill / 18px / 0 stretch;
   transform: translate(-2px, -2px);

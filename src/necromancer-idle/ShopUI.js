@@ -155,7 +155,7 @@ export function initShopUI(audio) {
       iconImg.decoding = 'async';
       iconImg.width = 32;
       iconImg.height = 32;
-      iconImg.src = `${SHOP_ASSET_BASE}/${UPGRADE_ICON_PATHS[def.id]}`;
+      iconImg.src = new URL(UPGRADE_ICON_PATHS[def.id], SHOP_ASSET_BASE).href;
 
       const iconMystery = document.createElement('span');
       iconMystery.className = 'shop-item-icon-mystery';
