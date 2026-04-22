@@ -101,25 +101,50 @@ export async function upsertUserProgress(userId, row) {
 
 /**
  * @param {'bones' | 'clicks'} category
- * @returns {Promise<Array<{ rank: number; benutzername: string; bones: number; lifetime_clicks: number; user_id: string }>>}
+ * @returns {Promise<{ rows: Array<{ rank: number; benutzername: string; bones: number; lifetime_clicks: number; user_id: string }>; error: string | null }>}
  */
 export async function fetchLeaderboard(category) {
   const sb = getSupabaseClient();
-  if (!sb) return [];
+  if (!sb) return { rows: [], error: 'Supabase nicht verbunden.' };
   const cat = category === 'clicks' ? 'clicks' : 'bones';
   const { data, error } = await sb.rpc('get_necromancer_leaderboard', {
     p_category: cat,
   });
   if (error) {
-    console.warn('[Necro] fetchLeaderboard', error.message);
-    return [];
+    console.warn('[Necro] fetchLeaderboard', error.message, error);
+    return { rows: [], error: error.message || String(error) };
   }
-  if (!Array.isArray(data)) return [];
-  return data.map((row) => ({
-    rank: Number(row.rank) || 0,
-    benutzername: String(row.benutzername ?? ''),
-    bones: Number(row.bones) || 0,
-    lifetime_clicks: Number(row.lifetime_clicks ?? row.lifetimeClicks) || 0,
-    user_id: String(row.user_id ?? row.userId ?? ''),
+  if (data == null) {
+    return { rows: [], error: 'Supabase lieferte keine Daten (null). Ist die RPC-Funktion deployt?' };
+  }
+  if (!Array.isArray(data)) {
+    return { rows: [], error: 'Unerwartetes Antwortformat von get_necromancer_leaderboard.' };
+  }
+
+  const asNum = (v) => {
+    if (v == null || v === '') return 0;
+    const n = typeof v === 'bigint' ? Number(v) : Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const rows = data.map((row) => ({
+    rank: asNum(row.lb_rank ?? row.rank ?? row.rk),
+    benutzername: String(row.benutzername ?? row.bn ?? ''),
+    bones: asNum(row.bones ?? row.b),
+    lifetime_clicks: asNum(row.lifetime_clicks ?? row.lifetimeClicks ?? row.lc),
+    user_id: String(row.user_id ?? row.userId ?? row.uid ?? ''),
   }));
+  return { rows, error: null };
+}
+
+/** Ruft die DB auf, den Cache für den eingeloggten User zu aktualisieren (nach Save sinnvoll). */
+export async function refreshNecromancerLbCacheSelf() {
+  const sb = getSupabaseClient();
+  if (!sb) return { ok: false };
+  const { error } = await sb.rpc('refresh_necromancer_lb_cache_self');
+  if (error) {
+    console.warn('[Necro] refresh_necromancer_lb_cache_self', error.message);
+    return { ok: false };
+  }
+  return { ok: true };
 }

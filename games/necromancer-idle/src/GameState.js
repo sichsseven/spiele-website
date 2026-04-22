@@ -14,6 +14,7 @@ import {
   fetchUserProgress,
   getCurrentUserId,
   getSupabaseClient,
+  refreshNecromancerLbCacheSelf,
   upsertUserProgress,
 } from './necroSupabase.js';
 
@@ -831,7 +832,10 @@ export async function saveToSupabase() {
   try {
     const auth = await getCurrentUserId();
     if (!auth) return false;
-    return await upsertUserProgress(auth.userId, buildPersistPayload());
+    const ok = await upsertUserProgress(auth.userId, buildPersistPayload());
+    if (!ok) return false;
+    await refreshNecromancerLbCacheSelf();
+    return true;
   } catch (e) {
     console.error('[Necro] saveToSupabase', e);
     return false;

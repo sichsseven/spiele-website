@@ -1,5 +1,13 @@
 import { formatGameNumber } from './GameState.js';
-import { fetchLeaderboard, getCurrentUserId } from './necroSupabase.js';
+import { fetchLeaderboard, getCurrentUserId, refreshNecromancerLbCacheSelf } from './necroSupabase.js';
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 /** @type {'bones' | 'clicks'} */
 let currentCategory = 'bones';
@@ -26,24 +34,29 @@ export async function refreshLeaderboard() {
   if (!listEl || !hintEl || !uiEl) return;
 
   const session = await getCurrentUserId();
-  if (!session) {
-    hintEl.hidden = false;
-    uiEl.hidden = true;
-    listEl.innerHTML = '';
-    return;
-  }
-
-  hintEl.hidden = true;
+  hintEl.hidden = !!session;
   uiEl.hidden = false;
 
   listEl.innerHTML = '<p class="leaderboard-loading">Lade Ruhmeshalle…</p>';
 
-  const rows = await fetchLeaderboard(currentCategory);
-  const selfId = session.userId;
+  if (session) {
+    await refreshNecromancerLbCacheSelf();
+  }
+
+  const { rows, error: fetchErr } = await fetchLeaderboard(currentCategory);
+  const selfId = session?.userId ?? '';
 
   listEl.innerHTML = '';
+  if (fetchErr) {
+    listEl.innerHTML = `<p class="leaderboard-empty leaderboard-empty--error" role="alert">
+      Rangliste konnte nicht geladen werden: ${escapeHtml(fetchErr)}
+      <br /><span class="leaderboard-hint-small">Ist <code>scripts/supabase-necromancer-leaderboard.sql</code> im Supabase-SQL-Editor ausgeführt?</span>
+    </p>`;
+    return;
+  }
   if (rows.length === 0) {
-    listEl.innerHTML = '<p class="leaderboard-empty">Noch keine Einträge.</p>';
+    listEl.innerHTML =
+      '<p class="leaderboard-empty">Noch keine Einträge mit Benutzername — nach dem ersten Cloud-Speichern erscheinst du hier.</p>';
     return;
   }
 
@@ -51,7 +64,7 @@ export async function refreshLeaderboard() {
     const el = document.createElement('div');
     el.className = 'leaderboard-row';
     el.dataset.userId = row.user_id;
-    if (row.user_id === selfId) el.classList.add('leaderboard-row--self');
+    if (selfId && row.user_id === selfId) el.classList.add('leaderboard-row--self');
 
     applyRankStyle(el, row.rank);
 

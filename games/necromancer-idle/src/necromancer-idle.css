@@ -1602,6 +1602,23 @@ button:active:not(:disabled) {
   font-size: 0.92rem;
 }
 
+.leaderboard-empty--error {
+  color: var(--px-accent);
+  line-height: 1.45;
+}
+
+.leaderboard-hint-small {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--px-muted);
+}
+
+.leaderboard-hint-small code {
+  font-size: 0.78rem;
+  word-break: break-all;
+}
+
 .leaderboard-row {
   display: grid;
   grid-template-columns: 3rem 1fr auto;
