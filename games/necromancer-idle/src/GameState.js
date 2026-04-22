@@ -116,12 +116,14 @@ let leaderboardCloudSaveTimer = 0;
 export function incrementLifetimeClick() {
   GameState.lifetimeClicks = Math.max(0, Math.floor(GameState.lifetimeClicks || 0)) + 1;
   dispatchStateChanged();
-  try {
-    saveGameLocal({ silent: true });
-  } catch (_) {
-    /* ignore */
+  if (necromancerAdminSandbox) {
+    try {
+      saveGameLocal({ silent: true });
+    } catch (_) {
+      /* ignore */
+    }
+    return;
   }
-  if (necromancerAdminSandbox) return;
   window.clearTimeout(leaderboardCloudSaveTimer);
   leaderboardCloudSaveTimer = window.setTimeout(() => {
     leaderboardCloudSaveTimer = 0;
@@ -843,9 +845,14 @@ export async function saveToSupabase() {
 }
 
 /**
- * @param {{ silent?: boolean }} [opts] — silent: kein „gespeichert“-Toast (z. B. bei jedem Klick)
+ * Nur bei `?admin=1` (Sandbox): Spielstand in localStorage.
+ * Normal: kein lokaler Speicher — nur Supabase.
+ * @param {{ silent?: boolean }} [opts] — silent: kein „gespeichert“-Toast
  */
 export function saveGameLocal(opts = {}) {
+  if (!necromancerAdminSandbox) {
+    return true;
+  }
   try {
     const lastSavedTime = new Date().toISOString();
     const data = {
@@ -890,26 +897,30 @@ export async function saveGame(opts = {}) {
   const silentToast = !!opts.silentToast;
   try {
     const cloud = await saveToSupabase();
-    saveGameLocal({ silent: true });
+    if (necromancerAdminSandbox) {
+      saveGameLocal({ silent: true });
+    }
     if (!silentToast) {
       document.dispatchEvent(
         new CustomEvent('necro-game-saved', {
-          detail: { source: cloud ? 'cloud' : 'local' },
+          detail: { source: cloud ? 'cloud' : 'failed' },
         }),
       );
     }
-    return true;
+    return cloud;
   } catch (e) {
     console.error('[Necro] saveGame', e);
-    try {
-      saveGameLocal({ silent: true });
-      if (!silentToast) {
-        document.dispatchEvent(
-          new CustomEvent('necro-game-saved', { detail: { source: 'local' } }),
-        );
+    if (necromancerAdminSandbox) {
+      try {
+        saveGameLocal({ silent: true });
+      } catch (e2) {
+        console.error('[Necro] saveGameLocal fallback', e2);
       }
-    } catch (e2) {
-      console.error('[Necro] saveGameLocal fallback', e2);
+    }
+    if (!silentToast) {
+      document.dispatchEvent(
+        new CustomEvent('necro-game-saved', { detail: { source: 'failed' } }),
+      );
     }
     return false;
   }
@@ -918,6 +929,20 @@ export async function saveGame(opts = {}) {
 const SAVE_KEY_LEGACY = 'necromancer-idle-save-v2';
 const SAVE_KEY_LEGACY_V3 = 'necromancer-idle-save-v3';
 const SAVE_KEY_LEGACY_V4 = 'necromancer-idle-save-v4';
+
+/** Entfernt alte Browser-Saves, sobald nur noch Cloud genutzt wird. */
+function clearLegacyLocalSaveKeys() {
+  if (necromancerAdminSandbox) return;
+  try {
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(SAVE_KEY_LEGACY_V4);
+    localStorage.removeItem(SAVE_KEY_LEGACY_V3);
+    localStorage.removeItem(SAVE_KEY_LEGACY);
+  } catch (_) {
+    /* ignore */
+  }
+}
+
 const OFFLINE_PROGRESS_MAX_SECONDS = 2 * 60 * 60;
 export const BUILDING_MILESTONE_LEVELS = [10, 25, 50, 100, 250, 500, 1000];
 
@@ -1008,6 +1033,9 @@ export function collectPendingOfflineProgress() {
 }
 
 export function loadGameLocal() {
+  if (!necromancerAdminSandbox) {
+    return false;
+  }
   try {
     let raw = localStorage.getItem(activeSaveKey());
     if (!necromancerAdminSandbox) {
@@ -1144,7 +1172,7 @@ export async function loadFromSupabase() {
   const parsedSv =
     rawSv !== undefined && rawSv !== null && rawSv !== '' ? Number(rawSv) : NaN;
   const versionForReset = Number.isFinite(parsedSv) ? parsedSv : 1;
-  const alreadyBalanced = localStorage.getItem(flagKey) === '1';
+  const alreadyBalanced = sessionStorage.getItem(flagKey) === '1';
   const needsEssenceReset = !alreadyBalanced && versionForReset < SAVE_VERSION;
 
   applyLoadedState(
@@ -1170,7 +1198,7 @@ export async function loadFromSupabase() {
   setupOfflineProgress(row.last_saved_time);
 
   if (needsEssenceReset) {
-    localStorage.setItem(flagKey, '1');
+    sessionStorage.setItem(flagKey, '1');
     try {
       await saveToSupabase();
     } catch (e) {
@@ -1180,16 +1208,16 @@ export async function loadFromSupabase() {
   return true;
 }
 
-/** Supabase zuerst (wenn eingeloggt + Zeile), sonst localStorage. Admin-Sandbox: nur lokal. */
+/** Cloud: eingeloggt + Zeile in user_progress. Admin `?admin=1`: nur localStorage. Sonst Neustart ohne Save. */
 export async function loadGameAsync() {
   pendingOfflineBones = 0;
   pendingOfflineSeconds = 0;
   if (necromancerAdminSandbox) {
     return loadGameLocal();
   }
+  clearLegacyLocalSaveKeys();
   const fromCloud = await loadFromSupabase();
-  if (fromCloud) return true;
-  return loadGameLocal();
+  return fromCloud;
 }
 
 export function startPassiveLoop() {

@@ -7,7 +7,6 @@ import {
   loadGameAsync,
   performPrestige,
   saveGame,
-  saveGameLocal,
   saveToSupabase,
   setNecromancerAdminSandbox,
   startPassiveLoop,
@@ -50,10 +49,9 @@ function initOfflineProgressModal() {
 
     void (async () => {
       const cloud = await saveToSupabase();
-      saveGameLocal({ silent: true });
       document.dispatchEvent(
         new CustomEvent('necro-game-saved', {
-          detail: { source: cloud ? 'cloud' : 'local' },
+          detail: { source: cloud ? 'cloud' : 'failed' },
         }),
       );
       modal.remove();
@@ -116,8 +114,8 @@ void (async function bootstrap() {
     const src = e.detail?.source;
     if (src === 'cloud') {
       el.textContent = 'In der Cloud gespeichert';
-    } else if (src === 'local') {
-      el.textContent = 'Nur lokal — für Rangliste bitte auf PIXELZONE einloggen';
+    } else if (src === 'failed') {
+      el.textContent = 'Cloud-Speichern fehlgeschlagen — bitte einloggen';
     } else {
       el.textContent = 'Fortschritt gespeichert';
     }
