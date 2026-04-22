@@ -50,11 +50,12 @@ function initOfflineProgressModal() {
 
     void (async () => {
       const cloud = await saveToSupabase();
-      if (!cloud) {
-        saveGameLocal();
-      } else {
-        document.dispatchEvent(new CustomEvent('necro-game-saved'));
-      }
+      saveGameLocal({ silent: true });
+      document.dispatchEvent(
+        new CustomEvent('necro-game-saved', {
+          detail: { source: cloud ? 'cloud' : 'local' },
+        }),
+      );
       modal.remove();
     })();
   };
@@ -109,15 +110,22 @@ void (async function bootstrap() {
   initOfflineProgressModal();
 
   let saveToastTimer = 0;
-  document.addEventListener('necro-game-saved', () => {
+  document.addEventListener('necro-game-saved', (e) => {
     const el = document.getElementById('save-toast');
     if (!el) return;
-    el.textContent = 'Fortschritt gespeichert';
+    const src = e.detail?.source;
+    if (src === 'cloud') {
+      el.textContent = 'In der Cloud gespeichert';
+    } else if (src === 'local') {
+      el.textContent = 'Nur lokal — für Rangliste bitte auf PIXELZONE einloggen';
+    } else {
+      el.textContent = 'Fortschritt gespeichert';
+    }
     el.classList.add('visible');
     window.clearTimeout(saveToastTimer);
     saveToastTimer = window.setTimeout(() => {
       el.classList.remove('visible');
-    }, 2200);
+    }, 3200);
   });
 
   let prestigeBusy = false;
@@ -153,7 +161,7 @@ void (async function bootstrap() {
   });
 
   window.setInterval(() => {
-    saveGame();
+    void saveGame({ silentToast: true });
   }, 30000);
 
   if (PZ && typeof PZ.adminPanelErstellen === 'function') {

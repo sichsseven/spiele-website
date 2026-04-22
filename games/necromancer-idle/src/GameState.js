@@ -883,19 +883,31 @@ export function saveGameLocal(opts = {}) {
   }
 }
 
-export async function saveGame() {
+/**
+ * @param {{ silentToast?: boolean }} [opts] — bei true kein Toast (z. B. Auto-Save alle 30s)
+ */
+export async function saveGame(opts = {}) {
+  const silentToast = !!opts.silentToast;
   try {
     const cloud = await saveToSupabase();
-    if (!cloud) {
-      saveGameLocal();
-    } else {
-      document.dispatchEvent(new CustomEvent('necro-game-saved'));
+    saveGameLocal({ silent: true });
+    if (!silentToast) {
+      document.dispatchEvent(
+        new CustomEvent('necro-game-saved', {
+          detail: { source: cloud ? 'cloud' : 'local' },
+        }),
+      );
     }
     return true;
   } catch (e) {
     console.error('[Necro] saveGame', e);
     try {
-      saveGameLocal();
+      saveGameLocal({ silent: true });
+      if (!silentToast) {
+        document.dispatchEvent(
+          new CustomEvent('necro-game-saved', { detail: { source: 'local' } }),
+        );
+      }
     } catch (e2) {
       console.error('[Necro] saveGameLocal fallback', e2);
     }
